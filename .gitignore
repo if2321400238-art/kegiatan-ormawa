@@ -22,3 +22,13 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# === Kustomisasi Tambahan Sistem Ormawa UNUJA ===
+# Mengabaikan berkas duplikat atau cadangan manual di root/subfolder
+* copy
+* backup.php
+* -enhanced.blade.php
+
+# Mengabaikan session aktif lokal agar tidak mengotori repositori git
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
