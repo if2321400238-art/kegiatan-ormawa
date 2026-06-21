@@ -1,0 +1,182 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-page: #F4F6FB;
+    --bg-card: #FFFFFF;
+    --bg-notif-unread: #F0F4FF;
+    --border-notif: #F3F4F6;
+    --bg-badge-danger: #EF4444;
+    --text-badge-danger: #FFFFFF;
+  }
+
+  body {
+    @apply font-sans bg-[var(--bg-page)] text-gray-900;
+  }
+}
+
+@layer components {
+  /* Komponen Sidebar */
+  .nav-item {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-[10px] text-white/70 text-[13px] font-medium transition-colors cursor-pointer;
+  }
+  .nav-item:hover {
+    @apply bg-white/10 text-white;
+  }
+  .nav-item.active {
+    @apply bg-brand-active text-white;
+  }
+  .nav-icon {
+    @apply w-[34px] h-[34px] rounded-md flex items-center justify-center bg-white/10 text-base flex-shrink-0;
+  }
+  .nav-item.active .nav-icon {
+    @apply bg-white/20;
+  }
+
+  /* Komponen Statistik */
+  .stat-card {
+    @apply bg-white rounded-xl border border-gray-200 p-5 flex items-center gap-4 shadow-sm;
+    border-left-width: 4px;
+    border-left-color: var(--accent);
+  }
+  .stat-icon {
+    @apply w-12 h-12 rounded-lg flex items-center justify-center text-[22px] flex-shrink-0;
+  }
+  .stat-label {
+    @apply text-[13px] text-gray-400 font-medium block mb-0.5;
+  }
+  .stat-value {
+    @apply text-2xl font-bold text-gray-900 leading-tight block;
+  }
+
+  /* Komponen Badge */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide whitespace-nowrap;
+  }
+  .badge::before {
+    content: '';
+    @apply w-1.5 h-1.5 rounded-full bg-current;
+  }
+  .badge-success { @apply bg-success-light text-emerald-700; }
+  .badge-warning { @apply bg-warning-light text-amber-700; }
+  .badge-danger  { @apply bg-danger-light text-red-700; }
+  .badge-info    { @apply bg-info-light text-blue-700; }
+  .badge-gray    { @apply bg-gray-100 text-gray-600; }
+  .badge-orange  { @apply bg-orange-light text-orange-700; }
+
+  /* Komponen Notifikasi */
+  .notif-dropdown {
+    @apply bg-white rounded-2xl border border-gray-100 shadow-lg overflow-hidden;
+  }
+  .notif-dropdown-header {
+    @apply p-4 border-b border-gray-100 flex items-center justify-between;
+  }
+  .notif-dropdown-header h3 {
+    @apply text-base font-semibold text-gray-900;
+  }
+  .notif-action {
+    @apply text-xs font-semibold text-brand-accent hover:text-brand-active transition;
+  }
+  .notif-list {
+    @apply max-h-96 overflow-y-auto;
+  }
+  .notif-item {
+    @apply p-5 border-b transition-colors duration-150 ease-in-out;
+    border-color: var(--border-notif);
+    @apply space-y-3;
+  }
+  .notif-item:hover {
+    @apply bg-gray-50;
+  }
+  .notif-item-unread {
+    background: var(--bg-notif-unread);
+    border-left-width: 4px;
+    border-left-style: solid;
+    border-left-color: var(--color-brand-accent);
+  }
+  .notif-title {
+    @apply text-sm font-semibold text-gray-900;
+  }
+  .notif-message {
+    @apply text-sm text-gray-600 leading-relaxed;
+  }
+  .notif-meta {
+    @apply flex items-center justify-between gap-3 text-xs text-gray-400;
+  }
+  .notif-link {
+    @apply text-brand-accent text-sm font-semibold hover:text-brand-active transition;
+  }
+  .notif-empty {
+    @apply p-6 text-center text-gray-500;
+  }
+  .notif-count-badge {
+    @apply absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full text-[10px] font-bold;
+    width: 1rem;
+    height: 1rem;
+    background: var(--bg-badge-danger);
+    color: var(--text-badge-danger);
+    border: 2px solid #ffffff;
+  }
+
+  /* Komponen Aksi Cepat */
+  .quick-action-card {
+    @apply bg-white border border-gray-200 rounded-xl p-5 cursor-pointer relative transition-all duration-150 ease-in-out;
+  }
+  .quick-action-card:hover {
+    @apply shadow-md -translate-y-0.5;
+  }
+  .qa-icon {
+    @apply w-11 h-11 rounded-lg flex items-center justify-center text-white text-xl mb-3;
+  }
+  .qa-arrow {
+    @apply absolute top-4 right-4 w-7 h-7 rounded-full bg-info-light text-info flex items-center justify-center text-sm;
+  }
+  .qa-title {
+    @apply text-[15px] font-semibold m-0 mb-0.5;
+  }
+  .qa-desc {
+    @apply text-[13px] text-gray-400 m-0;
+  }
+
+  /* Komponen Tabel */
+  .table-card {
+    @apply bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm flex flex-col;
+  }
+  .table-card table {
+    @apply w-full border-collapse text-[13px];
+  }
+  .table-card thead tr {
+    @apply bg-gray-50 border-b border-gray-200;
+  }
+  .table-card th {
+    @apply px-4 py-3 text-left font-semibold text-gray-600 text-[11px] tracking-wider uppercase;
+  }
+  .table-card td {
+    @apply px-4 py-3.5 text-gray-900 border-b border-gray-100;
+  }
+  .table-card tr:last-child td {
+    @apply border-b-0;
+  }
+  .table-card tr:hover td {
+    @apply bg-gray-50;
+  }
+
+  /* Komponen Daftar Ormawa */
+  .active-org-row {
+    @apply flex items-center gap-3 py-3 border-b border-gray-100;
+  }
+  .active-org-row:last-child {
+    @apply border-b-0;
+  }
+  .rank-pill {
+    @apply w-7 h-7 rounded-full bg-brand text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0;
+  }
+  .org-name {
+    @apply flex-1 text-[13px] font-medium text-gray-900;
+  }
+}
