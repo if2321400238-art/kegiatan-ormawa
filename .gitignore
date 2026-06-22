@@ -1,6 +1,6 @@
-# =========================
+# =====================================
 # Laravel
-# =========================
+# =====================================
 
 /vendor/
 /node_modules/
@@ -12,84 +12,100 @@
 /storage/*.key
 /storage/pail
 
-# Cache Laravel
+# Storage framework
 /storage/framework/cache/data/*
 !/storage/framework/cache/data/.gitignore
 
-# Session Laravel
 /storage/framework/sessions/*
 !/storage/framework/sessions/.gitignore
 
-# View cache Laravel
 /storage/framework/views/*
 !/storage/framework/views/.gitignore
 
-# Testing Laravel
 /storage/framework/testing/*
 !/storage/framework/testing/.gitignore
 
-# Log Laravel
 /storage/logs/*
 !/storage/logs/.gitignore
 
 
-# =========================
+# =====================================
 # Environment
-# =========================
+# =====================================
 
 .env
 .env.backup
 .env.production
 
+# Jika punya environment Docker terpisah
+.env.docker
 
-# =========================
+
+# =====================================
+# PHPUnit / PHP
+# =====================================
+
+.phpunit.result.cache
+.phpunit.cache
+.phpactor.json
+
+
+# =====================================
 # IDE / Editor
-# =========================
+# =====================================
 
-.idea/
 .vscode/
+.idea/
 .zed/
 .fleet/
 .nova/
 
-.phpactor.json
-.phpunit.result.cache
-.phpunit.cache/
 
-
-# =========================
+# =====================================
 # Sistem Operasi
-# =========================
+# =====================================
 
 .DS_Store
 Thumbs.db
 
 
-# =========================
+# =====================================
 # Laravel Homestead
-# =========================
+# =====================================
 
 Homestead.json
 Homestead.yaml
 
 
-# =========================
+# =====================================
 # Composer
-# =========================
+# =====================================
 
 auth.json
 
 
-# =========================
+# =====================================
 # Backup / file sementara
-# =========================
+# =====================================
 
 * copy
 * backup.php
 * -enhanced.blade.php
 
-# Docker
-docker-compose.override.yml
 
-# Environment Docker
-.env.docker
+# =====================================
+# Diagnostic (opsional)
+# =====================================
+
+diagnostic.php
+diagnostic_auth.php
+
+
+# =====================================
+# File laporan / eksperimen (opsional)
+# =====================================
+
+COMPLETION_REPORT.txt
+
+# Abaikan mockup HTML jika hanya referensi desain
+ormawa_dashboard_mockup_unuja.html
