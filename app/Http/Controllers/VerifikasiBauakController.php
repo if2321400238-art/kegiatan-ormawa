@@ -148,7 +148,7 @@ class VerifikasiBauakController extends Controller
         foreach ($warek3Users as $warek3) {
             sendNotification(
                 $warek3,
-                '📋 Pengajuan Siap Direview',
+                'Pengajuan Siap Direview',
                 "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} telah diverifikasi BAUAK dan menunggu persetujuan Anda.",
                 'info',
                 route('warek3.persetujuan.show', $pengajuan),

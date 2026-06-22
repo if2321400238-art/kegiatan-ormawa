@@ -428,7 +428,7 @@ class PengajuanKegiatanController extends Controller
             foreach ($bauakUsers as $bauak) {
                 sendNotification(
                     $bauak,
-                    '📋 Pengajuan Kegiatan Baru',
+                    'Pengajuan Kegiatan Baru',
                     "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu verifikasi Anda.",
                     'info',
                     route('bauak.verifikasi.show', $pengajuan),
