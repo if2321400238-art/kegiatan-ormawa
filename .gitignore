@@ -1,52 +1,89 @@
-*.log
-.DS_Store
+# =========================
+# Laravel
+# =========================
+
+/vendor/
+/node_modules/
+
+/public/build/
+/public/hot
+/public/storage
+
+/storage/*.key
+/storage/pail
+
+# Cache Laravel
+/storage/framework/cache/data/*
+!/storage/framework/cache/data/.gitignore
+
+# Session Laravel
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+
+# View cache Laravel
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+
+# Testing Laravel
+/storage/framework/testing/*
+!/storage/framework/testing/.gitignore
+
+# Log Laravel
+/storage/logs/*
+!/storage/logs/.gitignore
+
+
+# =========================
+# Environment
+# =========================
+
 .env
 .env.backup
 .env.production
+
+
+# =========================
+# IDE / Editor
+# =========================
+
+.idea/
+.vscode/
+.zed/
+.fleet/
+.nova/
+
 .phpactor.json
 .phpunit.result.cache
-/.fleet
-/.idea
-/.nova
-/.phpunit.cache
-/.vscode
-/.zed
-/auth.json
-/node_modules
-/public/build
-/public/hot
-/public/storage
-/storage/*.key
-/storage/pail
-/vendor
-Homestead.json
-Homestead.yaml
+.phpunit.cache/
+
+
+# =========================
+# Sistem Operasi
+# =========================
+
+.DS_Store
 Thumbs.db
 
-# === Kustomisasi Tambahan Sistem Ormawa UNUJA ===
-# Mengabaikan berkas duplikat atau cadangan manual di root/subfolder
+
+# =========================
+# Laravel Homestead
+# =========================
+
+Homestead.json
+Homestead.yaml
+
+
+# =========================
+# Composer
+# =========================
+
+auth.json
+
+
+# =========================
+# Backup / file sementara
+# =========================
+
 * copy
 * backup.php
 * -enhanced.blade.php
-
-# Mengabaikan session aktif lokal agar tidak mengotori repositori git
-/storage/framework/sessions/*
-!/storage/framework/sessions/.gitignore
-/storage/*.key
-/storage/pail
-
-/storage/framework/*
-!/storage/framework/.gitignore
-!/storage/framework/cache/
-!/storage/framework/cache/.gitignore
-!/storage/framework/cache/data/
-!/storage/framework/cache/data/.gitignore
-!/storage/framework/sessions/
-!/storage/framework/sessions/.gitignore
-!/storage/framework/testing/
-!/storage/framework/testing/.gitignore
-!/storage/framework/views/
-!/storage/framework/views/.gitignore
-
-/storage/logs/*
-!/storage/logs/.gitignore
