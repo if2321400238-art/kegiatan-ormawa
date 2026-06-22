@@ -45,5 +45,9 @@ export default {
         },
     },
 
-    plugins: [forms],
+    plugins: [
+        forms({
+            strategy: 'class', // <--- Tambahkan baris ini
+        }),
+    ],
 };
