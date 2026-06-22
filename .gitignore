@@ -87,3 +87,9 @@ auth.json
 * copy
 * backup.php
 * -enhanced.blade.php
+
+# Docker
+docker-compose.override.yml
+
+# Environment Docker
+.env.docker
