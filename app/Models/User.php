@@ -65,30 +65,71 @@ class User extends Authenticatable
         return $this->hasMany(PersetujuanWarek3::class, 'user_warek3_id');
     }
 
+    public const ROLE_ORMAWA = 'ormawa';
+    public const ROLE_BAUAK = 'bauak';
+    public const ROLE_WAREK3 = 'warek3';
+    public const ROLE_ADMIN = 'admin';
+    public const ROLE_DOSEN = 'dosen';
+    public const ROLE_DEKAN = 'dekan';
+    public const ROLE_REKTOR = 'rektor';
+    public const ROLE_PP = 'pp';
+
+    public static function allowedRoles(): array
+    {
+        return [
+            self::ROLE_ORMAWA,
+            self::ROLE_BAUAK,
+            self::ROLE_WAREK3,
+            self::ROLE_ADMIN,
+            self::ROLE_DOSEN,
+            self::ROLE_DEKAN,
+            self::ROLE_REKTOR,
+            self::ROLE_PP,
+        ];
+    }
+
     // ==========================================
     // HELPER METHODS
     // ==========================================
 
     public function isOrmawa(): bool
     {
-        return $this->role === 'ormawa';
+        return $this->role === self::ROLE_ORMAWA;
     }
 
     public function isBauak(): bool
     {
-        return $this->role === 'bauak';
+        return $this->role === self::ROLE_BAUAK;
     }
 
     public function isWarek3(): bool
     {
-        return $this->role === 'warek3';
+        return $this->role === self::ROLE_WAREK3;
     }
 
-    
+    public function isDosen(): bool
+    {
+        return $this->role === self::ROLE_DOSEN;
+    }
+
+    public function isDekan(): bool
+    {
+        return $this->role === self::ROLE_DEKAN;
+    }
+
+    public function isRektor(): bool
+    {
+        return $this->role === self::ROLE_REKTOR;
+    }
+
+    public function isPP(): bool
+    {
+        return $this->role === self::ROLE_PP;
+    }
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === self::ROLE_ADMIN;
     }
 
     public function hasRole(string $role): bool
@@ -108,10 +149,14 @@ class User extends Authenticatable
     public function getRoleLabelAttribute(): string
     {
         $labels = [
-            'ormawa' => 'Ormawa',
-            'bauak' => 'BAUAK',
-            'warek3' => 'Wakil Rektor III',
-            'admin' => 'Administrator',
+            self::ROLE_ORMAWA => 'Ormawa',
+            self::ROLE_BAUAK => 'BAUAK',
+            self::ROLE_WAREK3 => 'Wakil Rektor III',
+            self::ROLE_ADMIN => 'Administrator',
+            self::ROLE_DOSEN => 'Dosen Pembina',
+            self::ROLE_DEKAN => 'Dekan',
+            self::ROLE_REKTOR => 'Rektor',
+            self::ROLE_PP => 'Kepala/Wakil PP',
         ];
 
         return $labels[$this->role] ?? $this->role;

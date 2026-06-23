@@ -65,6 +65,26 @@ class PengajuanKegiatan extends Model
         return $this->hasOne(VerifikasiBauak::class, 'pengajuan_id')->latest();
     }
 
+    public function verifikasiDosen()
+    {
+        return $this->hasMany(VerifikasiDosen::class, 'pengajuan_id');
+    }
+
+    public function latestVerifikasiDosen()
+    {
+        return $this->hasOne(VerifikasiDosen::class, 'pengajuan_id')->latest();
+    }
+
+    public function persetujuanDekan()
+    {
+        return $this->hasMany(PersetujuanDekan::class, 'pengajuan_id');
+    }
+
+    public function latestPersetujuanDekan()
+    {
+        return $this->hasOne(PersetujuanDekan::class, 'pengajuan_id')->latest();
+    }
+
     public function persetujuanWarek3()
     {
         return $this->hasMany(PersetujuanWarek3::class, 'pengajuan_id');
@@ -75,23 +95,78 @@ class PengajuanKegiatan extends Model
         return $this->hasOne(PersetujuanWarek3::class, 'pengajuan_id')->latest();
     }
 
+    public function persetujuanRektor()
+    {
+        return $this->hasMany(PersetujuanRektor::class, 'pengajuan_id');
+    }
+
+    public function latestPersetujuanRektor()
+    {
+        return $this->hasOne(PersetujuanRektor::class, 'pengajuan_id')->latest();
+    }
+
     // ==========================================
     // SCOPES
     // ==========================================
 
     public function scopeDiajukan($query)
     {
-        return $query->where('status', 'diajukan');
+        return $query->where('status', 'menunggu_dosen');
     }
 
-    public function scopeMenungguVerifikasi($query)
+    public function scopeMenungguDosen($query)
     {
-        return $query->whereIn('status', ['diajukan', 'disetujui_bauak']);
+        return $query->where('status', 'menunggu_dosen');
+    }
+
+    public function scopeRevisiDosen($query)
+    {
+        return $query->where('status', 'revisi_dosen');
+    }
+
+    public function scopeMenungguDekan($query)
+    {
+        return $query->where('status', 'menunggu_dekan');
+    }
+
+    public function scopeRevisiDekan($query)
+    {
+        return $query->where('status', 'revisi_dekan');
+    }
+
+    public function scopeMenungguBauak($query)
+    {
+        return $query->where('status', 'menunggu_bauak');
+    }
+
+    public function scopeRevisiBauak($query)
+    {
+        return $query->where('status', 'revisi_bauak');
+    }
+
+    public function scopeMenungguWarek3($query)
+    {
+        return $query->where('status', 'menunggu_warek3');
+    }
+
+    public function scopeRevisiWarek3($query)
+    {
+        return $query->where('status', 'revisi_warek3');
+    }
+
+    public function scopeMenungguRektor($query)
+    {
+        return $query->where('status', 'disetujui_warek3');
+    }
+
+    public function scopeRevisiRektor($query)
+    {
+        return $query->where('status', 'revisi_rektor');
     }
 
     public function scopeDisetujui($query)
     {
-        return $query->where('status', 'disetujui_warek3');
+        return $query->where('status', 'disetujui');
     }
 
     public function scopeDitolak($query)
@@ -102,7 +177,7 @@ class PengajuanKegiatan extends Model
     public function scopeUpcoming($query)
     {
         return $query->where('tanggal_mulai', '>=', now())
-                    ->where('status', 'disetujui_warek3')
+                    ->where('status', 'disetujui')
                     ->orderBy('tanggal_mulai');
     }
 
@@ -114,11 +189,17 @@ class PengajuanKegiatan extends Model
     {
         $badges = [
             'draft' => 'secondary',
-            'diajukan' => 'info',
+            'menunggu_dosen' => 'warning',
+            'menunggu_dekan' => 'warning',
+            'menunggu_bauak' => 'warning',
+            'menunggu_warek3' => 'warning',
+            'menunggu_rektor' => 'warning',
+            'disetujui' => 'success',
+            'revisi_dosen' => 'warning',
+            'revisi_dekan' => 'warning',
             'revisi_bauak' => 'warning',
-            'disetujui_bauak' => 'primary',
             'revisi_warek3' => 'warning',
-            'disetujui_warek3' => 'success',
+            'revisi_rektor' => 'warning',
             'ditolak' => 'danger',
             'selesai' => 'dark',
         ];
@@ -130,11 +211,17 @@ class PengajuanKegiatan extends Model
     {
         $labels = [
             'draft' => 'Draft',
-            'diajukan' => 'Diajukan',
+            'menunggu_dosen' => 'Menunggu Dosen Pembina',
+            'menunggu_dekan' => 'Menunggu Dekan',
+            'menunggu_bauak' => 'Menunggu BAUAK',
+            'menunggu_warek3' => 'Menunggu Wakil Rektor III',
+            'menunggu_rektor' => 'Menunggu Rektor',
+            'disetujui' => 'Disetujui',
+            'revisi_dosen' => 'Revisi Dosen Pembina',
+            'revisi_dekan' => 'Revisi Dekan',
             'revisi_bauak' => 'Revisi BAUAK',
-            'disetujui_bauak' => 'Disetujui BAUAK',
-            'revisi_warek3' => 'Revisi Warek III',
-            'disetujui_warek3' => 'Disetujui Warek III',
+            'revisi_warek3' => 'Revisi Wakil Rektor III',
+            'revisi_rektor' => 'Revisi Rektor',
             'ditolak' => 'Ditolak',
             'selesai' => 'Selesai',
         ];
@@ -154,26 +241,39 @@ class PengajuanKegiatan extends Model
     public function canBeEditedBy($user): bool
     {
         if ($user->isOrmawa()) {
-            // Allow edit when draft, revision requested, or rejected so Ormawa can resubmit
-            return in_array($this->status, ['draft', 'revisi_bauak', 'revisi_warek3', 'ditolak'])
-                   && $this->ormawa->user_id === $user->id;
+            return in_array($this->status, [
+                'draft',
+                'diajukan',
+                'revisi_dosen',
+                'revisi_dekan',
+                'revisi_bauak',
+                'revisi_warek3',
+                'revisi_rektor',
+                'ditolak'
+            ]) && $this->ormawa->user_id === $user->id;
         }
+
         return false;
     }
 
     public function canBeVerifiedByBauak(): bool
     {
-        return $this->status === 'diajukan';
+        return $this->status === 'menunggu_bauak';
     }
 
     public function canBeApprovedByWarek3(): bool
     {
-        return $this->status === 'disetujui_bauak';
+        return $this->status === 'menunggu_warek3';
+    }
+
+    public function canBeReviewedByRektor(): bool
+    {
+        return $this->status === 'menunggu_rektor';
     }
 
     public function isApproved(): bool
     {
-        return $this->status === 'disetujui_warek3';
+        return $this->status === 'disetujui';
     }
 
     public function isRejected(): bool
@@ -183,7 +283,13 @@ class PengajuanKegiatan extends Model
 
     public function isPending(): bool
     {
-        return in_array($this->status, ['diajukan', 'disetujui_bauak']);
+        return in_array($this->status, [
+            'menunggu_dosen',
+            'menunggu_dekan',
+            'menunggu_bauak',
+            'menunggu_warek3',
+            'menunggu_rektor'
+        ]);
     }
 
     public function isUpcoming(): bool

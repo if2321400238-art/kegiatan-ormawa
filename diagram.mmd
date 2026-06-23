@@ -1,0 +1,126 @@
+flowchart TD
+  %% Authentication and route handling
+  subgraph AuthFlow[Authentication]
+    V[Visitor] -->|akses /| Root[/]
+    Root -->|redirect| Login[Login/Register page]
+    Login -->|submit login| Authenticate[AuthenticatedSessionController:store]
+    Authenticate -->|success| VerifyEmail{Email verified?}
+    VerifyEmail -->|yes| Dashboard[DashboardController:index]
+    VerifyEmail -->|no| EmailPrompt[VerifyEmail prompt]
+    Login -->|register| Register[RegisteredUserController:store]
+    Register -->|success| VerifyEmail
+    Dashboard -->|role=ormawa| D1[Ormawa Dashboard]
+    Dashboard -->|role=bauak| D2[BAUAK Dashboard]
+    Dashboard -->|role=warek3| D3[Warek3 Dashboard]
+    Dashboard -->|role=admin| D4[Admin Dashboard]
+  end
+
+  %% Ormawa workflow
+  subgraph OrmawaFlow[Ormawa]
+    D1 -->|akses profile| ProfileMenu[ProfileController:edit]
+    ProfileMenu -->|ubah data| ProfileUpdate[ProfileController:update]
+    ProfileMenu -->|akun delete| ProfileDelete[ProfileController:destroy]
+    ProfileUpdate -->|validasi| ProfileValid{Profile valid?}
+    ProfileValid -->|yes| OrmawaHome[Ormawa main menu]
+    ProfileValid -->|no| ProfileMenu
+
+    OrmawaHome -->|buat pengajuan| CreateForm[PengajuanKegiatanController:create]
+    CreateForm -->|submit| Store[PengajuanKegiatanController:store]
+    Store -->|validasi input| Validation{Form valid?}
+    Validation -->|no| CreateForm
+    Validation -->|yes| SavePengajuan[Create PengajuanKegiatan]
+    SavePengajuan -->|upload proposal| SaveProposal[Proposal::create]
+    SavePengajuan -->|upload RAB| SaveRAB[Rab::create]
+    SavePengajuan -->|buat surat rekomendasi draft| SaveDraftSR[SuratRekomendasi::create(status=draft)]
+    SavePengajuan -->|buat notifikasi| NotifyBAUAK[sendNotification ke BAUAK]
+    SavePengajuan -->|hasil| StatusDiajukan[status=diajukan]
+    StatusDiajukan -->|tampil| OrmawaHome
+
+    OrmawaHome -->|lihat daftar| ListPengajuan[PengajuanKegiatanController:index]
+    ListPengajuan -->|filter/search| Filter[search/status/date filters]
+    OrmawaHome -->|buka | Show[PengajuanKegiatanController:show]
+    Show -->|bisa edit? | CanEdit{status in draft/revisi_bauak/ditolak?}
+    CanEdit -->|yes| Edit[PengajuanKegiatanController:edit]
+    CanEdit -->|no| Show
+    Edit -->|submit update| Update[PengajuanKegiatanController:update]
+    Update -->|validasi| UpdateValid{Form valid?}
+    UpdateValid -->|no| Edit
+    UpdateValid -->|yes| SaveUpdate[PengajuanKegiatan update]
+    SaveUpdate -->|replace files| ReplaceFiles[Proposal/Rab update if uploaded]
+    SaveUpdate -->|reset status| ResetDiajukan[status=diajukan]
+    SaveUpdate -->|notify| NotifyBAUAK2[sendNotification ke BAUAK]
+    ResetDiajukan --> OrmawaHome
+
+    OrmawaHome -->|export csv| ExportCSV[PengajuanKegiatanController:exportCSV]
+    OrmawaHome -->|print view| PrintView[PengajuanKegiatanController:printView]
+    OrmawaHome -->|notifikasi| NotifList[NotifikasiController:index]
+    NotifList -->|read satu| MarkRead[NotifikasiController:read]
+    NotifList -->|read semua| MarkAllRead[NotifikasiController:read-all]
+    NotifList -->|hapus| DeleteNotif[NotifikasiController:destroy]
+  end
+
+  %% BAUAK workflow
+  subgraph BauakFlow[BAUAK]
+    D2 -->|lihat dashboard| BauakHome[Dashboard BAUAK]
+    BauakHome -->|lihat daftar| BauakIndex[VerifikasiBauakController:index]
+    BauakIndex -->|buka| BauakShow[VerifikasiBauakController:show]
+    BauakShow -->|verifikasi| VerifyForm[VerifikasiBauakController:verify]
+    VerifyForm -->|submit| VerifyAction[Validate status/catatan]
+    VerifyAction -->|disetujui| ApprovedBauak[status=disetujui_bauak]
+    VerifyAction -->|revisi| RevisionBauak[status=revisi_bauak]
+    VerifyAction -->|ditolak| RejectedBauak[status=ditolak]
+    ApprovedBauak -->|proposal/rab final| FinalizeDocs[Proposal/Rab status=final]
+    VerifyAction -->|kirim notifikasi Ormawa| NotifyOrmawa[sendNotification ke Ormawa]
+    ApprovedBauak -->|kirim notifikasi Warek3| NotifyWarek3[sendNotification ke Warek3]
+    BauakHome -->|lihat riwayat| BauakHistory[VerifikasiBauak records]
+  end
+
+  %% Warek3 workflow
+  subgraph Warek3Flow[Warek3]
+    D3 -->|lihat dashboard| Warek3Home[Dashboard Warek3]
+    Warek3Home -->|lihat pengajuan| WarekIndex[PersetujuanWarek3Controller:index]
+    WarekIndex -->|buka| WarekShow[PersetujuanWarek3Controller:show]
+    WarekShow -->|approve| WarekApprove[PersetujuanWarek3Controller:approve]
+    WarekShow -->|reject| WarekReject[PersetujuanWarek3Controller:reject]
+    WarekApprove -->|create persetujuan| SaveApproval[PersetujuanWarek3::create(status=disetujui)]
+    WarekApprove -->|update pengajuan| ApprovedWarek3[status=disetujui_warek3]
+    WarekApprove -->|notif Ormawa| NotifyOrmawaFinal[sendNotification ke Ormawa]
+    WarekReject -->|create persetujuan| SaveReject[PersetujuanWarek3::create(status=ditolak)]
+    WarekReject -->|update pengajuan| RejectedWarek3[status=ditolak]
+    WarekReject -->|notif Ormawa| NotifyOrmawaReject[sendNotification ke Ormawa]
+    Warek3Home -->|monitoring| Monitoring[PersetujuanWarek3Controller:monitoring]
+    Monitoring -->|filter| MonitoringFilter[bulan/ormawa filter]
+  end
+
+  %% Admin workflow
+  subgraph AdminFlow[Admin]
+    D4 -->|lihat dashboard| AdminHome[Dashboard Admin]
+    AdminHome -->|kelola ormawa| AdminOrmawa[OrmawaController resource]
+    AdminHome -->|kelola pengajuan| AdminPengajuan[PengajuanKegiatanController resource]
+    AdminHome -->|lihat laporan| AdminReport[LaporanController]
+    AdminOrmawa -->|index/create/edit| OrmawaCRUD[manage Ormawa records]
+    AdminPengajuan -->|index/show/edit/delete| PengajuanCRUD[manage Pengajuan records]
+  end
+
+  %% Status transitions
+  ApprovedBauak --> WarekIndex
+  RevisionBauak --> OrmawaHome
+  RejectedBauak --> OrmawaHome
+  ApprovedWarek3 --> Completed[Pengajuan selesai]
+  RejectedWarek3 --> Completed
+  NotifyWarek3 -.->|workflow| D3
+
+  %% Cross-role interactions
+  NotifyBAUAK -.-> BauakIndex
+  NotifyBAUAK2 -.-> BauakIndex
+  NotifyOrmawa -.-> NotifList
+  NotifyOrmawaFinal -.-> NotifList
+  NotifyOrmawaReject -.-> NotifList
+
+  %% Notes
+  MarkRead -.-> NotifList
+  MarkAllRead -.-> NotifList
+  DeleteNotif -.-> NotifList
+  ExportCSV -.-> ListPengajuan
+  PrintView -.-> ListPengajuan
+  OrmawaHome -.->|route /pengajuan| ListPengajuan

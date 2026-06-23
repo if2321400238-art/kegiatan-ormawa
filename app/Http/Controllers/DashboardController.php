@@ -38,13 +38,13 @@ class DashboardController extends Controller
             'total_pengajuan' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->count(),
             'draft' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->where('status', 'draft')->count(),
             'menunggu_verifikasi' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)
-                ->whereIn('status', ['diajukan', 'disetujui_bauak'])
+                ->whereIn(['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor'])
                 ->count(),
             'disetujui' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)
-                ->where('status', 'disetujui_warek3')
+                ->where('status', 'disetujui')
                 ->count(),
             'ditolak' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->where('status', 'ditolak')->count(),
-            'revisi' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->where('status', 'revisi_bauak')->count(),
+            'revisi' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->whereIn(['revisi_dosen','revisi_dekan','revisi_bauak','revisi_warek3','revisi_rektor'])->count(),
 
         ];
 
@@ -66,7 +66,7 @@ class DashboardController extends Controller
     private function dashboardBauak()
     {
         $stats = [
-            'menunggu_verifikasi' => PengajuanKegiatan::where('status', 'diajukan')->count(),
+            'menunggu_verifikasi' => PengajuanKegiatan::where('status', 'menunggu_bauak')->count(),
             'diverifikasi_hari_ini' => VerifikasiBauak::whereDate('tanggal_verifikasi', today())
                 ->where('user_bauak_id', Auth::id())
                 ->count(),
@@ -97,7 +97,7 @@ class DashboardController extends Controller
     private function dashboardWarek3()
     {
         $stats = [
-            'menunggu_approval' => PengajuanKegiatan::where('status', 'disetujui_bauak')->count(),
+            'menunggu_approval' => PengajuanKegiatan::where('status', 'menunggu_warek3')->count(),
             'disetujui_hari_ini' => PersetujuanWarek3::whereDate('tanggal_acc', today())
                 ->where('user_warek3_id', Auth::id())
                 ->count(),
@@ -130,9 +130,9 @@ class DashboardController extends Controller
             'total_ormawa' => \App\Models\Ormawa::count(),
             'total_pengajuan' => PengajuanKegiatan::count(),
 
-            'pengajuan_pending' => PengajuanKegiatan::whereIn('status', ['diajukan', 'disetujui_bauak'])->count(),
+            'pengajuan_pending' => PengajuanKegiatan::whereIn('status', ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor'])->count(),
             'pengajuan_disetujui' => PengajuanKegiatan::where('status', 'disetujui_warek3')->count(),
-            'pengajuan_revisi' => PengajuanKegiatan::where('status', 'revisi_bauak')->count(),
+            'pengajuan_revisi' => PengajuanKegiatan::whereIn('status', ['revisi_dosen', 'revisi_dekan', 'revisi_bauak', 'revisi_warek3', 'revisi_rektor'])->count(),
             'pengajuan_ditolak' => PengajuanKegiatan::where('status', 'ditolak')->count(),
 
         ];

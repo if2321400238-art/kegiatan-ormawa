@@ -4,6 +4,9 @@ use App\Http\Controllers\{
     DashboardController,
     PengajuanKegiatanController,
     VerifikasiBauakController,
+    VerifikasiDosenController,
+    PersetujuanDekanController,
+    PersetujuanRektorController,
     PersetujuanWarek3Controller,
     NotifikasiController,
     ProfileController,
@@ -76,7 +79,7 @@ Route::middleware(['auth'])->group(function () {
     //     Route::get('/print/view', [PengajuanKegiatanController::class, 'printView'])->name('printView');
     // });
 
-    Route::middleware(['auth', 'role:ormawa|bauak'])
+    Route::middleware(['auth', 'role:ormawa|bauak|dosen|dekan|warek3|rektor|admin|pp'])
     ->prefix('pengajuan')
     ->name('pengajuan.')
     ->group(function () {
@@ -106,10 +109,41 @@ Route::middleware(['auth'])->group(function () {
 
     // ==========================================
 
-
     // Allow Ormawa without complete profile to access profile page
     Route::middleware(['role:ormawa'])->group(function () {
         Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    });
+
+    // ==========================================
+    // DOSEN ROUTES
+    Route::middleware(['role:dosen'])->prefix('dosen')->name('dosen.')->group(function () {
+        Route::prefix('verifikasi')->name('verifikasi.')->group(function () {
+            Route::get('/', [VerifikasiDosenController::class, 'index'])->name('index');
+            Route::get('/{pengajuan}', [VerifikasiDosenController::class, 'show'])->name('show');
+            Route::post('/{pengajuan}/verify', [VerifikasiDosenController::class, 'verify'])->name('verify');
+        });
+    });
+
+    // ==========================================
+    // DEKAN ROUTES
+    Route::middleware(['role:dekan'])->prefix('dekan')->name('dekan.')->group(function () {
+        Route::prefix('persetujuan')->name('persetujuan.')->group(function () {
+            Route::get('/', [PersetujuanDekanController::class, 'index'])->name('index');
+            Route::get('/{pengajuan}', [PersetujuanDekanController::class, 'show'])->name('show');
+            Route::post('/{pengajuan}/approve', [PersetujuanDekanController::class, 'approve'])->name('approve');
+            Route::post('/{pengajuan}/reject', [PersetujuanDekanController::class, 'reject'])->name('reject');
+        });
+    });
+
+    // ==========================================
+    // REKTOR ROUTES
+    Route::middleware(['role:rektor'])->prefix('rektor')->name('rektor.')->group(function () {
+        Route::prefix('persetujuan')->name('persetujuan.')->group(function () {
+            Route::get('/', [PersetujuanRektorController::class, 'index'])->name('index');
+            Route::get('/{pengajuan}', [PersetujuanRektorController::class, 'show'])->name('show');
+            Route::post('/{pengajuan}/approve', [PersetujuanRektorController::class, 'approve'])->name('approve');
+            Route::post('/{pengajuan}/reject', [PersetujuanRektorController::class, 'reject'])->name('reject');
+        });
     });
 
     // ==========================================

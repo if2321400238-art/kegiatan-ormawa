@@ -17,6 +17,7 @@ class Ormawa extends Model
         'nama_ormawa',
         'ketua',
         'pembina',
+        'jenis_ormawa',
         'kop_surat',
         'kontak',
         'deskripsi',
@@ -63,6 +64,16 @@ class Ormawa extends Model
         return !empty($this->nama_ormawa)
             && !empty($this->ketua)
             && !empty($this->kop_surat);
+    }
+
+    public function isFakultas(): bool
+    {
+        return $this->jenis_ormawa === 'fakultas';
+    }
+
+    public function isUniversitas(): bool
+    {
+        return $this->jenis_ormawa === 'universitas';
     }
 
     // ==========================================

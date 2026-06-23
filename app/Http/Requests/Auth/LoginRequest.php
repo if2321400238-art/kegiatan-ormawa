@@ -50,6 +50,21 @@ class LoginRequest extends FormRequest
         }
 
         RateLimiter::clear($this->throttleKey());
+
+        $user = Auth::user();
+        if ($user && ! in_array($user->role, \App\Models\User::allowedRoles(), true)) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda tidak memiliki hak akses yang valid.',
+            ]);
+        }
+
+        if ($user && ! $user->is_active) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda sedang tidak aktif.',
+            ]);
+        }
     }
 
     /**

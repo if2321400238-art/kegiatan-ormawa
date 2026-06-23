@@ -64,6 +64,48 @@ class DatabaseSeeder extends Seeder
             'is_active' => true,
         ]);
 
+        // ==========================================
+        // 4. CREATE ADDITIONAL ACADEMIC & PP ROLES
+        // ==========================================
+        User::create([
+            'username' => 'dosen',
+            'email' => 'dosen@gmail.com',
+            'password' => Hash::make('password'),
+            'role' => 'dosen',
+            'nama' => 'Dr. Siti Nurjanah, M.Si',
+            'no_hp' => '081234567894',
+            'is_active' => true,
+        ]);
+
+        User::create([
+            'username' => 'dekan',
+            'email' => 'dekan@gmail.com',
+            'password' => Hash::make('password'),
+            'role' => 'dekan',
+            'nama' => 'Dekan Fakultas',
+            'no_hp' => '081234567895',
+            'is_active' => true,
+        ]);
+
+        User::create([
+            'username' => 'rektor',
+            'email' => 'rektor@gmail.com',
+            'password' => Hash::make('password'),
+            'role' => 'rektor',
+            'nama' => 'Rektor Universitas',
+            'no_hp' => '081234567896',
+            'is_active' => true,
+        ]);
+
+        User::create([
+            'username' => 'pp',
+            'email' => 'pp@gmail.com',
+            'password' => Hash::make('password'),
+            'role' => 'pp',
+            'nama' => 'Kepala/Wakil PP',
+            'no_hp' => '081234567897',
+            'is_active' => true,
+        ]);
 
 
         // ==========================================
@@ -134,6 +176,7 @@ class DatabaseSeeder extends Seeder
                 'nama_ormawa' => $data['nama_ormawa'],
                 'ketua' => $data['ketua'],
                 'pembina' => $data['pembina'],
+                'jenis_ormawa' => in_array($data['username'], ['bem', 'hmi', 'pmii']) ? 'universitas' : 'fakultas',
                 'kontak' => $data['no_hp'],
             ]);
         }

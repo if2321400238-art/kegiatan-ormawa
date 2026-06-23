@@ -138,7 +138,7 @@ class PengajuanKegiatanController extends Controller
                 'tanggal_selesai' => $validated['tanggal_selesai'],
                 'ketua_pelaksana' => $validated['ketua_pelaksana'],
                 'nama_pemohon' => $validated['nama_pemohon'],
-                'status' => 'diajukan',
+                'status' => 'menunggu_dosen',
             ]);
 
             // Upload Proposal
@@ -175,8 +175,8 @@ class PengajuanKegiatanController extends Controller
                 'status' => 'draft',
             ]);
 
-            // Create notification for BAUAK
-            $this->createNotificationForBauak($pengajuan);
+            // Create notification for Dosen Pembina
+            $this->createNotificationForDosen($pengajuan);
 
             DB::commit();
 
@@ -294,10 +294,28 @@ class PengajuanKegiatanController extends Controller
 
 
             // Update status back to diajukan and clear previous BAUAK notes
-            $pengajuan->update(['status' => 'diajukan', 'catatan' => null]);
+            $nextStatus = match ($pengajuan->status) {
+                'revisi_dosen', 'diajukan', 'draft', 'ditolak' => 'menunggu_dosen',
+                'revisi_dekan' => 'menunggu_dekan',
+                'revisi_bauak' => 'menunggu_bauak',
+                'revisi_warek3' => 'disetujui_bauak',
+                'revisi_rektor' => 'menunggu_rektor',
+                default => 'menunggu_dosen',
+            };
 
-            // Notify BAUAK that pengajuan telah diajukan ulang
-            $this->createNotificationForBauak($pengajuan);
+            $pengajuan->update(['status' => $nextStatus, 'catatan' => null]);
+
+            if ($nextStatus === 'menunggu_dekan') {
+                $this->createNotificationForDekan($pengajuan);
+            } elseif ($nextStatus === 'menunggu_bauak') {
+                $this->createNotificationForBauak($pengajuan);
+            } elseif ($nextStatus === 'disetujui_bauak') {
+                $this->createNotificationForWarek3($pengajuan);
+            } elseif ($nextStatus === 'menunggu_rektor') {
+                $this->createNotificationForRektor($pengajuan);
+            } else {
+                $this->createNotificationForDosen($pengajuan);
+            }
 
             DB::commit();
 
@@ -417,10 +435,53 @@ class PengajuanKegiatanController extends Controller
         return "{$number}/BAUAK-SR/{$month}/{$year}";
     }
 
+    private function createNotificationForDosen($pengajuan)
+    {
+        try {
+            $dosenUsers = \App\Models\User::where('role', 'dosen')
+                ->where('is_active', true)
+                ->get();
+
+            foreach ($dosenUsers as $dosen) {
+                sendNotification(
+                    $dosen,
+                    'Pengajuan Kegiatan Menunggu Verifikasi Dosen Pembina',
+                    "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu verifikasi Anda.",
+                    'info',
+                    route('dosen.verifikasi.show', $pengajuan),
+                    ['telegram', 'email', 'in_app']
+                );
+            }
+        } catch (\Exception $e) {
+            Log::error('Error creating Dosen notification: ' . $e->getMessage());
+        }
+    }
+
+    private function createNotificationForDekan($pengajuan)
+    {
+        try {
+            $dekanUsers = \App\Models\User::where('role', 'dekan')
+                ->where('is_active', true)
+                ->get();
+
+            foreach ($dekanUsers as $dekan) {
+                sendNotification(
+                    $dekan,
+                    'Pengajuan Kegiatan Menunggu Persetujuan Dekan',
+                    "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu persetujuan Dekan.",
+                    'info',
+                    route('dekan.persetujuan.show', $pengajuan),
+                    ['telegram', 'email', 'in_app']
+                );
+            }
+        } catch (\Exception $e) {
+            Log::error('Error creating Dekan notification: ' . $e->getMessage());
+        }
+    }
+
     private function createNotificationForBauak($pengajuan)
     {
         try {
-            // Get all BAUAK users
             $bauakUsers = \App\Models\User::where('role', 'bauak')
                 ->where('is_active', true)
                 ->get();
@@ -428,8 +489,8 @@ class PengajuanKegiatanController extends Controller
             foreach ($bauakUsers as $bauak) {
                 sendNotification(
                     $bauak,
-                    'Pengajuan Kegiatan Baru',
-                    "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu verifikasi Anda.",
+                    'Pengajuan Kegiatan Menunggu Verifikasi BAUAK',
+                    "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu verifikasi BAUAK.",
                     'info',
                     route('bauak.verifikasi.show', $pengajuan),
                     ['telegram', 'email', 'in_app']
@@ -437,7 +498,50 @@ class PengajuanKegiatanController extends Controller
             }
         } catch (\Exception $e) {
             Log::error('Error creating BAUAK notification: ' . $e->getMessage());
-            // Don't throw error, just log it
+        }
+    }
+
+    private function createNotificationForWarek3($pengajuan)
+    {
+        try {
+            $warek3Users = \App\Models\User::where('role', 'warek3')
+                ->where('is_active', true)
+                ->get();
+
+            foreach ($warek3Users as $warek3) {
+                sendNotification(
+                    $warek3,
+                    'Pengajuan Kegiatan Menunggu Persetujuan Wakil Rektor III',
+                    "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu persetujuan Wakil Rektor III.",
+                    'info',
+                    route('warek3.persetujuan.show', $pengajuan),
+                    ['telegram', 'email', 'in_app']
+                );
+            }
+        } catch (\Exception $e) {
+            Log::error('Error creating Warek3 notification: ' . $e->getMessage());
+        }
+    }
+
+    private function createNotificationForRektor($pengajuan)
+    {
+        try {
+            $rektorUsers = \App\Models\User::where('role', 'rektor')
+                ->where('is_active', true)
+                ->get();
+
+            foreach ($rektorUsers as $rektor) {
+                sendNotification(
+                    $rektor,
+                    'Pengajuan Kegiatan Menunggu Persetujuan Rektor',
+                    "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu persetujuan Rektor.",
+                    'info',
+                    route('rektor.persetujuan.show', $pengajuan),
+                    ['telegram', 'email', 'in_app']
+                );
+            }
+        } catch (\Exception $e) {
+            Log::error('Error creating Rektor notification: ' . $e->getMessage());
         }
     }
 }
