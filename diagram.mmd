@@ -33,7 +33,7 @@ flowchart TD
     SavePengajuan -->|upload RAB| SaveRAB[Rab::create]
     SavePengajuan -->|buat surat rekomendasi draft| SaveDraftSR[SuratRekomendasi::create(status=draft)]
     SavePengajuan -->|buat notifikasi| NotifyBAUAK[sendNotification ke BAUAK]
-    SavePengajuan -->|hasil| StatusDiajukan[status=diajukan]
+    SavePengajuan -->|hasil| StatusDiajukan[status=menunggu_dosen]
     StatusDiajukan -->|tampil| OrmawaHome
 
     OrmawaHome -->|lihat daftar| ListPengajuan[PengajuanKegiatanController:index]
@@ -47,7 +47,7 @@ flowchart TD
     UpdateValid -->|no| Edit
     UpdateValid -->|yes| SaveUpdate[PengajuanKegiatan update]
     SaveUpdate -->|replace files| ReplaceFiles[Proposal/Rab update if uploaded]
-    SaveUpdate -->|reset status| ResetDiajukan[status=diajukan]
+    SaveUpdate -->|reset status| ResetDiajukan[status=menunggu_dosen]
     SaveUpdate -->|notify| NotifyBAUAK2[sendNotification ke BAUAK]
     ResetDiajukan --> OrmawaHome
 
@@ -66,7 +66,7 @@ flowchart TD
     BauakIndex -->|buka| BauakShow[VerifikasiBauakController:show]
     BauakShow -->|verifikasi| VerifyForm[VerifikasiBauakController:verify]
     VerifyForm -->|submit| VerifyAction[Validate status/catatan]
-    VerifyAction -->|disetujui| ApprovedBauak[status=disetujui_bauak]
+    VerifyAction -->|disetujui| ApprovedBauak[status=menunggu_warek3]
     VerifyAction -->|revisi| RevisionBauak[status=revisi_bauak]
     VerifyAction -->|ditolak| RejectedBauak[status=ditolak]
     ApprovedBauak -->|proposal/rab final| FinalizeDocs[Proposal/Rab status=final]
@@ -83,7 +83,7 @@ flowchart TD
     WarekShow -->|approve| WarekApprove[PersetujuanWarek3Controller:approve]
     WarekShow -->|reject| WarekReject[PersetujuanWarek3Controller:reject]
     WarekApprove -->|create persetujuan| SaveApproval[PersetujuanWarek3::create(status=disetujui)]
-    WarekApprove -->|update pengajuan| ApprovedWarek3[status=disetujui_warek3]
+    WarekApprove -->|update pengajuan| ApprovedWarek3[status=disetujui]
     WarekApprove -->|notif Ormawa| NotifyOrmawaFinal[sendNotification ke Ormawa]
     WarekReject -->|create persetujuan| SaveReject[PersetujuanWarek3::create(status=ditolak)]
     WarekReject -->|update pengajuan| RejectedWarek3[status=ditolak]
