@@ -9,7 +9,7 @@
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        @if($pengajuan->count())
+        @if($pengajuanMenunggu->count())
             <table class="w-full">
                 <thead>
                     <tr class="text-left text-xs text-gray-500">
@@ -20,7 +20,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($pengajuan as $item)
+                    @foreach($pengajuanMenunggu as $item)
                         <tr class="border-t">
                             <td class="py-3">{{ $item->judul_kegiatan }}</td>
                             <td>{{ $item->ormawa->nama_ormawa }}</td>
