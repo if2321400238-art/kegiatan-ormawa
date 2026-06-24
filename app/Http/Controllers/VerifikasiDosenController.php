@@ -12,7 +12,7 @@ class VerifikasiDosenController extends Controller
     public function index(Request $request)
     {
         $query = PengajuanKegiatan::with(['ormawa', 'proposal', 'rab'])
-            ->whereIn('status', ['diajukan', 'revisi_dosen']);
+            ->whereIn('status', ['menunggu_dosen', 'revisi_dosen']);
 
         if ($request->filled('search')) {
             $search = $request->input('search');

@@ -21,7 +21,7 @@
             {{-- Step 1: Diajukan --}}
             <div class="flex-1 text-center relative z-10">
                 @php
-                    $isStep1Active = in_array($pengajuan->status, ['diajukan', 'disetujui_bauak', 'disetujui_warek3']);
+                    $isStep1Active = in_array($pengajuan->status, ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'disetujui']);
                 @endphp
                 <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center border-4 border-white shadow-sm {{ $isStep1Active ? 'bg-success text-white' : 'bg-gray-100 text-gray-400' }}">
                     <i class="ti {{ $isStep1Active ? 'ti-check' : 'ti-send' }} text-xl"></i>
@@ -30,13 +30,13 @@
             </div>
 
             {{-- Connector --}}
-            <div class="flex-1 h-1 -mx-8 z-0 {{ in_array($pengajuan->status, ['disetujui_bauak', 'disetujui_warek3']) ? 'bg-success' : 'bg-gray-100' }}"></div>
+            <div class="flex-1 h-1 -mx-8 z-0 {{ in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']) ? 'bg-success' : 'bg-gray-100' }}"></div>
 
             {{-- Step 2: Verifikasi BAUAK --}}
             <div class="flex-1 text-center relative z-10">
                 @php
-                    $isStep2Done = in_array($pengajuan->status, ['disetujui_bauak', 'disetujui_warek3']);
-                    $isStep2Active = $pengajuan->status == 'diajukan';
+                    $isStep2Done = in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']);
+                    $isStep2Active = $pengajuan->status == 'menunggu_bauak';
                     $isStep2Revisi = $pengajuan->status == 'revisi_bauak';
                     $isStep2Tolak = $pengajuan->status == 'ditolak';
                 @endphp
@@ -56,13 +56,13 @@
             </div>
 
             {{-- Connector --}}
-            <div class="flex-1 h-1 -mx-8 z-0 {{ $pengajuan->status == 'disetujui_warek3' ? 'bg-success' : 'bg-gray-100' }}"></div>
+            <div class="flex-1 h-1 -mx-8 z-0 {{ in_array($pengajuan->status, ['menunggu_rektor', 'disetujui']) ? 'bg-success' : 'bg-gray-100' }}"></div>
 
             {{-- Step 3: Warek III --}}
             <div class="flex-1 text-center relative z-10">
                 @php
-                    $isStep3Done = $pengajuan->status == 'disetujui_warek3';
-                    $isStep3Active = $pengajuan->status == 'disetujui_bauak';
+                    $isStep3Done = in_array($pengajuan->status, ['menunggu_rektor', 'disetujui']);
+                    $isStep3Active = $pengajuan->status == 'menunggu_warek3';
                 @endphp
                 <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center border-4 border-white shadow-sm 
                     {{ $isStep3Done ? 'bg-success text-white' : ($isStep3Active ? 'bg-warning text-white' : 'bg-gray-100 text-gray-400') }}">
@@ -79,7 +79,7 @@
         {{-- Mobile Timeline --}}
         <div class="md:hidden space-y-4">
             <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 {{ in_array($pengajuan->status, ['diajukan', 'disetujui_bauak', 'disetujui_warek3']) ? 'bg-success text-white' : 'bg-gray-100 text-gray-400' }}">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 {{ in_array($pengajuan->status, ['menunggu_dosen', 'menunggu_warek3', 'menunggu_rektor', 'disetujui']) ? 'bg-success text-white' : 'bg-gray-100 text-gray-400' }}">
                     <i class="ti ti-check"></i>
                 </div>
                 <div>
@@ -90,8 +90,8 @@
             
             <div class="flex items-start gap-3">
                 <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 
-                    {{ in_array($pengajuan->status, ['disetujui_bauak', 'disetujui_warek3']) ? 'bg-success text-white' : ($pengajuan->status == 'diajukan' ? 'bg-warning text-white' : ($pengajuan->status == 'revisi_bauak' ? 'bg-orange text-white' : ($pengajuan->status == 'ditolak' ? 'bg-danger text-white' : 'bg-gray-100 text-gray-400'))) }}">
-                    @if(in_array($pengajuan->status, ['disetujui_bauak', 'disetujui_warek3']))
+                    {{ in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']) ? 'bg-success text-white' : ($pengajuan->status == 'menunggu_dosen' ? 'bg-warning text-white' : ($pengajuan->status == 'revisi_bauak' ? 'bg-orange text-white' : ($pengajuan->status == 'ditolak' ? 'bg-danger text-white' : 'bg-gray-100 text-gray-400'))) }}">
+                    @if(in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']))
                         <i class="ti ti-check"></i>
                     @elseif($pengajuan->status == 'revisi_bauak')
                         <i class="ti ti-refresh"></i>
@@ -109,8 +109,8 @@
             
             <div class="flex items-start gap-3">
                 <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 
-                    {{ $pengajuan->status == 'disetujui_warek3' ? 'bg-success text-white' : ($pengajuan->status == 'disetujui_bauak' ? 'bg-warning text-white' : 'bg-gray-100 text-gray-400') }}">
-                    @if($pengajuan->status == 'disetujui_warek3')
+                    {{ in_array($pengajuan->status, ['menunggu_rektor', 'disetujui']) ? 'bg-success text-white' : ($pengajuan->status == 'menunggu_warek3' ? 'bg-warning text-white' : 'bg-gray-100 text-gray-400') }}">
+                    @if(in_array($pengajuan->status, ['menunggu_rektor', 'disetujui']))
                         <i class="ti ti-check"></i>
                     @else
                         <span class="text-[12px] font-bold">3</span>
@@ -127,9 +127,11 @@
             @php
                 $statusClass = match($pengajuan->status) {
                     'draft' => 'badge-gray',
-                    'diajukan' => 'badge-warning',
-                    'disetujui_bauak' => 'badge-info',
-                    'disetujui_warek3' => 'badge-success',
+                    'menunggu_dosen' => 'badge-warning',
+                    'menunggu_bauak' => 'badge-warning',
+                    'menunggu_warek3' => 'badge-warning',
+                    'menunggu_rektor' => 'badge-warning',
+                    'disetujui' => 'badge-success',
                     'revisi_bauak' => 'badge-orange',
                     'ditolak' => 'badge-danger',
                     default => 'badge-gray'

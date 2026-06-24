@@ -62,8 +62,8 @@ class PengajuanKegiatanController extends Controller
             $stats = [
                 'total' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->count(),
                 'draft' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->where('status', 'draft')->count(),
-                'pending' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->whereIn('status', ['diajukan', 'disetujui_bauak'])->count(),
-                'approved' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->where('status', 'disetujui_warek3')->count(),
+                'pending' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->whereIn('status', ['menunggu_dosen', 'menunggu_warek3'])->count(),
+                'approved' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->where('status', 'disetujui')->count(),
                 'rejected' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->where('status', 'ditolak')->count(),
                 'revision' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->where('status', 'revisi_bauak')->count(),
             ];
@@ -72,8 +72,8 @@ class PengajuanKegiatanController extends Controller
             $stats = [
                 'total' => PengajuanKegiatan::count(),
                 'draft' => PengajuanKegiatan::where('status', 'draft')->count(),
-                'pending' => PengajuanKegiatan::whereIn('status', ['diajukan', 'disetujui_bauak'])->count(),
-                'approved' => PengajuanKegiatan::where('status', 'disetujui_warek3')->count(),
+                'pending' => PengajuanKegiatan::whereIn('status', ['menunggu_dosen', 'menunggu_warek3'])->count(),
+                'approved' => PengajuanKegiatan::where('status', 'disetujui')->count(),
                 'rejected' => PengajuanKegiatan::where('status', 'ditolak')->count(),
                 'revision' => PengajuanKegiatan::where('status', 'revisi_bauak')->count(),
             ];
@@ -182,7 +182,7 @@ class PengajuanKegiatanController extends Controller
 
             return redirect()
                 ->route('pengajuan.show', $pengajuan)
-                ->with('success', 'Pengajuan kegiatan berhasil diajukan!');
+                ->with('success', 'Pengajuan kegiatan berhasil menunggu_dosen!');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
@@ -293,12 +293,12 @@ class PengajuanKegiatanController extends Controller
             }
 
 
-            // Update status back to diajukan and clear previous BAUAK notes
+            // Update status back to menunggu_dosen and clear previous BAUAK notes
             $nextStatus = match ($pengajuan->status) {
-                'revisi_dosen', 'diajukan', 'draft', 'ditolak' => 'menunggu_dosen',
+                'revisi_dosen', 'menunggu_dosen', 'draft', 'ditolak' => 'menunggu_dosen',
                 'revisi_dekan' => 'menunggu_dekan',
                 'revisi_bauak' => 'menunggu_bauak',
-                'revisi_warek3' => 'disetujui_bauak',
+                'revisi_warek3' => 'menunggu_warek3',
                 'revisi_rektor' => 'menunggu_rektor',
                 default => 'menunggu_dosen',
             };
@@ -309,7 +309,7 @@ class PengajuanKegiatanController extends Controller
                 $this->createNotificationForDekan($pengajuan);
             } elseif ($nextStatus === 'menunggu_bauak') {
                 $this->createNotificationForBauak($pengajuan);
-            } elseif ($nextStatus === 'disetujui_bauak') {
+            } elseif ($nextStatus === 'menunggu_warek3') {
                 $this->createNotificationForWarek3($pengajuan);
             } elseif ($nextStatus === 'menunggu_rektor') {
                 $this->createNotificationForRektor($pengajuan);

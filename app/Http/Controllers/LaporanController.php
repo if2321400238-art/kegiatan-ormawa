@@ -24,8 +24,8 @@ class LaporanController extends Controller
 
         $statistik = [
             'total' => $pengajuan->count(),
-            'diajukan' => $pengajuan->where('status', 'diajukan')->count(),
-            'disetujui' => $pengajuan->where('status', 'disetujui_bauak')->count(),
+            'menunggu_dosen' => $pengajuan->where('status', 'menunggu_dosen')->count(),
+            'disetujui' => $pengajuan->where('status', 'menunggu_warek3')->count(),
             'revisi' => $pengajuan->where('status', 'revisi_bauak')->count(),
             'ditolak' => $pengajuan->where('status', 'ditolak')->count(),
         ];
@@ -35,7 +35,7 @@ class LaporanController extends Controller
             return [
                 'ormawa' => $items->first()->ormawa->nama_ormawa,
                 'total' => $items->count(),
-                'disetujui' => $items->where('status', 'disetujui_bauak')->count(),
+                'disetujui' => $items->where('status', 'menunggu_warek3')->count(),
             ];
         });
 
@@ -59,9 +59,9 @@ class LaporanController extends Controller
         $pengajuan = PengajuanKegiatan::whereBetween('created_at', [$tanggalMulai, $tanggalSelesai])->get();
         $statistikPengajuan = [
             'total' => $pengajuan->count(),
-            'disetujui' => $pengajuan->where('status', 'disetujui_warek3')->count(),
+            'disetujui' => $pengajuan->where('status', 'disetujui')->count(),
             'ditolak' => $pengajuan->where('status', 'ditolak')->count(),
-            'pending' => $pengajuan->whereIn('status', ['diajukan', 'disetujui_bauak'])->count(),
+            'pending' => $pengajuan->whereIn('status', ['menunggu_dosen', 'menunggu_warek3'])->count(),
         ];
 
 

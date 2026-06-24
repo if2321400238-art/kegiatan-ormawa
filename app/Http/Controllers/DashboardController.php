@@ -54,7 +54,7 @@ class DashboardController extends Controller
             ->get();
 
         $upcomingEvents = PengajuanKegiatan::where('ormawa_id', $ormawa->id)
-            ->where('status', 'disetujui_warek3')
+            ->where('status', 'disetujui')
             ->where('tanggal_mulai', '>=', now())
             ->orderBy('tanggal_mulai')
             ->take(5)
@@ -70,7 +70,7 @@ class DashboardController extends Controller
             'diverifikasi_hari_ini' => VerifikasiBauak::whereDate('tanggal_verifikasi', today())
                 ->where('user_bauak_id', Auth::id())
                 ->count(),
-            'total_disetujui' => PengajuanKegiatan::where('status', 'disetujui_bauak')->count(),
+            'total_disetujui' => PengajuanKegiatan::where('status', 'menunggu_warek3')->count(),
             'perlu_revisi' => PengajuanKegiatan::where('status', 'revisi_bauak')->count(),
             'total_pengajuan' => PengajuanKegiatan::count(),
             'pengajuan_ditolak' => PengajuanKegiatan::where('status', 'ditolak')->count(),
@@ -78,7 +78,7 @@ class DashboardController extends Controller
         ];
 
         $pengajuanMenunggu = PengajuanKegiatan::with('ormawa')
-            ->where('status', 'diajukan')
+            ->where('status', 'menunggu_dosen')
             ->latest()
             ->paginate(10);
 
@@ -101,13 +101,13 @@ class DashboardController extends Controller
             'disetujui_hari_ini' => PersetujuanWarek3::whereDate('tanggal_acc', today())
                 ->where('user_warek3_id', Auth::id())
                 ->count(),
-            'total_disetujui' => PengajuanKegiatan::where('status', 'disetujui_warek3')->count(),
+            'total_disetujui' => PengajuanKegiatan::where('status', 'disetujui')->count(),
             'ditolak' => PengajuanKegiatan::where('status', 'ditolak')->count(),
         ];
 
         // FIX: Use paginate() instead of get()
         $pengajuanMenunggu = PengajuanKegiatan::with(['ormawa', 'verifikasiBauak'])
-            ->where('status', 'disetujui_bauak')
+            ->where('status', 'menunggu_warek3')
             ->latest()
             ->paginate(10);
 
@@ -131,7 +131,7 @@ class DashboardController extends Controller
             'total_pengajuan' => PengajuanKegiatan::count(),
 
             'pengajuan_pending' => PengajuanKegiatan::whereIn('status', ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor'])->count(),
-            'pengajuan_disetujui' => PengajuanKegiatan::where('status', 'disetujui_warek3')->count(),
+            'pengajuan_disetujui' => PengajuanKegiatan::where('status', 'disetujui')->count(),
             'pengajuan_revisi' => PengajuanKegiatan::whereIn('status', ['revisi_dosen', 'revisi_dekan', 'revisi_bauak', 'revisi_warek3', 'revisi_rektor'])->count(),
             'pengajuan_ditolak' => PengajuanKegiatan::where('status', 'ditolak')->count(),
 

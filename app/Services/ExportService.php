@@ -58,9 +58,9 @@ class ExportService
     {
         $labels = [
             'draft' => 'Draft',
-            'diajukan' => 'Pending',
-            'disetujui_bauak' => 'Disetujui BAUAK',
-            'disetujui_warek3' => 'Disetujui Warek III',
+            'menunggu_dosen' => 'Pending',
+            'menunggu_warek3' => 'Disetujui BAUAK',
+            'disetujui' => 'Disetujui Warek III',
             'revisi_bauak' => 'Revisi',
             'ditolak' => 'Ditolak',
         ];

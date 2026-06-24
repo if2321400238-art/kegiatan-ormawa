@@ -68,9 +68,10 @@
                         <select name="status" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:bg-white transition-colors appearance-none">
                             <option value="">Semua Status</option>
                             <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
-                            <option value="diajukan" {{ request('status') == 'diajukan' ? 'selected' : '' }}>Pending</option>
-                            <option value="disetujui_bauak" {{ request('status') == 'disetujui_bauak' ? 'selected' : '' }}>Disetujui BAUAK</option>
-                            <option value="disetujui_warek3" {{ request('status') == 'disetujui_warek3' ? 'selected' : '' }}>Disetujui Warek III</option>
+                            <option value="menunggu_dosen" {{ request('status') == 'menunggu_dosen' ? 'selected' : '' }}>Pending</option>
+                            <option value="menunggu_bauak" {{ request('status') == 'menunggu_bauak' ? 'selected' : '' }}>Menunggu BAUAK</option>
+                            <option value="menunggu_warek3" {{ request('status') == 'menunggu_warek3' ? 'selected' : '' }}>Menunggu Wakil Rektor III</option>
+                            <option value="menunggu_rektor" {{ request('status') == 'menunggu_rektor' ? 'selected' : '' }}>Menunggu Rektor</option>
                             <option value="revisi_bauak" {{ request('status') == 'revisi_bauak' ? 'selected' : '' }}>Revisi</option>
                             <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
                         </select>
@@ -184,17 +185,21 @@
                                     @php
                                         $statusClass = match($item->status) {
                                             'draft' => 'badge-gray',
-                                            'diajukan' => 'badge-warning',
-                                            'disetujui_bauak' => 'badge-info',
-                                            'disetujui_warek3' => 'badge-success',
+                                            'menunggu_dosen' => 'badge-warning',
+                                            'menunggu_bauak' => 'badge-warning',
+                                            'menunggu_warek3' => 'badge-warning',
+                                            'menunggu_rektor' => 'badge-warning',
+                                            'disetujui' => 'badge-success',
                                             'revisi_bauak' => 'badge-orange',
                                             'ditolak' => 'badge-danger',
                                             default => 'badge-gray'
                                         };
                                         $statusLabel = match($item->status) {
-                                            'diajukan' => 'Pending',
-                                            'disetujui_bauak' => 'Disetujui BAUAK',
-                                            'disetujui_warek3' => 'Disetujui Warek III',
+                                            'menunggu_dosen' => 'Pending',
+                                            'menunggu_bauak' => 'Menunggu BAUAK',
+                                            'menunggu_warek3' => 'Menunggu Wakil Rektor III',
+                                            'menunggu_rektor' => 'Menunggu Rektor',
+                                            'disetujui' => 'Disetujui',
                                             'revisi_bauak' => 'Revisi',
                                             default => ucwords($item->status)
                                         };
@@ -228,17 +233,21 @@
                         @php
                             $statusClass = match($item->status) {
                                 'draft' => 'badge-gray',
-                                'diajukan' => 'badge-warning',
-                                'disetujui_bauak' => 'badge-info',
-                                'disetujui_warek3' => 'badge-success',
+                                'menunggu_dosen' => 'badge-warning',
+                                'menunggu_bauak' => 'badge-warning',
+                                'menunggu_warek3' => 'badge-warning',
+                                'menunggu_rektor' => 'badge-warning',
+                                'disetujui' => 'badge-success',
                                 'revisi_bauak' => 'badge-orange',
                                 'ditolak' => 'badge-danger',
                                 default => 'badge-gray'
                             };
                             $statusLabel = match($item->status) {
-                                'diajukan' => 'Pending',
-                                'disetujui_bauak' => 'Disetujui BAUAK',
-                                'disetujui_warek3' => 'Disetujui Warek III',
+                                'menunggu_dosen' => 'Pending',
+                                'menunggu_bauak' => 'Menunggu BAUAK',
+                                'menunggu_warek3' => 'Menunggu Wakil Rektor III',
+                                'menunggu_rektor' => 'Menunggu Rektor',
+                                'disetujui' => 'Disetujui',
                                 'revisi_bauak' => 'Revisi',
                                 default => ucwords($item->status)
                             };

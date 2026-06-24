@@ -13,7 +13,7 @@ class VerifikasiBauakController extends Controller
     {
         // Use paginate instead of get
         $pengajuanMenunggu = PengajuanKegiatan::with(['ormawa', 'proposal', 'rab'])
-            ->where('status', 'diajukan')
+            ->where('status', 'menunggu_bauak')
             ->latest()
             ->paginate(10);
 
@@ -62,7 +62,7 @@ class VerifikasiBauakController extends Controller
 
             // Update pengajuan status
             $newStatus = match($validated['status']) {
-                'disetujui' => 'disetujui_bauak',
+                'disetujui' => 'menunggu_warek3',
                 'revisi' => 'revisi_bauak',
                 'ditolak' => 'ditolak',
             };

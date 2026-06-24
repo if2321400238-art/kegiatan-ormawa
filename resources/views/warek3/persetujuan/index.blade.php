@@ -63,8 +63,8 @@
             <div class="mb-4">
                 <select onchange="window.location.href='?status='+this.value" class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md text-sm">
                     <option value="">Semua Status</option>
-                    <option value="disetujui_bauak" {{ request('status') == 'disetujui_bauak' ? 'selected' : '' }}>Menunggu Approval</option>
-                    <option value="disetujui_warek3" {{ request('status') == 'disetujui_warek3' ? 'selected' : '' }}>Sudah Disetujui</option>
+                    <option value="menunggu_warek3" {{ request('status') == 'menunggu_warek3' ? 'selected' : '' }}>Menunggu Approval</option>
+                    <option value="disetujui" {{ request('status') == 'disetujui' ? 'selected' : '' }}>Sudah Disetujui</option>
                     <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
                 </select>
             </div>
@@ -108,7 +108,7 @@
                                             </td>
                                             <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <a href="{{ route('warek3.persetujuan.show', $item) }}" class="text-blue-600 hover:text-blue-900">
-                                                    {{ $item->status == 'disetujui_bauak' ? 'Review' : 'Lihat' }} →
+                                                    {{ $item->status == 'menunggu_warek3' ? 'Review' : 'Lihat' }} →
                                                 </a>
                                             </td>
                                         </tr>
@@ -132,7 +132,7 @@
                                     </div>
                                     <p class="text-xs text-gray-500 mb-3">📅 {{ $item->tanggal_mulai->format('d M Y') }}</p>
                                     <a href="{{ route('warek3.persetujuan.show', $item) }}" class="text-center w-full text-sm bg-blue-100 text-blue-600 rounded px-3 py-2 hover:bg-blue-200">
-                                        {{ $item->status == 'disetujui_bauak' ? 'Review' : 'Lihat' }} →
+                                        {{ $item->status == 'menunggu_warek3' ? 'Review' : 'Lihat' }} →
                                     </a>
                                 </div>
                             @endforeach

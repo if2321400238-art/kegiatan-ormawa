@@ -92,7 +92,7 @@ class Ormawa extends Model
         return $query->withCount([
             'pengajuanKegiatan',
             'pengajuanKegiatan as pengajuan_disetujui' => function($q) {
-                $q->where('status', 'disetujui_warek3');
+                $q->where('status', 'disetujui');
             }
         ]);
     }

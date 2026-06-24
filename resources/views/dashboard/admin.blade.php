@@ -85,9 +85,9 @@
                                     @php
                                         $statusClass = match($item->status) {
                                             'draft' => 'badge-gray',
-                                            'diajukan' => 'badge-warning',
-                                            'disetujui_bauak' => 'badge-info',
-                                            'disetujui_warek3' => 'badge-success',
+                                            'menunggu_dosen' => 'badge-warning',
+                                            'menunggu_warek3' => 'badge-info',
+                                            'disetujui' => 'badge-success',
                                             'revisi_bauak' => 'badge-orange',
                                             'ditolak' => 'badge-danger',
                                             default => 'badge-gray'

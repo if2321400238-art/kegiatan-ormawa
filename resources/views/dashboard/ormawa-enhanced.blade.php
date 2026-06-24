@@ -186,9 +186,9 @@
                                                 @php
                                                     $statusColors = [
                                                         'draft' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-800', 'label' => 'Draft'],
-                                                        'diajukan' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'label' => 'Pending'],
-                                                        'disetujui_bauak' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'label' => 'Disetujui BAUAK'],
-                                                        'disetujui_warek3' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'label' => 'Disetujui'],
+                                                        'menunggu_dosen' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'label' => 'Pending'],
+                                                        'menunggu_warek3' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'label' => 'Disetujui BAUAK'],
+                                                        'disetujui' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'label' => 'Disetujui'],
                                                         'revisi_bauak' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi'],
                                                         'ditolak' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak'],
                                                     ];
@@ -215,9 +215,9 @@
                                 @php
                                     $statusColors = [
                                         'draft' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-800', 'label' => 'Draft'],
-                                        'diajukan' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'label' => 'Pending'],
-                                        'disetujui_bauak' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'label' => 'Disetujui BAUAK'],
-                                        'disetujui_warek3' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'label' => 'Disetujui'],
+                                        'menunggu_dosen' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'label' => 'Pending'],
+                                        'menunggu_warek3' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'label' => 'Disetujui BAUAK'],
+                                        'disetujui' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'label' => 'Disetujui'],
                                         'revisi_bauak' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi'],
                                         'ditolak' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak'],
                                     ];

@@ -24,11 +24,11 @@ return new class extends Migration
             $table->string('nama_pemohon');
             $table->enum('status', [
                 'draft',
-                'diajukan',
+                'menunggu_dosen',
                 'revisi_bauak',
-                'disetujui_bauak',
+                'menunggu_warek3',
                 'revisi_warek3',
-                'disetujui_warek3',
+                'disetujui',
                 'ditolak',
                 'selesai'
             ])->default('draft');

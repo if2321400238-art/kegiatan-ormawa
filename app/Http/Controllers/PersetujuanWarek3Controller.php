@@ -30,7 +30,7 @@ class PersetujuanWarek3Controller extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         } else {
-            $query->where('status', 'disetujui_bauak');
+            $query->where('status', 'menunggu_warek3');
         }
 
         if ($request->filled('search')) {
@@ -46,8 +46,8 @@ class PersetujuanWarek3Controller extends Controller
 
         // Statistics
         $stats = [
-            'menunggu' => PengajuanKegiatan::where('status', 'disetujui_bauak')->count(),
-            'disetujui' => PengajuanKegiatan::where('status', 'disetujui_warek3')->count(),
+            'menunggu' => PengajuanKegiatan::where('status', 'menunggu_warek3')->count(),
+            'disetujui' => PengajuanKegiatan::where('status', 'disetujui')->count(),
             'ditolak' => PengajuanKegiatan::where('status', 'ditolak')->count(),
         ];
 
@@ -81,7 +81,7 @@ class PersetujuanWarek3Controller extends Controller
         ]);
 
         // Check if already approved or rejected
-        if (!in_array($pengajuan->status, ['disetujui_bauak'])) {
+        if (!in_array($pengajuan->status, ['menunggu_warek3'])) {
             return back()->with('error', 'Pengajuan tidak dapat disetujui pada status ini!');
         }
 
@@ -98,7 +98,7 @@ class PersetujuanWarek3Controller extends Controller
 
             // Update pengajuan status
             $pengajuan->update([
-                'status' => 'disetujui_warek3',
+                'status' => 'disetujui',
                 'catatan' => $validated['catatan'] ?? null,
             ]);
 
@@ -137,7 +137,7 @@ class PersetujuanWarek3Controller extends Controller
         ]);
 
         // Check if already approved or rejected
-        if (!in_array($pengajuan->status, ['disetujui_bauak'])) {
+        if (!in_array($pengajuan->status, ['menunggu_warek3'])) {
             return back()->with('error', 'Pengajuan tidak dapat ditolak pada status ini!');
         }
 
@@ -206,7 +206,7 @@ class PersetujuanWarek3Controller extends Controller
     public function monitoring(Request $request)
     {
         $query = PengajuanKegiatan::with(['ormawa'])
-            ->where('status', 'disetujui_warek3');
+            ->where('status', 'disetujui');
 
         // Filter by date
         if ($request->filled('bulan')) {

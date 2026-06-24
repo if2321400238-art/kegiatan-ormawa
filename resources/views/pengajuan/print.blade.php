@@ -227,9 +227,9 @@
                             @php
                                 $statusClass = match($item->status) {
                                     'draft' => 'status-draft',
-                                    'diajukan' => 'status-pending',
-                                    'disetujui_bauak' => 'status-bauak',
-                                    'disetujui_warek3' => 'status-approved',
+                                    'menunggu_dosen' => 'status-pending',
+                                    'menunggu_warek3' => 'status-bauak',
+                                    'disetujui' => 'status-approved',
                                     'revisi_bauak' => 'status-revision',
                                     'ditolak' => 'status-rejected',
                                     default => 'status-draft'
@@ -237,9 +237,9 @@
 
                                 $statusLabel = match($item->status) {
                                     'draft' => 'Draft',
-                                    'diajukan' => 'Pending',
-                                    'disetujui_bauak' => 'Disetujui BAUAK',
-                                    'disetujui_warek3' => 'Disetujui',
+                                    'menunggu_dosen' => 'Pending',
+                                    'menunggu_warek3' => 'Disetujui BAUAK',
+                                    'disetujui' => 'Disetujui',
                                     'revisi_bauak' => 'Revisi',
                                     'ditolak' => 'Ditolak',
                                     default => ucfirst($item->status)

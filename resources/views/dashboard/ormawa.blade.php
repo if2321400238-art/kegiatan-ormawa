@@ -108,17 +108,17 @@
                                     @php
                                         $statusColors = [
                                             'draft' => 'badge-gray',
-                                            'diajukan' => 'badge-warning',
-                                            'disetujui_bauak' => 'badge-info',
-                                            'disetujui_warek3' => 'badge-success',
+                                            'menunggu_dosen' => 'badge-warning',
+                                            'menunggu_warek3' => 'badge-info',
+                                            'disetujui' => 'badge-success',
                                             'revisi_bauak' => 'badge-orange',
                                             'ditolak' => 'badge-danger',
                                         ];
                                         $statusClass = $statusColors[$pengajuan->status] ?? 'badge-gray';
                                         $statusLabel = match($pengajuan->status) {
-                                            'diajukan' => 'Pending',
-                                            'disetujui_bauak' => 'Disetujui BAUAK',
-                                            'disetujui_warek3' => 'Disetujui',
+                                            'menunggu_dosen' => 'Pending',
+                                            'menunggu_warek3' => 'Disetujui BAUAK',
+                                            'disetujui' => 'Disetujui',
                                             'revisi_bauak' => 'Revisi',
                                             default => ucwords($pengajuan->status)
                                         };

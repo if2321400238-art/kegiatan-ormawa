@@ -156,7 +156,7 @@ class PengajuanKegiatan extends Model
 
     public function scopeMenungguRektor($query)
     {
-        return $query->where('status', 'disetujui_warek3');
+        return $query->where('status', 'disetujui');
     }
 
     public function scopeRevisiRektor($query)
@@ -243,7 +243,7 @@ class PengajuanKegiatan extends Model
         if ($user->isOrmawa()) {
             return in_array($this->status, [
                 'draft',
-                'diajukan',
+                'menunggu_dosen',
                 'revisi_dosen',
                 'revisi_dekan',
                 'revisi_bauak',

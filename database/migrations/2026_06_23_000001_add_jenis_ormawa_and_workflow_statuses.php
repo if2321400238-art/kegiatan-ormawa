@@ -27,6 +27,6 @@ return new class extends Migration
             }
         });
 
-        DB::statement("ALTER TABLE `pengajuan_kegiatan` MODIFY `status` ENUM('draft','diajukan','revisi_bauak','disetujui_bauak','revisi_warek3','disetujui_warek3','ditolak','selesai') NOT NULL DEFAULT 'draft'");
+        DB::statement("ALTER TABLE `pengajuan_kegiatan` MODIFY `status` ENUM('draft','menunggu_dosen','revisi_bauak','menunggu_warek3','revisi_warek3','disetujui','ditolak','selesai') NOT NULL DEFAULT 'draft'");
     }
 };
