@@ -40,11 +40,10 @@ class VerifikasiDosenController extends Controller
     {
         $validated = $request->validate([
             'status' => 'required|in:disetujui,revisi,ditolak',
-            'catatan' => 'required|string',
+            'catatan' => 'nullable|string',
         ], [
             'status.required' => 'Status harus dipilih',
             'status.in' => 'Status tidak valid',
-            'catatan.required' => 'Catatan harus diisi',
         ]);
 
         DB::beginTransaction();

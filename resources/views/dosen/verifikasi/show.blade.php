@@ -21,9 +21,9 @@
             </div>
 
             <div class="flex gap-2">
-                <button name="action" value="approve" class="px-4 py-2 bg-green-600 text-white rounded">Setujui</button>
-                <button name="action" value="revision" class="px-4 py-2 bg-orange-500 text-white rounded">Minta Revisi</button>
-                <button name="action" value="reject" class="px-4 py-2 bg-red-600 text-white rounded">Tolak</button>
+                <button name="status" value="disetujui" class="px-4 py-2 bg-green-600 text-white rounded">Setujui</button>
+                <button name="status" value="revisi" class="px-4 py-2 bg-orange-500 text-white rounded">Minta Revisi</button>
+                <button name="status" value="ditolak" class="px-4 py-2 bg-red-600 text-white rounded">Tolak</button>
             </div>
         </form>
     </div>
