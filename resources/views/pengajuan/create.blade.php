@@ -162,7 +162,7 @@
                             <ul class="text-[12px] text-blue-800 list-disc list-inside space-y-0.5">
                                 <li>Pastikan semua data yang diinput sudah benar</li>
                                 <li>File proposal dan RAB harus dalam format PDF</li>
-                                <li>Setelah menunggu_dosen, pengajuan akan diverifikasi oleh BAUAK</li>
+                                <li>Setelah dikirim ke Dosen Pembina, pengajuan akan lanjut ke verifikasi BAUAK</li>
                                 <li>Jika disetujui, Anda akan mendapat surat rekomendasi</li>
                             </ul>
                         </div>

@@ -15,8 +15,10 @@ return new class extends Migration
             }
         });
 
-        // Update status enum with the new workflow stages
-        DB::statement("ALTER TABLE `pengajuan_kegiatan` MODIFY `status` ENUM('draft','menunggu_dosen','revisi_dosen','menunggu_dekan','revisi_dekan','menunggu_bauak','revisi_bauak','menunggu_warek3','revisi_warek3','menunggu_rektor','revisi_rektor','disetujui','ditolak','selesai') NOT NULL DEFAULT 'draft'");
+        // Update status enum with the new workflow stages (only on MySQL)
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE `pengajuan_kegiatan` MODIFY `status` ENUM('draft','menunggu_dosen','revisi_dosen','menunggu_dekan','revisi_dekan','menunggu_bauak','revisi_bauak','menunggu_warek3','revisi_warek3','menunggu_rektor','revisi_rektor','disetujui','ditolak','selesai') NOT NULL DEFAULT 'draft'");
+        }
     }
 
     public function down(): void
@@ -27,6 +29,8 @@ return new class extends Migration
             }
         });
 
-        DB::statement("ALTER TABLE `pengajuan_kegiatan` MODIFY `status` ENUM('draft','menunggu_dosen','revisi_bauak','menunggu_warek3','revisi_warek3','disetujui','ditolak','selesai') NOT NULL DEFAULT 'draft'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE `pengajuan_kegiatan` MODIFY `status` ENUM('draft','menunggu_dosen','revisi_bauak','menunggu_warek3','revisi_warek3','disetujui','ditolak','selesai') NOT NULL DEFAULT 'draft'");
+        }
     }
 };

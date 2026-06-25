@@ -88,12 +88,22 @@
             color: #1f2937;
         }
 
-        .status-pending {
+        .status-waiting {
             background-color: #fef3c7;
             color: #92400e;
         }
 
         .status-bauak {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-warek3 {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-rektor {
             background-color: #dbeafe;
             color: #1e40af;
         }
@@ -197,7 +207,27 @@
             <p><strong>Total Pengajuan:</strong> {{ count($pengajuan) }} item</p>
             <p><strong>Periode:</strong> {{ request('tanggal_dari', 'Semua') }} s/d {{ request('tanggal_sampai', 'Semua') }}</p>
             @if(request('status'))
-                <p><strong>Status Filter:</strong> {{ ucfirst(str_replace('_', ' ', request('status'))) }}</p>
+                <p><strong>Status Filter:</strong>
+                    @php
+                        $filterStatus = request('status');
+                        $filterLabelMap = [
+                            'draft' => 'Draft',
+                            'menunggu_dosen' => 'Menunggu Dosen Pembina',
+                            'menunggu_dekan' => 'Menunggu Dekan',
+                            'menunggu_bauak' => 'Menunggu BAUAK',
+                            'menunggu_warek3' => 'Menunggu Wakil Rektor III',
+                            'menunggu_rektor' => 'Menunggu Rektor',
+                            'disetujui' => 'Disetujui',
+                            'revisi_dosen' => 'Revisi Dosen Pembina',
+                            'revisi_dekan' => 'Revisi Dekan',
+                            'revisi_bauak' => 'Revisi BAUAK',
+                            'revisi_warek3' => 'Revisi Wakil Rektor III',
+                            'revisi_rektor' => 'Revisi Rektor',
+                            'ditolak' => 'Ditolak',
+                        ];
+                    @endphp
+                    {{ $filterLabelMap[$filterStatus] ?? ucfirst(str_replace('_', ' ', $filterStatus)) }}
+                </p>
             @endif
         </div>
 
@@ -227,25 +257,22 @@
                             @php
                                 $statusClass = match($item->status) {
                                     'draft' => 'status-draft',
-                                    'menunggu_dosen' => 'status-pending',
-                                    'menunggu_warek3' => 'status-bauak',
+                                    'menunggu_dosen',
+                                    'menunggu_dekan' => 'status-waiting',
+                                    'menunggu_bauak' => 'status-bauak',
+                                    'menunggu_warek3' => 'status-warek3',
+                                    'menunggu_rektor' => 'status-rektor',
                                     'disetujui' => 'status-approved',
-                                    'revisi_bauak' => 'status-revision',
+                                    'revisi_dosen',
+                                    'revisi_dekan',
+                                    'revisi_bauak',
+                                    'revisi_warek3',
+                                    'revisi_rektor' => 'status-revision',
                                     'ditolak' => 'status-rejected',
                                     default => 'status-draft'
                                 };
-
-                                $statusLabel = match($item->status) {
-                                    'draft' => 'Draft',
-                                    'menunggu_dosen' => 'Pending',
-                                    'menunggu_warek3' => 'Disetujui BAUAK',
-                                    'disetujui' => 'Disetujui',
-                                    'revisi_bauak' => 'Revisi',
-                                    'ditolak' => 'Ditolak',
-                                    default => ucfirst($item->status)
-                                };
                             @endphp
-                            <span class="status-badge {{ $statusClass }}">{{ $statusLabel }}</span>
+                            <span class="status-badge {{ $statusClass }}">{{ $item->status_label }}</span>
                         </td>
                     </tr>
                 @empty

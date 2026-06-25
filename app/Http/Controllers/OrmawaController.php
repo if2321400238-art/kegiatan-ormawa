@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Ormawa;
+use App\Models\User;
 use App\Models\PengajuanKegiatan;
 use Illuminate\Http\Request;
 
@@ -14,27 +15,103 @@ class OrmawaController extends Controller
         $ormawa = Ormawa::paginate(10);
         return view('ormawa.index', compact('ormawa'));
     }
+
     public function create()
     {
-        return view('ormawa.create');
+        $dosen = User::where('role', 'dosen')->get();
+        return view('ormawa.create', compact('dosen'));
     }
+
     public function store(Request $request)
     {
         // Validasi input
         $request->validate([
-            'nama'  => 'required|string|max:255',
+            'nama_ormawa'  => 'required|string|max:255',
             'ketua' => 'required|string|max:255',
+            'pembina' => 'nullable|string|max:255',
+            'kategori_organisasi' => 'required|in:internal,eksternal',
+            'tingkat_organisasi' => 'nullable|in:universitas,fakultas',
+            'kontak' => 'nullable|string|max:20',
         ]);
 
-        // Simpan ke database
+        if ($request->kategori_organisasi === 'internal' && !$request->filled('tingkat_organisasi')) {
+            return back()->withErrors(['tingkat_organisasi' => 'Tingkat Organisasi harus diisi untuk organisasi internal.'])->withInput();
+        }
+
         Ormawa::create([
-            'nama'  => $request->nama,
+            'nama_ormawa'  => $request->nama_ormawa,
             'ketua' => $request->ketua,
+            'pembina' => $request->pembina,
+            'kategori_organisasi' => $request->kategori_organisasi,
+            'tingkat_organisasi' => $request->kategori_organisasi === 'internal' ? $request->tingkat_organisasi : null,
+            'kontak' => $request->kontak,
         ]);
 
         // Redirect kembali ke daftar ormawa
-        return redirect()->route('admin.ormawa.index')
+        $redirectRoute = auth()->user()->role === 'bauak' ? 'bauak.ormawa.index' : 'admin.ormawa.index';
+
+        return redirect()->route($redirectRoute)
             ->with('success', 'Data ormawa berhasil ditambahkan.');
     }
 
+    public function show(Ormawa $pengajuan)
+    {
+        // Using $pengajuan as parameter name but it's actually Ormawa
+        $ormawa = $pengajuan;
+        return view('ormawa.show', compact('ormawa'));
+    }
+
+    public function edit(Ormawa $pengajuan)
+    {
+        // Using $pengajuan as parameter name but it's actually Ormawa
+        $ormawa = $pengajuan;
+        $dosenList = User::where('role', 'dosen')->get();
+        return view('ormawa.edit', compact('ormawa', 'dosenList'));
+    }
+
+    public function update(Request $request, Ormawa $pengajuan)
+    {
+        // Using $pengajuan as parameter name but it's actually Ormawa
+        $ormawa = $pengajuan;
+
+        // Validasi input
+        $request->validate([
+            'nama_ormawa'  => 'required|string|max:255',
+            'ketua' => 'required|string|max:255',
+            'pembina' => 'required|string|max:255',
+            'kategori_organisasi' => 'required|in:internal,eksternal',
+            'tingkat_organisasi' => 'nullable|in:universitas,fakultas',
+            'kontak' => 'nullable|string|max:20',
+            'deskripsi' => 'nullable|string',
+        ]);
+
+        if ($request->kategori_organisasi === 'internal' && !$request->filled('tingkat_organisasi')) {
+            return back()->withErrors(['tingkat_organisasi' => 'Tingkat Organisasi harus diisi untuk organisasi internal.'])->withInput();
+        }
+
+        // Update data
+        $ormawa->update([
+            'nama_ormawa' => $request->nama_ormawa,
+            'ketua' => $request->ketua,
+            'pembina' => $request->pembina,
+            'kategori_organisasi' => $request->kategori_organisasi,
+            'tingkat_organisasi' => $request->kategori_organisasi === 'internal' ? $request->tingkat_organisasi : null,
+            'kontak' => $request->kontak,
+            'deskripsi' => $request->deskripsi,
+        ]);
+
+        $redirectRoute = auth()->user()->role === 'bauak' ? 'bauak.ormawa.index' : 'admin.ormawa.index';
+
+        return redirect()->route($redirectRoute)
+            ->with('success', 'Data ormawa berhasil diperbarui.');
+    }
+
+    public function destroy(Ormawa $pengajuan)
+    {
+        $ormawa = $pengajuan;
+        $ormawa->delete();
+
+        return redirect()->route('admin.ormawa.index')
+            ->with('success', 'Data ormawa berhasil dihapus.');
+    }
 }

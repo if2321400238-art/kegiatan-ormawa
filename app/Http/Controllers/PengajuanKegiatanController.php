@@ -58,24 +58,27 @@ class PengajuanKegiatanController extends Controller
         $pengajuan = $query->latest()->paginate($perPage)->appends($request->query());
 
         // Statistics
+        $pendingStatuses = ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor'];
+        $revisionStatuses = ['revisi_dosen', 'revisi_dekan', 'revisi_bauak', 'revisi_warek3', 'revisi_rektor'];
+
         if ($user->role === 'ormawa') {
             $stats = [
                 'total' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->count(),
                 'draft' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->where('status', 'draft')->count(),
-                'pending' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->whereIn('status', ['menunggu_dosen', 'menunggu_warek3'])->count(),
+                'pending' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->whereIn('status', $pendingStatuses)->count(),
                 'approved' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->where('status', 'disetujui')->count(),
                 'rejected' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->where('status', 'ditolak')->count(),
-                'revision' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->where('status', 'revisi_bauak')->count(),
+                'revision' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->whereIn('status', $revisionStatuses)->count(),
             ];
         } else {
             // BAUAK dan admin lihat statistik semua pengajuan
             $stats = [
                 'total' => PengajuanKegiatan::count(),
                 'draft' => PengajuanKegiatan::where('status', 'draft')->count(),
-                'pending' => PengajuanKegiatan::whereIn('status', ['menunggu_dosen', 'menunggu_warek3'])->count(),
+                'pending' => PengajuanKegiatan::whereIn('status', $pendingStatuses)->count(),
                 'approved' => PengajuanKegiatan::where('status', 'disetujui')->count(),
                 'rejected' => PengajuanKegiatan::where('status', 'ditolak')->count(),
-                'revision' => PengajuanKegiatan::where('status', 'revisi_bauak')->count(),
+                'revision' => PengajuanKegiatan::whereIn('status', $revisionStatuses)->count(),
             ];
         }
 

@@ -157,6 +157,7 @@ class DatabaseSeeder extends Seeder
                 'ketua' => 'Dewi Lestari',
                 'pembina' => 'Dr. Ir. Slamet Riyadi, M.T',
                 'no_hp' => '082555555555',
+                'kategori_organisasi' => 'eksternal',
             ],
         ];
 
@@ -171,17 +172,26 @@ class DatabaseSeeder extends Seeder
                 'is_active' => true,
             ]);
 
+            $kategori = $data['kategori_organisasi'] ?? 'internal';
+            $tingkat = $kategori === 'internal'
+                ? (in_array($data['username'], ['bem', 'hmi', 'pmii']) ? 'universitas' : 'fakultas')
+                : null;
+
             Ormawa::create([
                 'user_id' => $user->id,
                 'nama_ormawa' => $data['nama_ormawa'],
                 'ketua' => $data['ketua'],
                 'pembina' => $data['pembina'],
-                'jenis_ormawa' => in_array($data['username'], ['bem', 'hmi', 'pmii']) ? 'universitas' : 'fakultas',
+                'kategori_organisasi' => $kategori,
+                'tingkat_organisasi' => $tingkat,
                 'kontak' => $data['no_hp'],
             ]);
         }
 
-
+        // ==========================================
+        // CALL ADDITIONAL SEEDERS
+        // ==========================================
+        $this->call(DosenPembinaSeeder::class);
 
         // ==========================================
         // INFO
@@ -202,6 +212,9 @@ class DatabaseSeeder extends Seeder
         echo "   Warek3:  warek3@kampus.ac.id\n";
         echo "   BEM:     bem@kampus.ac.id\n";
         echo "   HMI:     hmi@kampus.ac.id\n";
+        echo "\n";
+        echo "💡 Jalankan: php artisan db:seed --class=DosenPembinaSeeder\n";
+        echo "   untuk menambah Dosen Pembina & Additional Roles\n";
         echo "\n";
     }
 }

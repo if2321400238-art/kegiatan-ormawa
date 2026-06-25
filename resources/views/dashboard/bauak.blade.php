@@ -3,7 +3,7 @@
 
     {{-- Key Statistics Grid --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        
+
         {{-- Menunggu Verifikasi --}}
         <div class="stat-card" style="--accent: #F59E0B">
             <div class="stat-icon bg-warning-light text-warning">
@@ -26,7 +26,7 @@
             </div>
         </div>
 
-        {{-- Disetujui BAUAK --}}
+        {{-- Disetujui --}}
         <div class="stat-card" style="--accent: #10B981">
             <div class="stat-icon bg-success-light text-success">
                 <i class="ti ti-check"></i>
@@ -52,7 +52,7 @@
 
     {{-- Lower Grid: Menunggu Verifikasi & Riwayat Verifikasi --}}
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        
+
         {{-- Kolom Kiri: Menunggu Verifikasi --}}
         <div class="flex flex-col gap-6 min-h-0">
             <div class="table-card flex-1">
@@ -63,7 +63,7 @@
                     </div>
                     <a href="{{ route('bauak.verifikasi.index') }}" class="badge badge-warning hover:bg-warning-light/80">Lihat Semua</a>
                 </div>
-                
+
                 @if(count($pengajuanMenunggu ?? []) > 0)
                 <div class="overflow-x-auto">
                     <table>
@@ -106,7 +106,7 @@
 
         {{-- Kolom Kanan: Riwayat Verifikasi --}}
         <div class="flex flex-col gap-6 min-h-0">
-            
+
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col min-h-0 overflow-hidden">
                 <div class="p-4 border-b border-gray-100 flex items-center justify-between">
                     <div>

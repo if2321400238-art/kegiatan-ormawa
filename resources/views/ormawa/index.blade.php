@@ -7,14 +7,11 @@
             <h2 class="text-lg font-semibold text-gray-900">Daftar Ormawa</h2>
             <p class="text-[12px] text-gray-500">Kelola dan pantau informasi organisasi mahasiswa</p>
         </div>
-        <a href="{{ route('admin.ormawa.create') }}" class="w-full sm:w-auto px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-active transition text-[13px] font-medium flex items-center justify-center gap-2 shadow-sm">
-            <i class="ti ti-plus"></i> Tambah Ormawa Baru
-        </a>
-    </div>
-
-    {{-- Statistics Cards --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <div class="stat-card !p-4" style="--accent: #3B82F6">
+            @if(auth()->user()->role === 'admin')
+                <a href="{{ route('admin.ormawa.create') }}" class="w-full sm:w-auto px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-active transition text-[13px] font-medium flex items-center justify-center gap-2 shadow-sm">
+                    <i class="ti ti-plus"></i> Tambah Ormawa Baru
+                </a>
+            @endif
             <div class="text-[20px] font-bold text-gray-900">{{ $ormawa->total() ?? $ormawa->count() }}</div>
             <div class="text-[11px] text-gray-500 font-medium">Total Ormawa</div>
         </div>
@@ -29,7 +26,10 @@
     <div class="table-card">
         {{-- Search & Filters Section --}}
         <div class="p-4 sm:p-6 border-b border-gray-100">
-            <form method="GET" action="{{ route('admin.ormawa.index') }}" class="space-y-4">
+            @php
+                $indexRoute = auth()->user()->role === 'bauak' ? route('bauak.ormawa.index') : route('admin.ormawa.index');
+            @endphp
+            <form method="GET" action="{{ $indexRoute }}" class="space-y-4">
                 <div class="flex flex-col sm:flex-row gap-3">
                     <div class="flex-1 relative">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -44,7 +44,7 @@
                             Cari
                         </button>
                         @if(request('search'))
-                            <a href="{{ route('admin.ormawa.index') }}" class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-[13px] font-medium hover:bg-gray-200 transition flex items-center justify-center gap-1">
+                            <a href="{{ $indexRoute }}" class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-[13px] font-medium hover:bg-gray-200 transition flex items-center justify-center gap-1">
                                 <i class="ti ti-refresh"></i> Reset
                             </a>
                         @endif
@@ -93,16 +93,23 @@
                                 </td>
                                 <td>
                                     <div class="flex gap-2">
-                                        <a href="{{ route('admin.ormawa.edit', $item->id) }}" class="p-1.5 bg-warning-light text-warning rounded-md hover:bg-warning hover:text-white transition-colors" title="Edit">
+                                        @php
+                                            $editRoute = auth()->user()->role === 'bauak'
+                                                ? route('bauak.ormawa.edit', $item->id)
+                                                : route('admin.ormawa.edit', $item->id);
+                                        @endphp
+                                        <a href="{{ $editRoute }}" class="p-1.5 bg-warning-light text-warning rounded-md hover:bg-warning hover:text-white transition-colors" title="Edit">
                                             <i class="ti ti-edit"></i>
                                         </a>
-                                        <form action="{{ route('admin.ormawa.destroy', $item->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus ormawa ini?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-1.5 bg-danger-light text-danger rounded-md hover:bg-danger hover:text-white transition-colors" title="Hapus">
-                                                <i class="ti ti-trash"></i>
-                                            </button>
-                                        </form>
+                                        @if(auth()->user()->role === 'admin')
+                                            <form action="{{ route('admin.ormawa.destroy', $item->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus ormawa ini?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="p-1.5 bg-danger-light text-danger rounded-md hover:bg-danger hover:text-white transition-colors" title="Hapus">
+                                                    <i class="ti ti-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -120,7 +127,7 @@
                                 <h3 class="text-[14px] font-semibold text-gray-900 leading-tight">{{ $item->nama_ormawa }}</h3>
                                 <span class="text-[11px] text-gray-400 font-bold uppercase tracking-wider">#{{ $loop->iteration }}</span>
                             </div>
-                            
+
                             <div class="grid grid-cols-1 gap-2 text-[12px] mb-4">
                                 <div class="flex items-center gap-2 text-gray-700">
                                     <i class="ti ti-user text-gray-400 w-4"></i>
@@ -137,16 +144,23 @@
                             </div>
 
                             <div class="flex gap-2">
-                                <a href="{{ route('admin.ormawa.edit', $item->id) }}" class="flex-1 text-center py-2 px-3 text-[12px] bg-warning-light text-warning font-medium rounded-lg hover:bg-warning hover:text-white transition-colors">
+                                @php
+                                    $editRoute = auth()->user()->role === 'bauak'
+                                        ? route('bauak.ormawa.edit', $item->id)
+                                        : route('admin.ormawa.edit', $item->id);
+                                @endphp
+                                <a href="{{ $editRoute }}" class="flex-1 text-center py-2 px-3 text-[12px] bg-warning-light text-warning font-medium rounded-lg hover:bg-warning hover:text-white transition-colors">
                                     Edit
                                 </a>
-                                <form action="{{ route('admin.ormawa.destroy', $item->id) }}" method="POST" class="flex-1" onsubmit="return confirm('Hapus ormawa ini?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="w-full text-center py-2 px-3 text-[12px] bg-danger-light text-danger font-medium rounded-lg hover:bg-danger hover:text-white transition-colors">
-                                        Hapus
-                                    </button>
-                                </form>
+                                @if(auth()->user()->role === 'admin')
+                                    <form action="{{ route('admin.ormawa.destroy', $item->id) }}" method="POST" class="flex-1" onsubmit="return confirm('Hapus ormawa ini?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="w-full text-center py-2 px-3 text-[12px] bg-danger-light text-danger font-medium rounded-lg hover:bg-danger hover:text-white transition-colors">
+                                            Hapus
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
                     @endforeach

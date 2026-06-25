@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::get('/', function () {
-    return redirect()->route('login');
+    return view('welcome');
 });
 
 // Auth routes (handled by Laravel Breeze)
@@ -159,6 +159,13 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/bulk-verify', [VerifikasiBauakController::class, 'bulkVerify'])->name('bulk-verify');
         });
 
+        // Kelola Dosen Pembina Ormawa
+        Route::prefix('ormawa')->name('ormawa.')->group(function () {
+            Route::get('/', [OrmawaController::class, 'index'])->name('index');
+            Route::get('/{pengajuan}/edit', [OrmawaController::class, 'edit'])->name('edit');
+            Route::patch('/{pengajuan}', [OrmawaController::class, 'update'])->name('update');
+        });
+
         // Reports
         Route::get('/laporan', [LaporanController::class, 'bauak'])->name('laporan');
     });
@@ -180,7 +187,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/monitoring', [PersetujuanWarek3Controller::class, 'monitoring'])->name('monitoring');
     });
 
-  
+
 
 
     // ==========================================
@@ -197,12 +204,12 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{pengajuan}', [OrmawaController::class, 'show'])->name('show');
             Route::get('/{pengajuan}/edit', [OrmawaController::class, 'edit'])->name('edit');
             Route::patch('/{pengajuan}', [OrmawaController::class, 'update'])->name('update');
+            Route::delete('/{pengajuan}', [OrmawaController::class, 'destroy'])->name('destroy');
         });
 
-            
+
 
         // Untuk admin juga bisa akses semua resource
         Route::resource('pengajuan', PengajuanKegiatanController::class);
-        Route::resource('ormawa', OrmawaController::class);
     });
 });

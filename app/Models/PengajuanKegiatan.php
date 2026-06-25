@@ -156,7 +156,7 @@ class PengajuanKegiatan extends Model
 
     public function scopeMenungguRektor($query)
     {
-        return $query->where('status', 'disetujui');
+        return $query->where('status', 'menunggu_rektor');
     }
 
     public function scopeRevisiRektor($query)

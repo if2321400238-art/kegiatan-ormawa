@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 
@@ -36,7 +37,9 @@ class RegisteredUserController extends Controller
         ]);
 
         $user = User::create([
-            'name' => $request->name,
+            'nama' => $request->name,
+            'username' => Str::slug($request->name) ?: explode('@', $request->email)[0],
+            'role' => User::ROLE_ORMAWA,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);

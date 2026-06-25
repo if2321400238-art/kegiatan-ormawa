@@ -18,7 +18,7 @@
         </h3>
 
         <div class="hidden md:flex items-center justify-between mb-2">
-            {{-- Step 1: Diajukan --}}
+            {{-- Step 1: Menunggu Dosen Pembina --}}
             <div class="flex-1 text-center relative z-10">
                 @php
                     $isStep1Active = in_array($pengajuan->status, ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'disetujui']);
@@ -26,7 +26,7 @@
                 <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center border-4 border-white shadow-sm {{ $isStep1Active ? 'bg-success text-white' : 'bg-gray-100 text-gray-400' }}">
                     <i class="ti {{ $isStep1Active ? 'ti-check' : 'ti-send' }} text-xl"></i>
                 </div>
-                <div class="mt-2 text-[12px] font-bold {{ $isStep1Active ? 'text-gray-900' : 'text-gray-400' }}">Diajukan</div>
+                <div class="mt-2 text-[12px] font-bold {{ $isStep1Active ? 'text-gray-900' : 'text-gray-400' }}">Menunggu Dosen Pembina</div>
             </div>
 
             {{-- Connector --}}
@@ -40,7 +40,7 @@
                     $isStep2Revisi = $pengajuan->status == 'revisi_bauak';
                     $isStep2Tolak = $pengajuan->status == 'ditolak';
                 @endphp
-                <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center border-4 border-white shadow-sm 
+                <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center border-4 border-white shadow-sm
                     {{ $isStep2Done ? 'bg-success text-white' : ($isStep2Active ? 'bg-warning text-white' : ($isStep2Revisi ? 'bg-orange text-white' : ($isStep2Tolak ? 'bg-danger text-white' : 'bg-gray-100 text-gray-400'))) }}">
                     @if($isStep2Done)
                         <i class="ti ti-check text-xl"></i>
@@ -64,7 +64,7 @@
                     $isStep3Done = in_array($pengajuan->status, ['menunggu_rektor', 'disetujui']);
                     $isStep3Active = $pengajuan->status == 'menunggu_warek3';
                 @endphp
-                <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center border-4 border-white shadow-sm 
+                <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center border-4 border-white shadow-sm
                     {{ $isStep3Done ? 'bg-success text-white' : ($isStep3Active ? 'bg-warning text-white' : 'bg-gray-100 text-gray-400') }}">
                     @if($isStep3Done)
                         <i class="ti ti-check text-xl"></i>
@@ -83,13 +83,13 @@
                     <i class="ti ti-check"></i>
                 </div>
                 <div>
-                    <p class="text-[13px] font-bold text-gray-900">Diajukan</p>
+                    <p class="text-[13px] font-bold text-gray-900">Menunggu Dosen Pembina</p>
                     <p class="text-[11px] text-gray-500">Pengajuan telah dikirim</p>
                 </div>
             </div>
-            
+
             <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 
+                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
                     {{ in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']) ? 'bg-success text-white' : ($pengajuan->status == 'menunggu_dosen' ? 'bg-warning text-white' : ($pengajuan->status == 'revisi_bauak' ? 'bg-orange text-white' : ($pengajuan->status == 'ditolak' ? 'bg-danger text-white' : 'bg-gray-100 text-gray-400'))) }}">
                     @if(in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']))
                         <i class="ti ti-check"></i>
@@ -106,9 +106,9 @@
                     <p class="text-[11px] text-gray-500">Menunggu verifikasi BAUAK</p>
                 </div>
             </div>
-            
+
             <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 
+                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
                     {{ in_array($pengajuan->status, ['menunggu_rektor', 'disetujui']) ? 'bg-success text-white' : ($pengajuan->status == 'menunggu_warek3' ? 'bg-warning text-white' : 'bg-gray-100 text-gray-400') }}">
                     @if(in_array($pengajuan->status, ['menunggu_rektor', 'disetujui']))
                         <i class="ti ti-check"></i>
@@ -273,7 +273,7 @@
                 <div class="flex items-center gap-4">
                     <div class="w-12 h-12 rounded-xl bg-brand-light text-brand flex items-center justify-center text-2xl font-bold">
                         {{ substr($pengajuan->ormawa->nama_ormawa, 0, 1) }}
-                    </div>  
+                    </div>
                     <div class="p-5">
                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Organisasi</p>
                         <p class="text-[14px] font-bold text-gray-900 leading-tight mb-1">{{ $pengajuan->ormawa->nama_ormawa }}</p>

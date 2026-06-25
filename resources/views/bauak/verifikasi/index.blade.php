@@ -46,7 +46,7 @@
                                             <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ormawa</th>
                                             <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Judul Kegiatan</th>
                                             <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tanggal</th>
-                                            <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Diajukan</th>
+                                               <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Waktu Pengajuan</th>
                                             <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Aksi</th>
                                         </tr>
                                     </thead>
@@ -97,7 +97,7 @@
                                                 <p class="font-medium">{{ $item->tanggal_mulai->format('d M Y') }}</p>
                                             </div>
                                             <div>
-                                                <p class="text-gray-500">Diajukan</p>
+                                                <p class="text-gray-500">Waktu Pengajuan</p>
                                                 <p class="font-medium">{{ $item->created_at->diffForHumans() }}</p>
                                             </div>
                                         </div>

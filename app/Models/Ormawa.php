@@ -17,7 +17,9 @@ class Ormawa extends Model
         'nama_ormawa',
         'ketua',
         'pembina',
-        'jenis_ormawa',
+        'kategori_organisasi',
+        'tingkat_organisasi',
+        'fakultas_id',
         'kop_surat',
         'kontak',
         'deskripsi',
@@ -66,14 +68,24 @@ class Ormawa extends Model
             && !empty($this->kop_surat);
     }
 
+    public function isInternal(): bool
+    {
+        return $this->kategori_organisasi === 'internal';
+    }
+
+    public function isEksternal(): bool
+    {
+        return $this->kategori_organisasi === 'eksternal';
+    }
+
     public function isFakultas(): bool
     {
-        return $this->jenis_ormawa === 'fakultas';
+        return $this->kategori_organisasi === 'internal' && $this->tingkat_organisasi === 'fakultas';
     }
 
     public function isUniversitas(): bool
     {
-        return $this->jenis_ormawa === 'universitas';
+        return $this->kategori_organisasi === 'internal' && $this->tingkat_organisasi === 'universitas';
     }
 
     // ==========================================

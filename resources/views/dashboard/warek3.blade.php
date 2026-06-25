@@ -3,14 +3,14 @@
 
     {{-- Key Statistics Grid --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        
-        {{-- Menunggu Persetujuan --}}
+
+        {{-- Menunggu Wakil Rektor III --}}
         <div class="stat-card" style="--accent: #F59E0B">
             <div class="stat-icon bg-warning-light text-warning">
                 <i class="ti ti-clock-down"></i>
             </div>
             <div>
-                <span class="stat-label">Menunggu Persetujuan</span>
+                <span class="stat-label">Menunggu Wakil Rektor III</span>
                 <span class="stat-value">{{ $stats['menunggu_persetujuan'] ?? 0 }}</span>
             </div>
         </div>
@@ -52,18 +52,18 @@
 
     {{-- Lower Grid: Menunggu Persetujuan & Riwayat --}}
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        
+
         {{-- Kolom Kiri: Menunggu Persetujuan --}}
         <div class="flex flex-col gap-6 min-h-0">
             <div class="table-card flex-1">
                 <div class="p-4 border-b border-gray-100 flex items-center justify-between">
                     <div>
                         <h3 class="text-[15px] font-semibold text-gray-900">Menunggu Persetujuan</h3>
-                        <p class="text-[12px] text-gray-400">Pengajuan yang telah diverifikasi BAUAK</p>
+                        <p class="text-[12px] text-gray-400">Pengajuan yang telah diverifikasi BAUAK dan menunggu persetujuan Wakil Rektor III</p>
                     </div>
                     <a href="{{ route('warek3.persetujuan.index') }}" class="badge badge-warning hover:bg-warning-light/80">Lihat Semua</a>
                 </div>
-                
+
                 @if(count($pengajuanMenunggu ?? []) > 0)
                 <div class="overflow-x-auto">
                     <table>
@@ -106,7 +106,7 @@
 
         {{-- Kolom Kanan: Riwayat Persetujuan --}}
         <div class="flex flex-col gap-6 min-h-0">
-            
+
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col min-h-0 overflow-hidden">
                 <div class="p-4 border-b border-gray-100 flex items-center justify-between">
                     <div>

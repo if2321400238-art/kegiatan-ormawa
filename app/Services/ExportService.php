@@ -58,10 +58,17 @@ class ExportService
     {
         $labels = [
             'draft' => 'Draft',
-            'menunggu_dosen' => 'Pending',
-            'menunggu_warek3' => 'Disetujui BAUAK',
-            'disetujui' => 'Disetujui Warek III',
-            'revisi_bauak' => 'Revisi',
+            'menunggu_dosen' => 'Menunggu Dosen Pembina',
+            'menunggu_dekan' => 'Menunggu Dekan',
+            'menunggu_bauak' => 'Menunggu BAUAK',
+            'menunggu_warek3' => 'Menunggu Wakil Rektor III',
+            'menunggu_rektor' => 'Menunggu Rektor',
+            'disetujui' => 'Disetujui',
+            'revisi_dosen' => 'Revisi Dosen Pembina',
+            'revisi_dekan' => 'Revisi Dekan',
+            'revisi_bauak' => 'Revisi BAUAK',
+            'revisi_warek3' => 'Revisi Wakil Rektor III',
+            'revisi_rektor' => 'Revisi Rektor',
             'ditolak' => 'Ditolak',
         ];
 

@@ -3,7 +3,7 @@
 
     {{-- Key Statistics Grid --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        
+
         {{-- Total Ormawa --}}
         <div class="stat-card" style="--accent: #3B82F6">
             <div class="stat-icon bg-info-light text-info">
@@ -52,7 +52,7 @@
 
     {{-- Lower Grid: Recent Pengajuan & Right Sidebar --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {{-- Kolom Kiri: Pengajuan Terbaru (2/3 lebar) --}}
         <div class="lg:col-span-2 flex flex-col gap-6 min-h-0">
             <div class="table-card flex-1">
@@ -63,7 +63,7 @@
                     </div>
                     <span class="badge badge-gray">{{ count($pengajuanTerbaru ?? []) }} data</span>
                 </div>
-                
+
                 @if(count($pengajuanTerbaru ?? []) > 0)
                 <div class="overflow-x-auto">
                     <table>
@@ -86,15 +86,22 @@
                                         $statusClass = match($item->status) {
                                             'draft' => 'badge-gray',
                                             'menunggu_dosen' => 'badge-warning',
+                                            'menunggu_dekan' => 'badge-warning',
+                                            'menunggu_bauak' => 'badge-warning',
                                             'menunggu_warek3' => 'badge-info',
+                                            'menunggu_rektor' => 'badge-info',
                                             'disetujui' => 'badge-success',
+                                            'revisi_dosen' => 'badge-orange',
+                                            'revisi_dekan' => 'badge-orange',
                                             'revisi_bauak' => 'badge-orange',
+                                            'revisi_warek3' => 'badge-orange',
+                                            'revisi_rektor' => 'badge-orange',
                                             'ditolak' => 'badge-danger',
                                             default => 'badge-gray'
                                         };
                                     @endphp
                                     <span class="badge {{ $statusClass }}">
-                                        {{ ucwords(str_replace('_', ' ', $item->status)) }}
+                                        {{ $item->status_label }}
                                     </span>
                                 </td>
                             </tr>
@@ -115,7 +122,7 @@
 
         {{-- Kolom Kanan: Aksi Cepat & Ormawa Teraktif (1/3 lebar) --}}
         <div class="flex flex-col gap-6 min-h-0">
-            
+
             {{-- Aksi Cepat --}}
             <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm flex-shrink-0">
                 <div class="p-4 border-b border-gray-100">
@@ -130,7 +137,7 @@
                         <p class="qa-title text-[13px]">Ormawa</p>
                         <p class="qa-desc text-[11px]">Kelola ormawa</p>
                     </a>
-                    
+
                     <a href="{{ route('pengajuan.index') }}" class="quick-action-card p-4 !border-gray-100 hover:!border-brand-accent/30 block">
                         <div class="qa-icon bg-success">
                             <i class="ti ti-file-plus"></i>

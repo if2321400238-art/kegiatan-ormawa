@@ -3,7 +3,7 @@
 
     {{-- Key Statistics Grid --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        
+
         {{-- Total Pengajuan --}}
         <div class="stat-card" style="--accent: #3B82F6">
             <div class="stat-icon bg-info-light text-info">
@@ -21,7 +21,7 @@
                 <i class="ti ti-clock-down"></i>
             </div>
             <div>
-                <span class="stat-label">Menunggu Approval</span>
+                <span class="stat-label">Menunggu Persetujuan</span>
                 <span class="stat-value">{{ $stats['menunggu_verifikasi'] ?? 0 }}</span>
             </div>
         </div>
@@ -74,7 +74,7 @@
 
     {{-- Lower Grid: Recent Pengajuan & Right Sidebar --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
+
         {{-- Kolom Kiri: Pengajuan Terbaru (2/3 lebar) --}}
         <div class="lg:col-span-2 flex flex-col gap-6 min-h-0">
             <div class="table-card flex-1">
@@ -85,7 +85,7 @@
                     </div>
                     <a href="{{ route('pengajuan.index') }}" class="badge badge-gray hover:bg-gray-200">Lihat Semua</a>
                 </div>
-                
+
                 @if(count($recentPengajuan ?? []) > 0)
                 <div class="overflow-x-auto">
                     <table>
@@ -106,22 +106,8 @@
                                 <td>{{ $pengajuan->tanggal_mulai->format('d M Y') }}</td>
                                 <td>
                                     @php
-                                        $statusColors = [
-                                            'draft' => 'badge-gray',
-                                            'menunggu_dosen' => 'badge-warning',
-                                            'menunggu_warek3' => 'badge-info',
-                                            'disetujui' => 'badge-success',
-                                            'revisi_bauak' => 'badge-orange',
-                                            'ditolak' => 'badge-danger',
-                                        ];
-                                        $statusClass = $statusColors[$pengajuan->status] ?? 'badge-gray';
-                                        $statusLabel = match($pengajuan->status) {
-                                            'menunggu_dosen' => 'Pending',
-                                            'menunggu_warek3' => 'Disetujui BAUAK',
-                                            'disetujui' => 'Disetujui',
-                                            'revisi_bauak' => 'Revisi',
-                                            default => ucwords($pengajuan->status)
-                                        };
+                                        $statusClass = $pengajuan->status_badge ? 'badge-' . $pengajuan->status_badge : 'badge-gray';
+                                        $statusLabel = $pengajuan->status_label;
                                     @endphp
                                     <span class="badge {{ $statusClass }}">
                                         {{ $statusLabel }}
@@ -148,7 +134,7 @@
 
         {{-- Kolom Kanan: Aksi Cepat & Kegiatan Mendatang (1/3 lebar) --}}
         <div class="flex flex-col gap-6 min-h-0">
-            
+
             {{-- Aksi Cepat --}}
             <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm flex-shrink-0">
                 <div class="p-4 border-b border-gray-100">
@@ -163,7 +149,7 @@
                         <p class="qa-title text-[13px]">Buat Baru</p>
                         <p class="qa-desc text-[11px]">Ajukan kegiatan</p>
                     </a>
-                    
+
                     <a href="{{ route('pengajuan.index') }}" class="quick-action-card p-4 !border-gray-100 hover:!border-brand-accent/30 block">
                         <div class="qa-icon bg-brand">
                             <i class="ti ti-list"></i>

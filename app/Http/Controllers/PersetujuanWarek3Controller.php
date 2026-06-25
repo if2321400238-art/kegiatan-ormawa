@@ -96,30 +96,21 @@ class PersetujuanWarek3Controller extends Controller
                 'tanggal_acc' => now(),
             ]);
 
-            // Update pengajuan status
+            // Update pengajuan status and forward to Rektor
             $pengajuan->update([
-                'status' => 'disetujui',
+                'status' => 'menunggu_rektor',
                 'catatan' => $validated['catatan'] ?? null,
             ]);
 
-            // Generate surat rekomendasi final dengan TTD
-            // $suratFinal = $this->suratService->generateFinal($pengajuan);
-
-            // Update surat rekomendasi
-            // $pengajuan->suratRekomendasi()->update([
-            //     'file_surat_final' => $suratFinal,
-            //     'status' => 'ttd_warek3',
-            //     'tanggal_ttd' => now(),
-            // ]);
-
-            // Send notification to Ormawa
+            // Send notification to Ormawa and Rektor
             $this->notifyOrmawa($pengajuan, 'disetujui');
+            $this->notifyRektor($pengajuan);
 
             DB::commit();
 
             return redirect()
                 ->route('warek3.persetujuan.show', $pengajuan)
-                ->with('success', 'Pengajuan berhasil disetujui dan surat rekomendasi telah ditandatangani!');
+                ->with('success', 'Pengajuan berhasil disetujui Warek3 dan diteruskan ke Rektor.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -268,5 +259,24 @@ class PersetujuanWarek3Controller extends Controller
             route('pengajuan.show', $pengajuan),
             ['telegram', 'email', 'in_app']
         );
+    }
+
+    /**
+     * Send notification to Rektor when approval is forwarded.
+     */
+    private function notifyRektor(PengajuanKegiatan $pengajuan)
+    {
+        $users = \App\Models\User::where('role', 'rektor')->where('is_active', true)->get();
+
+        foreach ($users as $user) {
+            sendNotification(
+                $user,
+                'Pengajuan Menunggu Persetujuan Rektor',
+                "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' telah disetujui Warek III dan menunggu persetujuan Rektor.",
+                'info',
+                route('rektor.persetujuan.show', $pengajuan),
+                ['telegram', 'email', 'in_app']
+            );
+        }
     }
 }

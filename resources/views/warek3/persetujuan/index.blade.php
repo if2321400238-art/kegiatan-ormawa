@@ -63,7 +63,7 @@
             <div class="mb-4">
                 <select onchange="window.location.href='?status='+this.value" class="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md text-sm">
                     <option value="">Semua Status</option>
-                    <option value="menunggu_warek3" {{ request('status') == 'menunggu_warek3' ? 'selected' : '' }}>Menunggu Approval</option>
+                    <option value="menunggu_warek3" {{ request('status') == 'menunggu_warek3' ? 'selected' : '' }}>Menunggu Wakil Rektor III</option>
                     <option value="disetujui" {{ request('status') == 'disetujui' ? 'selected' : '' }}>Sudah Disetujui</option>
                     <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
                 </select>
