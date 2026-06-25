@@ -36,8 +36,12 @@ it('dosen approval for internal fakultas sets menunggu_dekan and notifies dekan'
         'tingkat_organisasi' => 'fakultas',
     ]);
 
-    $dosen = User::factory()->create(['role' => 'dosen']);
-    $dekan = User::factory()->create(['role' => 'dekan']);
+    $dosen = User::factory()->create(['role' => 'dosen', 'nama' => 'Dr. X']);
+    $dekan = User::factory()->create(['role' => 'dekan', 'email' => 'dekan.ftik@unuja.ac.id']);
+    // create fakultas and link dekan
+    $fak = \App\Models\Fakultas::create(['nama' => 'Fakultas Teknik', 'dekan_user_id' => $dekan->id]);
+    // assign fakultas to ormawa
+    \App\Models\Ormawa::where('nama_ormawa', 'Ormawa Fakultas')->update(['fakultas_id' => $fak->id]);
 
     $this->actingAs($ormawaUser)
         ->post(route('pengajuan.store'), [
@@ -85,8 +89,11 @@ it('dosen approval for internal universitas sets menunggu_bauak and notifies bau
         'tingkat_organisasi' => 'universitas',
     ]);
 
-    $dosen = User::factory()->create(['role' => 'dosen']);
+    $dosen = User::factory()->create(['role' => 'dosen', 'nama' => 'Dr. Y']);
     $bauak = User::factory()->create(['role' => 'bauak']);
+    // fakultas for universitas case
+    $fak2 = \App\Models\Fakultas::create(['nama' => 'Universitas', 'dekan_user_id' => null]);
+    \App\Models\Ormawa::where('nama_ormawa', 'Ormawa Univ')->update(['fakultas_id' => $fak2->id]);
 
     $this->actingAs($ormawaUser)
         ->post(route('pengajuan.store'), [
@@ -130,8 +137,9 @@ it('dosen approval for eksternal sets menunggu_bauak and notifies bauak', functi
         'tingkat_organisasi' => null,
     ]);
 
-    $dosen = User::factory()->create(['role' => 'dosen']);
+    $dosen = User::factory()->create(['role' => 'dosen', 'nama' => 'Dr. Z']);
     $bauak = User::factory()->create(['role' => 'bauak']);
+    \App\Models\Ormawa::where('nama_ormawa', 'Ormawa Eksternal')->update(['fakultas_id' => null]);
 
     $this->actingAs($ormawaUser)
         ->post(route('pengajuan.store'), [
@@ -175,9 +183,12 @@ it('dekan approval forwards to bauak and notifies bauak', function () {
         'tingkat_organisasi' => 'fakultas',
     ]);
 
-    $dosen = User::factory()->create(['role' => 'dosen']);
+    $dosen = User::factory()->create(['role' => 'dosen', 'nama' => 'Dr. A']);
     $dekan = User::factory()->create(['role' => 'dekan']);
     $bauak = User::factory()->create(['role' => 'bauak']);
+
+    $fak = \App\Models\Fakultas::create(['nama' => 'Fakultas Teknik', 'dekan_user_id' => $dekan->id]);
+    \App\Models\Ormawa::where('nama_ormawa', 'Ormawa Fakultas 2')->update(['fakultas_id' => $fak->id]);
 
     $this->actingAs($ormawaUser)
         ->post(route('pengajuan.store'), [
@@ -217,6 +228,84 @@ it('dekan approval forwards to bauak and notifies bauak', function () {
     expect($hasNotif)->toBeTrue();
 });
 
+it('dekan apt only sees and approves pengajuan from their faculty', function () {
+    createTemporaryPublicDisk();
+    Mail::fake();
+
+    $ormawaUser = User::factory()->create(['role' => 'ormawa']);
+    Ormawa::create([
+        'user_id' => $ormawaUser->id,
+        'nama_ormawa' => 'Ormawa Teknik',
+        'ketua' => 'Ketua',
+        'pembina' => 'Dr. A',
+        'kategori_organisasi' => 'internal',
+        'tingkat_organisasi' => 'fakultas',
+    ]);
+
+    $dosen = User::factory()->create(['role' => 'dosen', 'nama' => 'Dr. A']);
+    $fakTeknik = \App\Models\Fakultas::create(['nama' => 'Fakultas Teknik']);
+    $fakFAI = \App\Models\Fakultas::create(['nama' => 'Fakultas Agama Islam']);
+
+    $dekanTeknik = User::factory()->create([
+        'role' => 'dekan',
+        'nama' => 'Dekan Teknik',
+        'fakultas_id' => $fakTeknik->id,
+    ]);
+    $dekanFAI = User::factory()->create([
+        'role' => 'dekan',
+        'nama' => 'Dekan FAI',
+        'fakultas_id' => $fakFAI->id,
+    ]);
+
+    $fakTeknik->update(['dekan_user_id' => $dekanTeknik->id]);
+    $fakFAI->update(['dekan_user_id' => $dekanFAI->id]);
+
+    \App\Models\Ormawa::where('nama_ormawa', 'Ormawa Teknik')->update(['fakultas_id' => $fakTeknik->id]);
+
+    $this->actingAs($ormawaUser)
+        ->post(route('pengajuan.store'), [
+            'judul_kegiatan' => 'Test Kegiatan',
+            'tujuan_kegiatan' => 'Tujuan test',
+            'lokasi_kegiatan' => 'Lokasi Test',
+            'tempat_pesantren' => 'Pesantren Test',
+            'tanggal_mulai' => now()->addDays(7)->format('Y-m-d'),
+            'tanggal_selesai' => now()->addDays(8)->format('Y-m-d'),
+            'ketua_pelaksana' => 'Ketua Test',
+            'nama_pemohon' => 'Pemohon Test',
+            'file_proposal' => UploadedFile::fake()->create('proposal.pdf', 100, 'application/pdf'),
+            'file_rab' => UploadedFile::fake()->create('rab.pdf', 100, 'application/pdf'),
+        ])->assertStatus(302);
+
+    $pengajuan = PengajuanKegiatan::latest()->firstOrFail();
+
+    $this->actingAs($dosen)
+        ->post(route('dosen.verifikasi.verify', $pengajuan), [
+            'status' => 'disetujui',
+            'catatan' => 'OK',
+        ])->assertStatus(302);
+
+    $pengajuan->refresh();
+    expect($pengajuan->status)->toBe('menunggu_dekan');
+
+    // Dekan FAI should not see this pengajuan in their list
+    $this->actingAs($dekanFAI);
+    $response = $this->get(route('dekan.persetujuan.index'));
+    $response->assertStatus(200);
+    $response->assertDontSee('Ormawa Teknik');
+
+    // Dekan FAI should receive 403 when accessing detail
+    $this->get(route('dekan.persetujuan.show', $pengajuan))->assertStatus(403);
+
+    // Dekan Teknik can approve
+    $this->actingAs($dekanTeknik)
+        ->post(route('dekan.persetujuan.approve', $pengajuan), [
+            'catatan' => 'Setuju',
+        ])->assertStatus(302);
+
+    $pengajuan->refresh();
+    expect($pengajuan->status)->toBe('menunggu_bauak');
+});
+
 it('bauak approval finalizes proposal and rab, and notifies warek3', function () {
     createTemporaryPublicDisk();
     Mail::fake();
@@ -231,7 +320,7 @@ it('bauak approval finalizes proposal and rab, and notifies warek3', function ()
         'tingkat_organisasi' => 'universitas',
     ]);
 
-    $dosen = User::factory()->create(['role' => 'dosen']);
+    $dosen = User::factory()->create(['role' => 'dosen', 'nama' => 'Dr. B']);
     $bauak = User::factory()->create(['role' => 'bauak']);
     $warek3 = User::factory()->create(['role' => 'warek3']);
 
@@ -293,7 +382,7 @@ it('warek3 approval forwards to rektor and notifies rektor; rektor approval sets
         'tingkat_organisasi' => 'universitas',
     ]);
 
-    $dosen = User::factory()->create(['role' => 'dosen']);
+    $dosen = User::factory()->create(['role' => 'dosen', 'nama' => 'Dr. C']);
     $bauak = User::factory()->create(['role' => 'bauak']);
     $warek3 = User::factory()->create(['role' => 'warek3']);
     $rektor = User::factory()->create(['role' => 'rektor']);

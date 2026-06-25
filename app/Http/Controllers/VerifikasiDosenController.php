@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PengajuanKegiatan;
+use App\Models\User;
 use App\Models\VerifikasiDosen;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,8 +12,15 @@ class VerifikasiDosenController extends Controller
 {
     public function index(Request $request)
     {
+        // Hanya tampilkan pengajuan untuk Ormawa yang dibina oleh dosen saat ini
         $query = PengajuanKegiatan::with(['ormawa', 'proposal', 'rab'])
-            ->whereIn('status', ['menunggu_dosen', 'revisi_dosen']);
+            ->whereIn('status', ['menunggu_dosen', 'revisi_dosen'])
+            ->whereHas('ormawa', function ($q) {
+                $q->where(function ($q2) {
+                    $q2->where('pembina_user_id', auth()->id())
+                        ->orWhere('pembina', auth()->user()->nama);
+                });
+            });
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -26,18 +34,47 @@ class VerifikasiDosenController extends Controller
 
         $pengajuanMenunggu = $query->latest()->paginate(10);
 
-        return view('dosen.verifikasi.index', compact('pengajuanMenunggu'));
+        $riwayatVerifikasi = VerifikasiDosen::with(['pengajuanKegiatan.ormawa'])
+            ->where('user_dosen_id', auth()->id())
+            ->latest()
+            ->paginate(10);
+
+        return view('dosen.verifikasi.index', compact('pengajuanMenunggu', 'riwayatVerifikasi'));
     }
 
     public function show(PengajuanKegiatan $pengajuan)
     {
         $pengajuan->load(['ormawa.user', 'proposal', 'rab', 'suratRekomendasi']);
 
+        // Pastikan dosen hanya dapat melihat pengajuan Ormawa yang dia bina
+        $pembinaUserId = $pengajuan->ormawa->pembina_user_id ?? null;
+        if ($pembinaUserId) {
+            if ($pembinaUserId !== auth()->id()) {
+                abort(403, 'Anda tidak berwenang mengakses pengajuan ini.');
+            }
+        } else {
+            if ((($pengajuan->ormawa->pembina ?? null) !== auth()->user()->nama)) {
+                abort(403, 'Anda tidak berwenang mengakses pengajuan ini.');
+            }
+        }
+
         return view('dosen.verifikasi.show', compact('pengajuan'));
     }
 
     public function verify(Request $request, PengajuanKegiatan $pengajuan)
     {
+        // Guard: hanya pembina Ormawa terkait yang boleh memverifikasi
+        $pembinaUserId = $pengajuan->ormawa->pembina_user_id ?? null;
+        if ($pembinaUserId) {
+            if ($pembinaUserId !== auth()->id()) {
+                return back()->with('error', 'Anda tidak berwenang memverifikasi pengajuan ini.');
+            }
+        } else {
+            if ((($pengajuan->ormawa->pembina ?? null) !== auth()->user()->nama)) {
+                return back()->with('error', 'Anda tidak berwenang memverifikasi pengajuan ini.');
+            }
+        }
+
         $validated = $request->validate([
             'status' => 'required|in:disetujui,revisi,ditolak',
             'catatan' => 'nullable|string',
@@ -118,13 +155,15 @@ class VerifikasiDosenController extends Controller
 
     private function notifyDekan(PengajuanKegiatan $pengajuan)
     {
-        $dekanUsers = \App\Models\User::where('role', 'dekan')->where('is_active', true)->get();
+        $message = "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} telah disetujui Dosen Pembina dan menunggu persetujuan Dekan.";
 
-        foreach ($dekanUsers as $dekan) {
+        $dekan = $pengajuan->ormawa->fakultas?->dekan;
+
+        if ($dekan && $dekan->is_active) {
             sendNotification(
                 $dekan,
                 'Pengajuan Menunggu Persetujuan Dekan',
-                "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} telah disetujui Dosen Pembina dan menunggu persetujuan Dekan.",
+                $message,
                 'info',
                 route('dekan.persetujuan.show', $pengajuan),
                 ['telegram', 'email', 'in_app']

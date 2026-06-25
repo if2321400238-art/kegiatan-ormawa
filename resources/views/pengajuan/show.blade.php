@@ -6,7 +6,8 @@
             <h2 class="text-lg font-semibold text-gray-900">Detail Pengajuan Kegiatan</h2>
             <p class="text-[12px] text-gray-500">Lihat detail dan pantau status pengajuan</p>
         </div>
-        <a href="{{ route('pengajuan.index') }}" class="w-full sm:w-auto px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-[13px] font-medium flex items-center justify-center gap-2">
+        <a href="{{ route('pengajuan.index') }}"
+            class="w-full sm:w-auto px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-[13px] font-medium flex items-center justify-center gap-2">
             <i class="ti ti-arrow-left"></i> Kembali
         </a>
     </div>
@@ -21,16 +22,27 @@
             {{-- Step 1: Menunggu Dosen Pembina --}}
             <div class="flex-1 text-center relative z-10">
                 @php
-                    $isStep1Active = in_array($pengajuan->status, ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'disetujui']);
+                    $isStep1Active = in_array($pengajuan->status, [
+                        'menunggu_dosen',
+                        'menunggu_dekan',
+                        'menunggu_bauak',
+                        'menunggu_warek3',
+                        'menunggu_rektor',
+                        'disetujui',
+                    ]);
                 @endphp
-                <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center border-4 border-white shadow-sm {{ $isStep1Active ? 'bg-success text-white' : 'bg-gray-100 text-gray-400' }}">
+                <div
+                    class="w-10 h-10 mx-auto rounded-full flex items-center justify-center border-4 border-white shadow-sm {{ $isStep1Active ? 'bg-success text-white' : 'bg-gray-100 text-gray-400' }}">
                     <i class="ti {{ $isStep1Active ? 'ti-check' : 'ti-send' }} text-xl"></i>
                 </div>
-                <div class="mt-2 text-[12px] font-bold {{ $isStep1Active ? 'text-gray-900' : 'text-gray-400' }}">Menunggu Dosen Pembina</div>
+                <div class="mt-2 text-[12px] font-bold {{ $isStep1Active ? 'text-gray-900' : 'text-gray-400' }}">
+                    Menunggu Dosen Pembina</div>
             </div>
 
             {{-- Connector --}}
-            <div class="flex-1 h-1 -mx-8 z-0 {{ in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']) ? 'bg-success' : 'bg-gray-100' }}"></div>
+            <div
+                class="flex-1 h-1 -mx-8 z-0 {{ in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']) ? 'bg-success' : 'bg-gray-100' }}">
+            </div>
 
             {{-- Step 2: Verifikasi BAUAK --}}
             <div class="flex-1 text-center relative z-10">
@@ -40,9 +52,10 @@
                     $isStep2Revisi = $pengajuan->status == 'revisi_bauak';
                     $isStep2Tolak = $pengajuan->status == 'ditolak';
                 @endphp
-                <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center border-4 border-white shadow-sm
+                <div
+                    class="w-10 h-10 mx-auto rounded-full flex items-center justify-center border-4 border-white shadow-sm
                     {{ $isStep2Done ? 'bg-success text-white' : ($isStep2Active ? 'bg-warning text-white' : ($isStep2Revisi ? 'bg-orange text-white' : ($isStep2Tolak ? 'bg-danger text-white' : 'bg-gray-100 text-gray-400'))) }}">
-                    @if($isStep2Done)
+                    @if ($isStep2Done)
                         <i class="ti ti-check text-xl"></i>
                     @elseif($isStep2Revisi)
                         <i class="ti ti-refresh text-xl"></i>
@@ -52,11 +65,15 @@
                         <span class="font-bold">2</span>
                     @endif
                 </div>
-                <div class="mt-2 text-[12px] font-bold {{ $isStep2Done || $isStep2Active || $isStep2Revisi || $isStep2Tolak ? 'text-gray-900' : 'text-gray-400' }}">Verifikasi BAUAK</div>
+                <div
+                    class="mt-2 text-[12px] font-bold {{ $isStep2Done || $isStep2Active || $isStep2Revisi || $isStep2Tolak ? 'text-gray-900' : 'text-gray-400' }}">
+                    Verifikasi BAUAK</div>
             </div>
 
             {{-- Connector --}}
-            <div class="flex-1 h-1 -mx-8 z-0 {{ in_array($pengajuan->status, ['menunggu_rektor', 'disetujui']) ? 'bg-success' : 'bg-gray-100' }}"></div>
+            <div
+                class="flex-1 h-1 -mx-8 z-0 {{ in_array($pengajuan->status, ['menunggu_rektor', 'disetujui']) ? 'bg-success' : 'bg-gray-100' }}">
+            </div>
 
             {{-- Step 3: Warek III --}}
             <div class="flex-1 text-center relative z-10">
@@ -64,22 +81,26 @@
                     $isStep3Done = in_array($pengajuan->status, ['menunggu_rektor', 'disetujui']);
                     $isStep3Active = $pengajuan->status == 'menunggu_warek3';
                 @endphp
-                <div class="w-10 h-10 mx-auto rounded-full flex items-center justify-center border-4 border-white shadow-sm
+                <div
+                    class="w-10 h-10 mx-auto rounded-full flex items-center justify-center border-4 border-white shadow-sm
                     {{ $isStep3Done ? 'bg-success text-white' : ($isStep3Active ? 'bg-warning text-white' : 'bg-gray-100 text-gray-400') }}">
-                    @if($isStep3Done)
+                    @if ($isStep3Done)
                         <i class="ti ti-check text-xl"></i>
                     @else
                         <span class="font-bold">3</span>
                     @endif
                 </div>
-                <div class="mt-2 text-[12px] font-bold {{ $isStep3Done || $isStep3Active ? 'text-gray-900' : 'text-gray-400' }}">Persetujuan Warek III</div>
+                <div
+                    class="mt-2 text-[12px] font-bold {{ $isStep3Done || $isStep3Active ? 'text-gray-900' : 'text-gray-400' }}">
+                    Persetujuan Warek III</div>
             </div>
         </div>
 
         {{-- Mobile Timeline --}}
         <div class="md:hidden space-y-4">
             <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 {{ in_array($pengajuan->status, ['menunggu_dosen', 'menunggu_warek3', 'menunggu_rektor', 'disetujui']) ? 'bg-success text-white' : 'bg-gray-100 text-gray-400' }}">
+                <div
+                    class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 {{ in_array($pengajuan->status, ['menunggu_dosen', 'menunggu_warek3', 'menunggu_rektor', 'disetujui']) ? 'bg-success text-white' : 'bg-gray-100 text-gray-400' }}">
                     <i class="ti ti-check"></i>
                 </div>
                 <div>
@@ -89,9 +110,10 @@
             </div>
 
             <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
+                <div
+                    class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
                     {{ in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']) ? 'bg-success text-white' : ($pengajuan->status == 'menunggu_dosen' ? 'bg-warning text-white' : ($pengajuan->status == 'revisi_bauak' ? 'bg-orange text-white' : ($pengajuan->status == 'ditolak' ? 'bg-danger text-white' : 'bg-gray-100 text-gray-400'))) }}">
-                    @if(in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']))
+                    @if (in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']))
                         <i class="ti ti-check"></i>
                     @elseif($pengajuan->status == 'revisi_bauak')
                         <i class="ti ti-refresh"></i>
@@ -108,9 +130,10 @@
             </div>
 
             <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
+                <div
+                    class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
                     {{ in_array($pengajuan->status, ['menunggu_rektor', 'disetujui']) ? 'bg-success text-white' : ($pengajuan->status == 'menunggu_warek3' ? 'bg-warning text-white' : 'bg-gray-100 text-gray-400') }}">
-                    @if(in_array($pengajuan->status, ['menunggu_rektor', 'disetujui']))
+                    @if (in_array($pengajuan->status, ['menunggu_rektor', 'disetujui']))
                         <i class="ti ti-check"></i>
                     @else
                         <span class="text-[12px] font-bold">3</span>
@@ -125,7 +148,7 @@
 
         <div class="mt-6 text-center border-t border-gray-100 pt-4">
             @php
-                $statusClass = match($pengajuan->status) {
+                $statusClass = match ($pengajuan->status) {
                     'draft' => 'badge-gray',
                     'menunggu_dosen' => 'badge-warning',
                     'menunggu_bauak' => 'badge-warning',
@@ -134,7 +157,7 @@
                     'disetujui' => 'badge-success',
                     'revisi_bauak' => 'badge-orange',
                     'ditolak' => 'badge-danger',
-                    default => 'badge-gray'
+                    default => 'badge-gray',
                 };
             @endphp
             <span class="text-[12px] text-gray-500 mr-2">Status Saat Ini:</span>
@@ -150,53 +173,70 @@
             {{-- Informasi Kegiatan --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-6">
-                    <h3 class="text-[15px] font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                    <h3
+                        class="text-[15px] font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
                         <i class="ti ti-file-description text-brand"></i> Informasi Kegiatan
                     </h3>
 
                     <div class="space-y-4">
                         <div>
-                            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Judul Kegiatan</p>
+                            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Judul Kegiatan
+                            </p>
                             <p class="text-[14px] font-semibold text-gray-900">{{ $pengajuan->judul_kegiatan }}</p>
                         </div>
 
                         <div>
-                            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tujuan Kegiatan</p>
-                            <p class="text-[13px] text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100">{{ $pengajuan->tujuan_kegiatan }}</p>
+                            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tujuan Kegiatan
+                            </p>
+                            <p class="text-[13px] text-gray-700 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                {{ $pengajuan->tujuan_kegiatan }}</p>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Lokasi</p>
-                                <p class="text-[13px] text-gray-900 flex items-center gap-2"><i class="ti ti-map-pin text-gray-400"></i> {{ $pengajuan->lokasi_kegiatan }}</p>
+                                <p class="text-[13px] text-gray-900 flex items-center gap-2"><i
+                                        class="ti ti-map-pin text-gray-400"></i> {{ $pengajuan->lokasi_kegiatan }}</p>
                             </div>
-                            @if($pengajuan->tempat_pesantren)
+                            @if ($pengajuan->tempat_pesantren)
                                 <div>
-                                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tempat Pesantren</p>
-                                    <p class="text-[13px] text-gray-900 flex items-center gap-2"><i class="ti ti-building text-gray-400"></i> {{ $pengajuan->tempat_pesantren }}</p>
+                                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tempat
+                                        Pesantren</p>
+                                    <p class="text-[13px] text-gray-900 flex items-center gap-2"><i
+                                            class="ti ti-building text-gray-400"></i>
+                                        {{ $pengajuan->tempat_pesantren }}</p>
                                 </div>
                             @endif
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tanggal Mulai</p>
-                                <p class="text-[13px] text-gray-900 flex items-center gap-2"><i class="ti ti-calendar text-gray-400"></i> {{ $pengajuan->tanggal_mulai->format('d F Y') }}</p>
+                                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tanggal
+                                    Mulai</p>
+                                <p class="text-[13px] text-gray-900 flex items-center gap-2"><i
+                                        class="ti ti-calendar text-gray-400"></i>
+                                    {{ $pengajuan->tanggal_mulai->format('d F Y') }}</p>
                             </div>
                             <div>
-                                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tanggal Selesai</p>
-                                <p class="text-[13px] text-gray-900 flex items-center gap-2"><i class="ti ti-calendar text-gray-400"></i> {{ $pengajuan->tanggal_selesai->format('d F Y') }}</p>
+                                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tanggal
+                                    Selesai</p>
+                                <p class="text-[13px] text-gray-900 flex items-center gap-2"><i
+                                        class="ti ti-calendar text-gray-400"></i>
+                                    {{ $pengajuan->tanggal_selesai->format('d F Y') }}</p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Ketua Pelaksana</p>
-                                <p class="text-[13px] text-gray-900 flex items-center gap-2"><i class="ti ti-user text-gray-400"></i> {{ $pengajuan->ketua_pelaksana }}</p>
+                                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Ketua
+                                    Pelaksana</p>
+                                <p class="text-[13px] text-gray-900 flex items-center gap-2"><i
+                                        class="ti ti-user text-gray-400"></i> {{ $pengajuan->ketua_pelaksana }}</p>
                             </div>
                             <div>
                                 <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Pemohon</p>
-                                <p class="text-[13px] text-gray-900 flex items-center gap-2"><i class="ti ti-user-circle text-gray-400"></i> {{ $pengajuan->nama_pemohon }}</p>
+                                <p class="text-[13px] text-gray-900 flex items-center gap-2"><i
+                                        class="ti ti-user-circle text-gray-400"></i> {{ $pengajuan->nama_pemohon }}</p>
                             </div>
                         </div>
                     </div>
@@ -206,57 +246,73 @@
             {{-- Dokumen --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-6">
-                    <h3 class="text-[15px] font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                    <h3
+                        class="text-[15px] font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
                         <i class="ti ti-files text-brand"></i> Dokumen Terlampir
                     </h3>
 
                     <div class="space-y-3">
-                        @if($pengajuan->proposal)
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        @if ($pengajuan->proposal)
+                            <div
+                                class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-lg bg-danger-light text-danger flex items-center justify-center text-xl">
+                                    <div
+                                        class="w-10 h-10 rounded-lg bg-danger-light text-danger flex items-center justify-center text-xl">
                                         <i class="ti ti-file-type-pdf"></i>
                                     </div>
                                     <div>
-                                        <p class="text-[13px] font-bold text-gray-900 leading-tight">Proposal Kegiatan</p>
-                                        <p class="text-[11px] text-gray-500">{{ $pengajuan->proposal->file_size ?? 'PDF Document' }}</p>
+                                        <p class="text-[13px] font-bold text-gray-900 leading-tight">Proposal Kegiatan
+                                        </p>
+                                        <p class="text-[11px] text-gray-500">
+                                            {{ $pengajuan->proposal->file_size ?? 'PDF Document' }}</p>
                                     </div>
                                 </div>
-                                <a href="{{ $pengajuan->proposal->file_url }}" target="_blank" class="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg text-[12px] font-medium hover:bg-gray-50 transition shadow-sm flex items-center gap-2">
+                                <a href="{{ $pengajuan->proposal->file_url }}" target="_blank"
+                                    class="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg text-[12px] font-medium hover:bg-gray-50 transition shadow-sm flex items-center gap-2">
                                     <i class="ti ti-download"></i> Unduh
                                 </a>
                             </div>
                         @endif
 
-                        @if($pengajuan->rab)
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
+                        @if ($pengajuan->rab)
+                            <div
+                                class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-lg bg-success-light text-success flex items-center justify-center text-xl">
+                                    <div
+                                        class="w-10 h-10 rounded-lg bg-success-light text-success flex items-center justify-center text-xl">
                                         <i class="ti ti-file-spreadsheet"></i>
                                     </div>
                                     <div>
-                                        <p class="text-[13px] font-bold text-gray-900 leading-tight">Rencana Anggaran Biaya (RAB)</p>
-                                        <p class="text-[11px] text-gray-500">{{ $pengajuan->rab->file_size ?? 'PDF Document' }}</p>
+                                        <p class="text-[13px] font-bold text-gray-900 leading-tight">Rencana Anggaran
+                                            Biaya (RAB)</p>
+                                        <p class="text-[11px] text-gray-500">
+                                            {{ $pengajuan->rab->file_size ?? 'PDF Document' }}</p>
                                     </div>
                                 </div>
-                                <a href="{{ $pengajuan->rab->file_url }}" target="_blank" class="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg text-[12px] font-medium hover:bg-gray-50 transition shadow-sm flex items-center gap-2">
+                                <a href="{{ $pengajuan->rab->file_url }}" target="_blank"
+                                    class="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded-lg text-[12px] font-medium hover:bg-gray-50 transition shadow-sm flex items-center gap-2">
                                     <i class="ti ti-download"></i> Unduh
                                 </a>
                             </div>
                         @endif
 
-                        @if($pengajuan->suratRekomendasi && $pengajuan->suratRekomendasi->hasFinalFile())
-                            <div class="flex items-center justify-between p-3 bg-brand-light/30 rounded-lg border border-brand/20 mt-4">
+                        @if ($pengajuan->suratRekomendasi && $pengajuan->suratRekomendasi->hasFinalFile())
+                            <div
+                                class="flex items-center justify-between p-3 bg-brand-light/30 rounded-lg border border-brand/20 mt-4">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-lg bg-brand text-white flex items-center justify-center text-xl shadow-sm">
+                                    <div
+                                        class="w-10 h-10 rounded-lg bg-brand text-white flex items-center justify-center text-xl shadow-sm">
                                         <i class="ti ti-certificate"></i>
                                     </div>
                                     <div>
-                                        <p class="text-[13px] font-bold text-gray-900 leading-tight">Surat Rekomendasi (Disetujui)</p>
-                                        <p class="text-[11px] text-brand font-medium">{{ $pengajuan->suratRekomendasi->nomor_surat }}</p>
+                                        <p class="text-[13px] font-bold text-gray-900 leading-tight">Surat Rekomendasi
+                                            (Disetujui)</p>
+                                        <p class="text-[11px] text-brand font-medium">
+                                            {{ $pengajuan->suratRekomendasi->nomor_surat }}</p>
                                     </div>
                                 </div>
-                                <a href="{{ $pengajuan->suratRekomendasi->final_url }}" target="_blank" class="px-3 py-1.5 bg-brand text-white rounded-lg text-[12px] font-medium hover:bg-brand-active transition shadow-sm flex items-center gap-2">
+                                <a href="{{ $pengajuan->suratRekomendasi->final_url }}" target="_blank"
+                                    class="px-3 py-1.5 bg-brand text-white rounded-lg text-[12px] font-medium hover:bg-brand-active transition shadow-sm flex items-center gap-2">
                                     <i class="ti ti-download"></i> Unduh
                                 </a>
                             </div>
@@ -271,66 +327,148 @@
             {{-- Ormawa Info --}}
             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-xl bg-brand-light text-brand flex items-center justify-center text-2xl font-bold">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-brand-light text-brand flex items-center justify-center text-2xl font-bold">
                         {{ substr($pengajuan->ormawa->nama_ormawa, 0, 1) }}
                     </div>
                     <div class="p-5">
                         <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Organisasi</p>
-                        <p class="text-[14px] font-bold text-gray-900 leading-tight mb-1">{{ $pengajuan->ormawa->nama_ormawa }}</p>
-                        <p class="text-[12px] text-gray-500 flex items-center gap-2"><i class="ti ti-user-shield text-gray-400"></i> {{ $pengajuan->ormawa->ketua }}</p>
+                        <p class="text-[14px] font-bold text-gray-900 leading-tight mb-1">
+                            {{ $pengajuan->ormawa->nama_ormawa }}</p>
+                        <p class="text-[12px] text-gray-500 flex items-center gap-2"><i
+                                class="ti ti-user-shield text-gray-400"></i> {{ $pengajuan->ormawa->ketua }}</p>
                     </div>
                 </div>
             </div>
-            {{-- Riwayat Verifikasi --}}
-            @if($pengajuan->verifikasiBauak->count() > 0)
+            {{-- Riwayat Verifikasi Gabungan Premium Timeline Layout --}}
+            @php
+                // 1. Ambil semua koleksi riwayat verifikasi
+                $dosenLog = $pengajuan->verifikasiDosen ?? collect();
+                $bauakLog = $pengajuan->verifikasiBauak ?? collect();
+                $warek3Log = $pengajuan->persetujuanWarek3 ?? collect();
+                $rektorLog = $pengajuan->persetujuanRektor ?? collect();
+
+                // 2. Gabungkan dan urutkan maju dari tahapan TERAWAL ke TERAKHIR
+                // Gunakan 'created_at' jika 'tanggal_verifikasi' pada beberapa log bernilai null
+                $semuaRiwayat = collect()
+                    ->merge($dosenLog)
+                    ->merge($bauakLog)
+                    ->merge($warek3Log)
+                    ->merge($rektorLog)
+                    ->sortBy('created_at');
+            @endphp
+
+            @if ($semuaRiwayat->count() > 0)
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-6">
-                        <h3 class="text-[13px] font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
-                            <i class="ti ti-history text-gray-400"></i> Riwayat Verifikasi
+                    <div class="p-5 sm:p-6">
+                        <h3
+                            class="text-[14px] font-bold text-gray-900 mb-6 pb-3 border-b border-gray-100 flex items-center gap-2">
+                            <i class="ti ti-history text-brand text-lg"></i> Progres & Riwayat Verifikasi
                         </h3>
-                        <div class="space-y-4">
-                            @foreach($pengajuan->verifikasiBauak as $verifikasi)
+
+                        {{-- Timeline Container --}}
+                        <div class="relative border-l-2 border-gray-100 pl-6 ml-3 space-y-6">
+                            @foreach ($semuaRiwayat as $verifikasi)
                                 @php
-                                    $borderClass = match($verifikasi->status) {
-                                        'disetujui' => 'border-success',
-                                        'revisi' => 'border-orange',
-                                        'ditolak' => 'border-danger',
-                                        default => 'border-gray-300'
+                                    $statusClean = strtolower($verifikasi->status ?? '');
+                                    $roleClean = strtolower($verifikasi->user->role ?? '');
+
+                                    // Konfigurasi Warna Tema Status
+                                    [$badgeClass, $bgCircle, $iconCheck] = match ($statusClean) {
+                                        'disetujui', 'setuju' => [
+                                            'bg-green-50 text-green-700 border-green-200',
+                                            'bg-green-500 text-white',
+                                            'ti-check',
+                                        ],
+                                        'revisi' => [
+                                            'bg-amber-50 text-amber-700 border-amber-200',
+                                            'bg-amber-500 text-white',
+                                            'ti-refresh',
+                                        ],
+                                        'ditolak', 'tolak' => [
+                                            'bg-red-50 text-red-700 border-red-200',
+                                            'bg-red-500 text-white',
+                                            'ti-x',
+                                        ],
+                                        default => [
+                                            'bg-gray-50 text-gray-600 border-gray-200',
+                                            'bg-gray-400 text-white',
+                                            'ti-minus',
+                                        ],
                                     };
-                                    $bgClass = match($verifikasi->status) {
-                                        'disetujui' => 'bg-success-light text-success',
-                                        'revisi' => 'bg-warning-light text-orange',
-                                        'ditolak' => 'bg-danger-light text-danger',
-                                        default => 'bg-gray-100 text-gray-600'
+
+                                    // Ikon Dinamis Berdasarkan Jabatan/Role
+                                    $roleIcon = match ($roleClean) {
+                                        'dosen' => 'ti-school',
+                                        'bauak' => 'ti-briefcase',
+                                        'warek3' => 'ti-user-check',
+                                        'rektor' => 'ti-id',
+                                        default => 'ti-user',
+                                    };
+
+                                    // Label Cantik Jabatan
+                                    $roleLabel = match ($roleClean) {
+                                        'dosen' => 'Dosen Pembina',
+                                        'bauak' => 'Staff BAUAK',
+                                        'warek3' => 'Wakil Rektor III',
+                                        'rektor' => 'Rektor',
+                                        default => ucfirst($verifikasi->user->role ?? 'Petugas'),
                                     };
                                 @endphp
-                                <div class="border-l-2 {{ $borderClass }} pl-3 py-1 relative">
-                                    <div class="flex justify-between items-start mb-1">
-                                        <p class="text-[12px] font-bold text-gray-900">{{ $verifikasi->user->nama }}</p>
-                                        <span class="text-[10px] text-gray-400">{{ $verifikasi->tanggal_verifikasi->format('d M, H:i') }}</span>
-                                    </div>
-                                    <span class="inline-block mb-2 px-2 py-0.5 text-[10px] font-bold rounded-md {{ $bgClass }}">
-                                        {{ $verifikasi->status_label }}
+
+                                {{-- Timeline Item --}}
+                                <div class="relative">
+                                    {{-- Bulatan Penanda di Garis Timeline --}}
+                                    <span
+                                        class="absolute -left-[35px] top-0.5 w-6 h-6 rounded-full {{ $bgCircle }} flex items-center justify-center shadow-sm border-4 border-white z-10 text-[11px]">
+                                        <i class="ti {{ $iconCheck }}"></i>
                                     </span>
-                                    @if($verifikasi->catatan)
-                                        <div class="text-[11px] text-gray-600 bg-gray-50 p-2 rounded border border-gray-100">
-                                            "{{ $verifikasi->catatan }}"
+
+                                    {{-- Kotak Konten --}}
+                                    <div
+                                        class="bg-gray-50/60 border border-gray-100 rounded-xl p-4 hover:bg-gray-50 transition duration-200">
+                                        {{-- Baris Header Info --}}
+                                        <div
+                                            class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
+                                            <div>
+                                                <h4 class="text-[13px] font-bold text-gray-900 leading-tight">
+                                                    {{ $verifikasi->user->nama ?? 'Sistem' }}
+                                                </h4>
+                                                <p
+                                                    class="text-[10px] text-gray-500 font-semibold flex items-center gap-1 mt-0.5">
+                                                    <i class="ti {{ $roleIcon }} text-gray-400"></i>
+                                                    {{ $roleLabel }}
+                                                </p>
+                                            </div>
+
+                                            {{-- Waktu / Tanggal --}}
+                                            <span
+                                                class="text-[10px] text-gray-400 bg-white px-2 py-0.5 rounded-md border border-gray-100 self-start sm:self-center">
+                                                <i class="ti ti-clock"></i>
+                                                {{ $verifikasi->created_at?->format('d M Y, H:i') ?? ($verifikasi->tanggal_verifikasi?->format('d M Y, H:i') ?? 'Baru saja') }}
+                                            </span>
                                         </div>
-                                    @endif
+
+                                        {{-- Status Badge --}}
+                                        <div class="mb-2.5">
+                                            <span
+                                                class="inline-flex items-center gap-1 px-2.5 py-0.5 text-[10px] font-bold rounded-full border {{ $badgeClass }}">
+                                                <span class="w-1 h-1 rounded-full bg-current"></span>
+                                                {{ $verifikasi->status_label ?? ucfirst($statusClean) }}
+                                            </span>
+                                        </div>
+
+                                        {{-- Catatan Review --}}
+                                        @if ($verifikasi->catatan)
+                                            <div
+                                                class="text-[11px] text-gray-600 bg-white p-2.5 rounded-lg border border-gray-200/60 italic shadow-2xs">
+                                                "{!! nl2br(e($verifikasi->catatan)) !!}"
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
                             @endforeach
                         </div>
-                    </div>
-                </div>
-            @endif
-
-            {{-- Actions --}}
-            @if($pengajuan->canBeEditedBy(auth()->user()))
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="p-5">
-                        <a href="{{ route('pengajuan.edit', $pengajuan) }}" class="w-full px-4 py-2 bg-warning text-white rounded-lg text-[13px] font-medium hover:bg-warning/90 transition flex items-center justify-center gap-2 shadow-sm">
-                            <i class="ti ti-edit"></i> Edit Pengajuan
-                        </a>
                     </div>
                 </div>
             @endif

@@ -179,7 +179,19 @@ class PengajuanKegiatanController extends Controller
             ]);
 
             // Create notification for Dosen Pembina
-            $this->createNotificationForDosen($pengajuan);
+                $this->createNotificationForDosen($pengajuan);
+
+                // If pengajuan perlu dikirim ke Dekan tertentu, notify that specific Dekan
+                if ($pengajuan->ormawa->isFakultas() && $pengajuan->ormawa->fakultas && $pengajuan->ormawa->fakultas->dekan) {
+                    sendNotification(
+                        $pengajuan->ormawa->fakultas->dekan,
+                        'Pengajuan Kegiatan Menunggu Persetujuan Dekan',
+                        "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu persetujuan Anda.",
+                        'info',
+                        route('dekan.persetujuan.show', $pengajuan),
+                        ['telegram', 'email', 'in_app']
+                    );
+                }
 
             DB::commit();
 
@@ -463,11 +475,9 @@ class PengajuanKegiatanController extends Controller
     private function createNotificationForDekan($pengajuan)
     {
         try {
-            $dekanUsers = \App\Models\User::where('role', 'dekan')
-                ->where('is_active', true)
-                ->get();
+            $dekan = $pengajuan->ormawa->fakultas?->dekan;
 
-            foreach ($dekanUsers as $dekan) {
+            if ($dekan && $dekan->is_active) {
                 sendNotification(
                     $dekan,
                     'Pengajuan Kegiatan Menunggu Persetujuan Dekan',

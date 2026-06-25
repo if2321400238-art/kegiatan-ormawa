@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Ormawa;
 use App\Models\User;
+use App\Models\Fakultas;
 use App\Models\PengajuanKegiatan;
 use Illuminate\Http\Request;
 
@@ -19,7 +20,8 @@ class OrmawaController extends Controller
     public function create()
     {
         $dosen = User::where('role', 'dosen')->get();
-        return view('ormawa.create', compact('dosen'));
+        $fakultas = Fakultas::all();
+        return view('ormawa.create', compact('dosen', 'fakultas'));
     }
 
     public function store(Request $request)
@@ -28,9 +30,10 @@ class OrmawaController extends Controller
         $request->validate([
             'nama_ormawa'  => 'required|string|max:255',
             'ketua' => 'required|string|max:255',
-            'pembina' => 'nullable|string|max:255',
+            'pembina_user_id' => 'nullable|exists:users,id',
             'kategori_organisasi' => 'required|in:internal,eksternal',
             'tingkat_organisasi' => 'nullable|in:universitas,fakultas',
+            'fakultas_id' => 'nullable|exists:fakultas,id',
             'kontak' => 'nullable|string|max:20',
         ]);
 
@@ -38,12 +41,21 @@ class OrmawaController extends Controller
             return back()->withErrors(['tingkat_organisasi' => 'Tingkat Organisasi harus diisi untuk organisasi internal.'])->withInput();
         }
 
+        if ($request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' && !$request->filled('fakultas_id')) {
+            return back()->withErrors(['fakultas_id' => 'Fakultas harus dipilih untuk organisasi tingkat fakultas.'])->withInput();
+        }
+
+        $pembinaUser = $request->pembina_user_id ? User::find($request->pembina_user_id) : null;
+        $pembinaName = $pembinaUser?->nama;
+
         Ormawa::create([
             'nama_ormawa'  => $request->nama_ormawa,
             'ketua' => $request->ketua,
-            'pembina' => $request->pembina,
+            'pembina' => $pembinaName,
+            'pembina_user_id' => $pembinaUser?->id,
             'kategori_organisasi' => $request->kategori_organisasi,
             'tingkat_organisasi' => $request->kategori_organisasi === 'internal' ? $request->tingkat_organisasi : null,
+            'fakultas_id' => $request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' ? $request->fakultas_id : null,
             'kontak' => $request->kontak,
         ]);
 
@@ -66,7 +78,8 @@ class OrmawaController extends Controller
         // Using $pengajuan as parameter name but it's actually Ormawa
         $ormawa = $pengajuan;
         $dosenList = User::where('role', 'dosen')->get();
-        return view('ormawa.edit', compact('ormawa', 'dosenList'));
+        $fakultas = Fakultas::all();
+        return view('ormawa.edit', compact('ormawa', 'dosenList', 'fakultas'));
     }
 
     public function update(Request $request, Ormawa $pengajuan)
@@ -78,9 +91,10 @@ class OrmawaController extends Controller
         $request->validate([
             'nama_ormawa'  => 'required|string|max:255',
             'ketua' => 'required|string|max:255',
-            'pembina' => 'required|string|max:255',
+            'pembina_user_id' => 'nullable|exists:users,id',
             'kategori_organisasi' => 'required|in:internal,eksternal',
             'tingkat_organisasi' => 'nullable|in:universitas,fakultas',
+            'fakultas_id' => 'nullable|exists:fakultas,id',
             'kontak' => 'nullable|string|max:20',
             'deskripsi' => 'nullable|string',
         ]);
@@ -89,13 +103,22 @@ class OrmawaController extends Controller
             return back()->withErrors(['tingkat_organisasi' => 'Tingkat Organisasi harus diisi untuk organisasi internal.'])->withInput();
         }
 
+        if ($request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' && !$request->filled('fakultas_id')) {
+            return back()->withErrors(['fakultas_id' => 'Fakultas harus dipilih untuk organisasi tingkat fakultas.'])->withInput();
+        }
+
+        $pembinaUser = $request->pembina_user_id ? User::find($request->pembina_user_id) : null;
+        $pembinaName = $pembinaUser?->nama;
+
         // Update data
         $ormawa->update([
             'nama_ormawa' => $request->nama_ormawa,
             'ketua' => $request->ketua,
-            'pembina' => $request->pembina,
+            'pembina' => $pembinaName,
+            'pembina_user_id' => $pembinaUser?->id,
             'kategori_organisasi' => $request->kategori_organisasi,
             'tingkat_organisasi' => $request->kategori_organisasi === 'internal' ? $request->tingkat_organisasi : null,
+            'fakultas_id' => $request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' ? $request->fakultas_id : null,
             'kontak' => $request->kontak,
             'deskripsi' => $request->deskripsi,
         ]);

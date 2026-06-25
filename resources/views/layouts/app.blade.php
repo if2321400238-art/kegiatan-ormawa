@@ -64,13 +64,28 @@
                         <span>Semua Pengajuan</span>
                     </a>
                 @endif
+                @if (auth()->user()->isDosen())
+                    <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Tugas Saya</div>
+                    <a href="{{ route('dosen.verifikasi.index') }}" class="nav-item {{ request()->routeIs('dosen.verifikasi.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-clipboard-check"></i></div>
+                        <span>Verifikasi Dosen</span>
+                    </a>
+                @endif
 
                 @if (auth()->user()->isWarek3())
                     <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Persetujuan</div>
                     <a href="{{ route('warek3.persetujuan.index') }}" class="nav-item {{ request()->routeIs('warek3.persetujuan.*') ? 'active' : '' }}">
-                        <div class="nav-icon"><i class="ti ti-stamp"></i></div>
+                        <div class="nav-icon"><i class="ti ti-file-description"></i></div>
                         <span>Persetujuan Warek 3</span>
                     </a>
+                @endif
+                @if (auth()->user()->isRektor())
+                    <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Persetujuan</div>
+                    <a href="{{ route('rektor.persetujuan.index') }}" class="nav-item {{ request()->routeIs('rektor.persetujuan.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-clipboard-check   "></i></div>
+                        <span>Persetujuan Rektor</span>
+                    </a>
+
                 @endif
 
                 {{-- User Settings Section in Sidebar for Mobile/Alternative --}}

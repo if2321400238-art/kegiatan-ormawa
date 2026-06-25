@@ -33,8 +33,10 @@ it('processes a pengajuan from ormawa to rektor approval', function () {
         'tingkat_organisasi' => 'fakultas',
     ]);
 
-    $dosen = User::factory()->create(['role' => 'dosen', 'email' => 'dosen@example.com', 'username' => 'dosenuser']);
+    $dosen = User::factory()->create(['role' => 'dosen', 'email' => 'dosen@example.com', 'username' => 'dosenuser', 'nama' => 'Dr. Sabar Priyono']);
     $dekan = User::factory()->create(['role' => 'dekan', 'email' => 'dekan@example.com', 'username' => 'dekanuser']);
+    $fak = \App\Models\Fakultas::create(['nama' => 'Fakultas Teknik', 'dekan_user_id' => $dekan->id]);
+    \App\Models\Ormawa::where('nama_ormawa', 'Himpunan Teknik Informatika')->update(['fakultas_id' => $fak->id]);
     $bauak = User::factory()->create(['role' => 'bauak', 'email' => 'bauak@example.com', 'username' => 'bauakuser']);
     $warek3 = User::factory()->create(['role' => 'warek3', 'email' => 'warek3@example.com', 'username' => 'warek3user']);
     $rektor = User::factory()->create(['role' => 'rektor', 'email' => 'rektor@example.com', 'username' => 'rektoruser']);

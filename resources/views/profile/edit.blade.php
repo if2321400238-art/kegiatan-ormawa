@@ -60,7 +60,12 @@
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Pembina</label>
-                                    <input type="text" name="pembina" value="{{ old('pembina', $user->ormawa->pembina ?? '') }}" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                    <select name="pembina" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                        <option value="">-- Pilih Dosen Pembina --</option>
+                                        @foreach($dosen as $item)
+                                            <option value="{{ $item->nama }}" {{ old('pembina', $user->ormawa->pembina ?? '') === $item->nama ? 'selected' : '' }}>{{ $item->nama }} ({{ $item->email }})</option>
+                                        @endforeach
+                                    </select>
                                 </div>
 
                                 <div>

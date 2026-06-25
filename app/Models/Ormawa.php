@@ -17,6 +17,7 @@ class Ormawa extends Model
         'nama_ormawa',
         'ketua',
         'pembina',
+        'pembina_user_id',
         'kategori_organisasi',
         'tingkat_organisasi',
         'fakultas_id',
@@ -37,6 +38,17 @@ class Ormawa extends Model
     public function pengajuanKegiatan()
     {
         return $this->hasMany(PengajuanKegiatan::class);
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'ormawa_users',
+            'ormawa_id',
+            'user_id'
+        )->withPivot('jabatan', 'aktif')
+            ->withTimestamps();
     }
 
     // ==========================================
@@ -81,6 +93,16 @@ class Ormawa extends Model
     public function isFakultas(): bool
     {
         return $this->kategori_organisasi === 'internal' && $this->tingkat_organisasi === 'fakultas';
+    }
+
+    public function fakultas()
+    {
+        return $this->belongsTo(\App\Models\Fakultas::class, 'fakultas_id');
+    }
+
+    public function pembinaUser()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'pembina_user_id');
     }
 
     public function isUniversitas(): bool

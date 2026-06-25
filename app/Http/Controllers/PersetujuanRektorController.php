@@ -26,7 +26,12 @@ class PersetujuanRektorController extends Controller
 
         $pengajuanMenunggu = $query->latest()->paginate(10);
 
-        return view('rektor.persetujuan.index', compact('pengajuanMenunggu'));
+        $riwayatVerifikasi = PersetujuanRektor::with(['pengajuanKegiatan.ormawa'])
+            ->where('user_rektor_id', auth()->id())
+            ->latest()
+            ->paginate(10);
+
+        return view('rektor.persetujuan.index', compact('pengajuanMenunggu', 'riwayatVerifikasi'));
     }
 
     public function show(PengajuanKegiatan $pengajuan)

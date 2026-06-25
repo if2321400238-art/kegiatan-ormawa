@@ -42,7 +42,7 @@
                         </div>
                     </div>
 
-                    {{-- Dokumen --}}
+                    {{-- Dokumen untuk Review --}}
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6">
                             <h3 class="text-lg font-semibold mb-4">Dokumen</h3>
@@ -50,16 +50,21 @@
                                 @if($pengajuan->proposal)
                                     <a href="{{ $pengajuan->proposal->file_url }}" target="_blank" class="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100">
                                         <div class="flex items-center">
-                                            <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/></svg>
-                                            <span class="ml-3 font-medium">Proposal</span>
+                                            <svg class="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
+                                            </svg>
+                                            <span class="ml-3 font-medium">Proposal Kegiatan</span>
                                         </div>
                                         <span class="text-blue-600">Lihat →</span>
                                     </a>
                                 @endif
+
                                 @if($pengajuan->rab)
                                     <a href="{{ $pengajuan->rab->file_url }}" target="_blank" class="flex items-center justify-between p-3 bg-gray-50 rounded hover:bg-gray-100">
                                         <div class="flex items-center">
-                                            <svg class="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/></svg>
+                                            <svg class="w-8 h-8 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/>
+                                            </svg>
                                             <span class="ml-3 font-medium">RAB</span>
                                         </div>
                                         <span class="text-blue-600">Lihat →</span>
@@ -69,7 +74,7 @@
                         </div>
                     </div>
 
-                    {{-- Verifikasi BAUAK --}}
+                    {{-- Hasil Verifikasi BAUAK --}}
                     @if($pengajuan->latestVerifikasiBauak)
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6">
@@ -95,27 +100,30 @@
                         <div class="p-6">
                             <h3 class="text-lg font-semibold mb-4">Persetujuan</h3>
 
-                            {{-- Approve Form --}}
-                            <form action="{{ route('warek3.persetujuan.approve', $pengajuan) }}" method="POST" class="mb-3">
+                            <form action="{{ route('warek3.persetujuan.approve', $pengajuan) }}" method="POST">
                                 @csrf
-                                <div class="mb-3">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Catatan (Opsional)</label>
-                                    <textarea name="catatan" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Catatan persetujuan..."></textarea>
-                                </div>
-                                <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-                                    ✓ Setujui & TTD
-                                </button>
-                            </form>
 
-                            {{-- Reject Form --}}
-                            <form action="{{ route('warek3.persetujuan.reject', $pengajuan) }}" method="POST">
-                                @csrf
-                                <div class="mb-3">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Alasan Penolakan <span class="text-red-500">*</span></label>
-                                    <textarea name="catatan" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Alasan penolakan..."></textarea>
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Keputusan <span class="text-red-500">*</span>
+                                    </label>
+                                    <select name="status" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                                        <option value="">-- Pilih --</option>
+                                        <option value="disetujui">✓ Setujui & TTD</option>
+                                        <option value="revisi">⚠ Perlu Revisi</option>
+                                        <option value="ditolak">✗ Tolak</option>
+                                    </select>
                                 </div>
-                                <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-                                    ✗ Tolak
+
+                                <div class="mb-4">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                                        Catatan / Alasan <span class="text-red-500">*</span>
+                                    </label>
+                                    <textarea name="catatan" required rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Berikan catatan, alasan penolakan, atau instruksi revisi..."></textarea>
+                                </div>
+
+                                <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                    Simpan Keputusan
                                 </button>
                             </form>
                         </div>

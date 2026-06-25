@@ -14,6 +14,14 @@ class PersetujuanDekanController extends Controller
         $query = PengajuanKegiatan::with(['ormawa', 'proposal', 'rab'])
             ->whereIn('status', ['menunggu_dekan', 'revisi_dekan']);
 
+        // Jika user adalah dekan, batasi ke fakultasnya
+        if (auth()->user()->isDekan() && auth()->user()->fakultas) {
+            $fakultasId = auth()->user()->fakultas->id;
+            $query->whereHas('ormawa', function ($q) use ($fakultasId) {
+                $q->where('fakultas_id', $fakultasId);
+            });
+        }
+
         if ($request->filled('search')) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
@@ -33,11 +41,27 @@ class PersetujuanDekanController extends Controller
     {
         $pengajuan->load(['ormawa.user', 'proposal', 'rab', 'suratRekomendasi']);
 
+        // Cek akses: dekan hanya boleh melihat pengajuan dari fakultasnya
+        if (auth()->user()->isDekan() && auth()->user()->fakultas) {
+            $fakultasId = auth()->user()->fakultas->id;
+            if (($pengajuan->ormawa->fakultas_id ?? null) !== $fakultasId) {
+                abort(403, 'Anda tidak berwenang mengakses pengajuan ini.');
+            }
+        }
+
         return view('dekan.persetujuan.show', compact('pengajuan'));
     }
 
     public function approve(Request $request, PengajuanKegiatan $pengajuan)
     {
+        // Guard: pastikan hanya dekan fakultas terkait yang bisa approve
+        if (auth()->user()->isDekan() && auth()->user()->fakultas) {
+            $fakultasId = auth()->user()->fakultas->id;
+            if (($pengajuan->ormawa->fakultas_id ?? null) !== $fakultasId) {
+                return back()->with('error', 'Anda tidak berwenang memproses pengajuan ini.');
+            }
+        }
+
         $validated = $request->validate([
             'catatan' => 'nullable|string',
         ]);

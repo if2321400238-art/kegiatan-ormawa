@@ -109,7 +109,12 @@ class DatabaseSeeder extends Seeder
 
 
         // ==========================================
-        // 5. CREATE ORMAWA USERS & DATA
+        // 5. SEED ACADEMIC USERS AND ROLES
+        // ==========================================
+        $this->call(AcademicSeeder::class);
+
+        // ==========================================
+        // 6. CREATE ORMAWA USERS & DATA
         // ==========================================
 
         $ormawaData = [
@@ -177,7 +182,7 @@ class DatabaseSeeder extends Seeder
                 ? (in_array($data['username'], ['bem', 'hmi', 'pmii']) ? 'universitas' : 'fakultas')
                 : null;
 
-            Ormawa::create([
+            $created = Ormawa::create([
                 'user_id' => $user->id,
                 'nama_ormawa' => $data['nama_ormawa'],
                 'ketua' => $data['ketua'],
@@ -186,12 +191,41 @@ class DatabaseSeeder extends Seeder
                 'tingkat_organisasi' => $tingkat,
                 'kontak' => $data['no_hp'],
             ]);
+
+            // Attempt to link pembina_user_id if a matching User exists
+            if (!empty($data['pembina'])) {
+                $pembinaUser = User::where('nama', $data['pembina'])->first();
+                if ($pembinaUser) {
+                    $created->pembina_user_id = $pembinaUser->id;
+                    $created->save();
+                }
+            }
         }
 
         // ==========================================
         // CALL ADDITIONAL SEEDERS
         // ==========================================
-        $this->call(DosenPembinaSeeder::class);
+        $this->call(FakultasSeeder::class);
+
+        // Assign fakultas_id to Ormawa yang bertingkat fakultas berdasarkan keyword sederhana
+        $mapping = [
+            'Teknik' => 'Fakultas Teknik',
+            'Ekonomi' => 'Fakultas Ekonomi dan Bisnis',
+            'Hukum' => 'Fakultas Hukum',
+        ];
+
+        foreach (\App\Models\Ormawa::where('tingkat_organisasi', 'fakultas')->get() as $ormawa) {
+            foreach ($mapping as $keyword => $fakName) {
+                if (str_contains($ormawa->nama_ormawa, $keyword)) {
+                    $fak = \App\Models\Fakultas::where('nama', $fakName)->first();
+                    if ($fak) {
+                        $ormawa->fakultas_id = $fak->id;
+                        $ormawa->save();
+                    }
+                    break;
+                }
+            }
+        }
 
         // ==========================================
         // INFO

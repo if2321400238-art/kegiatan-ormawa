@@ -55,12 +55,12 @@
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                         <i class="ti ti-shield-check text-gray-400"></i>
                     </div>
-                    <select name="pembina"
+                    <select name="pembina_user_id"
                         class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors appearance-none"
                         required>
                         <option value="">-- Pilih Dosen Pembina --</option>
                         @forelse($dosen as $item)
-                            <option value="{{ $item->nama }}" {{ old('pembina') === $item->nama ? 'selected' : '' }}>{{ $item->nama }} ({{ $item->email }})</option>
+                            <option value="{{ $item->id }}" {{ old('pembina_user_id') == $item->id ? 'selected' : '' }}>{{ $item->nama }} ({{ $item->email }})</option>
                         @empty
                             <option disabled>Tidak ada dosen pembina yang terdaftar</option>
                         @endforelse
@@ -87,9 +87,16 @@
                 </div>
             </div>
 
-            <div x-data="{ kategori: '{{ old('kategori_organisasi', 'internal') }}' }" x-init="$watch('kategori', value => {
+            <div x-data="{ kategori: '{{ old('kategori_organisasi', 'internal') }}', tingkat: '{{ old('tingkat_organisasi', '') }}' }" x-init="$watch('kategori', value => {
                     if ($refs.tingkatField) {
                         $refs.tingkatField.classList.toggle('hidden', value !== 'internal');
+                    }
+                    if ($refs.fakultasField) {
+                        $refs.fakultasField.classList.toggle('hidden', value !== 'internal' || this.tingkat !== 'fakultas');
+                    }
+                }); $watch('tingkat', value => {
+                    if ($refs.fakultasField) {
+                        $refs.fakultasField.classList.toggle('hidden', this.kategori !== 'internal' || value !== 'fakultas');
                     }
                 })">
                 {{-- Kategori Organisasi --}}
@@ -128,6 +135,19 @@
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
                             <i class="ti ti-chevron-down"></i>
                         </div>
+                    </div>
+                    <div id="fakultas-field" x-ref="fakultasField" class="relative mt-4 {{ old('tingkat_organisasi') === 'fakultas' ? '' : 'hidden' }}">
+                        <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Fakultas</label>
+                        <select name="fakultas_id"
+                            class="w-full pl-4 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors appearance-none">
+                            <option value="">-- Pilih Fakultas --</option>
+                            @foreach($fakultas as $f)
+                                <option value="{{ $f->id }}" {{ old('fakultas_id') == $f->id ? 'selected' : '' }}>{{ $f->nama }}</option>
+                            @endforeach
+                        </select>
+                        @error('fakultas_id')
+                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
                     @error('tingkat_organisasi')
                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>

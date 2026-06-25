@@ -16,6 +16,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'fakultas_id',
         'nama',
         'no_hp',
         'telegram_id',
@@ -63,6 +64,17 @@ class User extends Authenticatable
     public function persetujuanWarek3()
     {
         return $this->hasMany(PersetujuanWarek3::class, 'user_warek3_id');
+    }
+
+    public function ormawas()
+    {
+        return $this->belongsToMany(
+            Ormawa::class,
+            'ormawa_users',
+            'user_id',
+            'ormawa_id'
+        )->withPivot('jabatan', 'aktif')
+            ->withTimestamps();
     }
 
     public const ROLE_ORMAWA = 'ormawa';
@@ -130,6 +142,11 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function fakultas()
+    {
+        return $this->belongsTo(\App\Models\Fakultas::class);
     }
 
     public function hasRole(string $role): bool
