@@ -62,6 +62,7 @@ class MahasiswaDashboardController extends Controller
     {
         $validated = $request->validate([
             'ormawa_id' => 'required|integer|exists:ormawa,id',
+            'redirect_to' => 'nullable|string',
         ]);
 
         $user = Auth::user();
@@ -71,6 +72,10 @@ class MahasiswaDashboardController extends Controller
         }
 
         session(['active_ormawa_id' => $validated['ormawa_id']]);
+
+        if (!empty($validated['redirect_to'])) {
+            return redirect()->route($validated['redirect_to']);
+        }
 
         return redirect()->route('mahasiswa.dashboard');
     }

@@ -6,7 +6,7 @@
             <h2 class="text-lg font-semibold text-gray-900">Pengajuan Kegiatan</h2>
             <p class="text-[12px] text-gray-500">Kelola dan pantau status pengajuan kegiatan</p>
         </div>
-        @if(auth()->user()->role === 'ormawa')
+        @if(in_array(auth()->user()->role, ['ormawa', 'mahasiswa']))
         <a href="{{ route('pengajuan.create') }}" class="w-full sm:w-auto px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-active transition text-[13px] font-medium flex items-center justify-center gap-2 shadow-sm">
             <i class="ti ti-plus"></i> Ajukan Kegiatan Baru
         </a>
@@ -298,7 +298,7 @@
                 </div>
                 <h3 class="text-[15px] font-semibold text-gray-900 mb-1">Tidak ada data pengajuan</h3>
                 <p class="text-[13px] text-gray-500 mb-6">Belum ada pengajuan kegiatan yang sesuai dengan filter pencarian Anda.</p>
-                @if(auth()->user()->role === 'ormawa')
+                @if(in_array(auth()->user()->role, ['ormawa', 'mahasiswa']))
                 <a href="{{ route('pengajuan.create') }}" class="px-5 py-2.5 bg-brand text-white rounded-lg hover:bg-brand-active transition text-[13px] font-medium flex items-center gap-2 shadow-sm">
                     <i class="ti ti-plus"></i> Ajukan Kegiatan Pertama
                 </a>

@@ -190,6 +190,7 @@ class User extends Authenticatable
     {
         $labels = [
             self::ROLE_ORMAWA => 'Ormawa',
+            self::ROLE_MAHASISWA => 'Mahasiswa',
             self::ROLE_BAUAK => 'BAUAK',
             self::ROLE_WAREK3 => 'Wakil Rektor III',
             self::ROLE_ADMIN => 'Administrator',

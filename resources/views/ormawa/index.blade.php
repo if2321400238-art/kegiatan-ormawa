@@ -2,23 +2,32 @@
     <x-slot name="title">Daftar Ormawa</x-slot>
 
     {{-- Top Header Section --}}
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <div>
-            <h2 class="text-lg font-semibold text-gray-900">Daftar Ormawa</h2>
-            <p class="text-[12px] text-gray-500">Kelola dan pantau informasi organisasi mahasiswa</p>
+    <div class="page-header">
+        <div class="page-header-main">
+            <div class="page-header-title">
+                <h2 class="text-lg font-semibold text-gray-900">Daftar Ormawa</h2>
+                <p class="text-[12px] text-gray-500">Kelola dan pantau informasi organisasi mahasiswa</p>
+            </div>
         </div>
+
+        <div class="page-header-actions">
+            <div class="summary-stats">
+                <div class="summary-stat">
+                    <div class="text-[20px] font-bold text-gray-900">{{ $ormawa->total() ?? $ormawa->count() }}</div>
+                    <div class="text-[11px] text-gray-500 font-medium">Total Ormawa</div>
+                </div>
+                <div class="summary-stat-card" style="--accent: #10B981">
+                    <div class="text-[20px] font-bold text-success">{{ $ormawa->total() ?? $ormawa->count() }}</div>
+                    <div class="text-[11px] text-gray-500 font-medium">Aktif</div>
+                </div>
+            </div>
+
+            {{-- Tombol Tambah hanya untuk Admin --}}
             @if(auth()->user()->role === 'admin')
                 <a href="{{ route('admin.ormawa.create') }}" class="w-full sm:w-auto px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-active transition text-[13px] font-medium flex items-center justify-center gap-2 shadow-sm">
                     <i class="ti ti-plus"></i> Tambah Ormawa Baru
                 </a>
             @endif
-            <div class="text-[20px] font-bold text-gray-900">{{ $ormawa->total() ?? $ormawa->count() }}</div>
-            <div class="text-[11px] text-gray-500 font-medium">Total Ormawa</div>
-        </div>
-        {{-- Card tambahan (opsional) bisa disesuaikan nilainya nanti dari backend --}}
-        <div class="stat-card !p-4" style="--accent: #10B981">
-            <div class="text-[20px] font-bold text-success">{{ $ormawa->count() }}</div>
-            <div class="text-[11px] text-gray-500 font-medium">Aktif</div>
         </div>
     </div>
 
@@ -27,6 +36,7 @@
         {{-- Search & Filters Section --}}
         <div class="p-4 sm:p-6 border-b border-gray-100">
             @php
+                // Rute Form Pencarian Dinamis
                 $indexRoute = auth()->user()->role === 'bauak' ? route('bauak.ormawa.index') : route('admin.ormawa.index');
             @endphp
             <form method="GET" action="{{ $indexRoute }}" class="space-y-4">
@@ -94,15 +104,18 @@
                                 <td>
                                     <div class="flex gap-2">
                                         @php
-                                            $editRoute = auth()->user()->role === 'bauak'
-                                                ? route('bauak.ormawa.edit', $item->id)
-                                                : route('admin.ormawa.edit', $item->id);
+                                            // Deteksi rute Edit & Destroy Dinamis untuk Desktop
+                                            $isBauak = auth()->user()->role === 'bauak';
+                                            $editRoute = $isBauak ? route('bauak.ormawa.edit', $item->id) : route('admin.ormawa.edit', $item->id);
+                                            $destroyRoute = $isBauak ? route('bauak.ormawa.destroy', $item->id) : route('admin.ormawa.destroy', $item->id);
                                         @endphp
+
                                         <a href="{{ $editRoute }}" class="p-1.5 bg-warning-light text-warning rounded-md hover:bg-warning hover:text-white transition-colors" title="Edit">
                                             <i class="ti ti-edit"></i>
                                         </a>
-                                        @if(auth()->user()->role === 'admin')
-                                            <form action="{{ route('admin.ormawa.destroy', $item->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus ormawa ini?');">
+
+                                        @if(auth()->user()->role === 'admin' || auth()->user()->role === 'bauak')
+                                            <form action="{{ $destroyRoute }}" method="POST" class="inline" onsubmit="return confirm('Hapus ormawa ini?');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="p-1.5 bg-danger-light text-danger rounded-md hover:bg-danger hover:text-white transition-colors" title="Hapus">
@@ -145,15 +158,18 @@
 
                             <div class="flex gap-2">
                                 @php
-                                    $editRoute = auth()->user()->role === 'bauak'
-                                        ? route('bauak.ormawa.edit', $item->id)
-                                        : route('admin.ormawa.edit', $item->id);
+                                    // Deteksi rute Edit & Destroy Dinamis untuk Mobile
+                                    $isBauak = auth()->user()->role === 'bauak';
+                                    $editRoute = $isBauak ? route('bauak.ormawa.edit', $item->id) : route('admin.ormawa.edit', $item->id);
+                                    $destroyRoute = $isBauak ? route('bauak.ormawa.destroy', $item->id) : route('admin.ormawa.destroy', $item->id);
                                 @endphp
+
                                 <a href="{{ $editRoute }}" class="flex-1 text-center py-2 px-3 text-[12px] bg-warning-light text-warning font-medium rounded-lg hover:bg-warning hover:text-white transition-colors">
                                     Edit
                                 </a>
-                                @if(auth()->user()->role === 'admin')
-                                    <form action="{{ route('admin.ormawa.destroy', $item->id) }}" method="POST" class="flex-1" onsubmit="return confirm('Hapus ormawa ini?');">
+
+                                @if(auth()->user()->role === 'admin' || auth()->user()->role === 'bauak')
+                                    <form action="{{ $destroyRoute }}" method="POST" class="flex-1" onsubmit="return confirm('Hapus ormawa ini?');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="w-full text-center py-2 px-3 text-[12px] bg-danger-light text-danger font-medium rounded-lg hover:bg-danger hover:text-white transition-colors">
@@ -177,16 +193,18 @@
                 </div>
             @endif
         @else
-            {{-- Empty State Sesuai Contoh --}}
+            {{-- Empty State --}}
             <div class="flex flex-col items-center justify-center p-12 text-center">
                 <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 text-3xl mb-4">
                     <i class="ti ti-folder-off"></i>
                 </div>
                 <h3 class="text-[15px] font-semibold text-gray-900 mb-1">Tidak ada data ormawa</h3>
                 <p class="text-[13px] text-gray-500 mb-6">Belum ada data organisasi mahasiswa yang sesuai dengan pencarian Anda.</p>
-                <a href="{{ route('admin.ormawa.create') }}" class="px-5 py-2.5 bg-brand text-white rounded-lg hover:bg-brand-active transition text-[13px] font-medium flex items-center gap-2 shadow-sm">
-                    <i class="ti ti-plus"></i> Tambah Ormawa Pertama
-                </a>
+                @if(auth()->user()->role === 'admin')
+                    <a href="{{ route('admin.ormawa.create') }}" class="px-5 py-2.5 bg-brand text-white rounded-lg hover:bg-brand-active transition text-[13px] font-medium flex items-center gap-2 shadow-sm">
+                        <i class="ti ti-plus"></i> Tambah Ormawa Pertama
+                    </a>
+                @endif
             </div>
         @endif
     </div>

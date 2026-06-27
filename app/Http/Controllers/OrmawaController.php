@@ -20,9 +20,12 @@ class OrmawaController extends Controller
     public function create()
     {
         $dosenList = User::where('role', 'dosen')->get();
-        $mahasiswaList = User::where('role', 'mahasiswa')->get();
         $fakultas = Fakultas::all();
-        return view('ormawa.create', compact('dosenList', 'mahasiswaList', 'fakultas'));
+        
+        $submitRoute = route('admin.ormawa.store');
+        $backRoute = route('admin.ormawa.index');
+        
+        return view('ormawa.create', compact('dosenList', 'fakultas', 'submitRoute', 'backRoute'));
     }
 
     public function store(Request $request)
@@ -38,6 +41,7 @@ class OrmawaController extends Controller
             'tingkat_organisasi' => 'nullable|in:universitas,fakultas',
             'fakultas_id' => 'nullable|exists:fakultas,id',
             'kontak' => 'nullable|string|max:20',
+            'periode' => 'nullable|string|max:50',
         ]);
 
         if ($request->kategori_organisasi === 'internal' && !$request->filled('tingkat_organisasi')) {
@@ -61,6 +65,7 @@ class OrmawaController extends Controller
             'tingkat_organisasi' => $request->kategori_organisasi === 'internal' ? $request->tingkat_organisasi : null,
             'fakultas_id' => $request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' ? $request->fakultas_id : null,
             'kontak' => $request->kontak,
+            'periode' => $request->periode,
         ]);
 
         // Automatically add ketua as member
@@ -90,9 +95,18 @@ class OrmawaController extends Controller
         // Using $pengajuan as parameter name but it's actually Ormawa
         $ormawa = $pengajuan;
         $dosenList = User::where('role', 'dosen')->get();
-        $mahasiswaList = User::where('role', 'mahasiswa')->get();
         $fakultas = Fakultas::all();
-        return view('ormawa.edit', compact('ormawa', 'dosenList', 'mahasiswaList', 'fakultas'));
+        
+        $role = auth()->user()->role;
+        $submitRoute = $role === 'bauak' 
+            ? route('bauak.ormawa.update', $ormawa->id) 
+            : route('admin.ormawa.update', $ormawa->id);
+            
+        $backRoute = $role === 'bauak' 
+            ? route('bauak.ormawa.index') 
+            : route('admin.ormawa.index');
+
+        return view('ormawa.edit', compact('ormawa', 'dosenList', 'fakultas', 'submitRoute', 'backRoute'));
     }
 
     public function update(Request $request, Ormawa $pengajuan)
@@ -109,6 +123,7 @@ class OrmawaController extends Controller
             'tingkat_organisasi' => 'nullable|in:universitas,fakultas',
             'fakultas_id' => 'nullable|exists:fakultas,id',
             'kontak' => 'nullable|string|max:20',
+            'periode' => 'nullable|string|max:50',
             'deskripsi' => 'nullable|string',
         ]);
 
@@ -134,6 +149,7 @@ class OrmawaController extends Controller
             'tingkat_organisasi' => $request->kategori_organisasi === 'internal' ? $request->tingkat_organisasi : null,
             'fakultas_id' => $request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' ? $request->fakultas_id : null,
             'kontak' => $request->kontak,
+            'periode' => $request->periode,
             'deskripsi' => $request->deskripsi,
         ]);
 
@@ -164,7 +180,34 @@ class OrmawaController extends Controller
         $ormawa = $pengajuan;
         $ormawa->delete();
 
-        return redirect()->route('admin.ormawa.index')
+        // Tentukan route index berdasarkan role user yang sedang login
+        $routeIndex = auth()->user()->role === 'bauak'
+            ? 'bauak.ormawa.index'
+            : 'admin.ormawa.index';
+
+        return redirect()->route($routeIndex)
             ->with('success', 'Data ormawa berhasil dihapus.');
+    }
+
+    /**
+     * Search mahasiswa by name or NIM
+     */
+    public function searchMahasiswa(Request $request)
+    {
+        $query = $request->get('q', '');
+
+        if (strlen($query) < 1) {
+            return response()->json([]);
+        }
+
+        $mahasiswa = User::where('role', 'mahasiswa')
+            ->where(function ($q) use ($query) {
+                $q->where('nama', 'like', "%{$query}%")
+                    ->orWhere('nim', 'like', "%{$query}%");
+            })
+            ->limit(10)
+            ->get(['id', 'nama', 'nim', 'email']);
+
+        return response()->json($mahasiswa);
     }
 }

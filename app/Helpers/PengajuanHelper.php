@@ -125,9 +125,20 @@ class PengajuanHelper
         string $routeName,
         $pengajuan
     ) {
-        $users = User::where('role', $role)
-            ->where('is_active', true)
-            ->get();
+        $query = User::where('role', $role)->where('is_active', true);
+
+        if ($role === 'dosen') {
+            $query->where(function($q) use ($pengajuan) {
+                $q->where('id', $pengajuan->ormawa->pembina_user_id)
+                  ->orWhere('nama', $pengajuan->ormawa->pembina);
+            });
+        } elseif ($role === 'dekan') {
+            if ($pengajuan->ormawa->fakultas_id) {
+                $query->where('fakultas_id', $pengajuan->ormawa->fakultas_id);
+            }
+        }
+
+        $users = $query->get();
 
         foreach ($users as $user) {
             /** @phpstan-ignore-next-line */

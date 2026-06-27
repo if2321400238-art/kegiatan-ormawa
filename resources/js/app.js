@@ -1,8 +1,11 @@
 import './bootstrap';
 
 import Alpine from 'alpinejs';
+import mahasiswaSearch from './mahasiswa-search';
 
 window.Alpine = Alpine;
+
+Alpine.data('mahasiswaSearch', mahasiswaSearch);
 
 Alpine.data('notificationPopup', (notifications = []) => ({
     openNotif: false,

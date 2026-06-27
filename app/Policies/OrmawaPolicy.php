@@ -13,6 +13,18 @@ class OrmawaPolicy
             return true;
         }
 
-        return $ormawa->isKetua($user);
+        if ($ormawa->isKetua($user)) {
+            return true;
+        }
+
+        if (! $user->isMahasiswa()) {
+            return false;
+        }
+
+        return $ormawa->users()
+            ->where('users.id', $user->id)
+            ->wherePivot('jabatan', 'ketua')
+            ->wherePivot('status', true)
+            ->exists();
     }
 }

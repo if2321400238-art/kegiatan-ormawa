@@ -208,6 +208,7 @@ class DatabaseSeeder extends Seeder
         $this->call(FakultasSeeder::class);
         $this->call(OrmawaUserSeeder::class);
         $this->call(MahasiswaSeeder::class);
+        $this->call(DosenPembinaSeeder::class);
 
         // Assign fakultas_id to Ormawa yang bertingkat fakultas berdasarkan keyword sederhana
         $mapping = [
@@ -248,9 +249,6 @@ class DatabaseSeeder extends Seeder
         echo "   Warek3:  warek3@kampus.ac.id\n";
         echo "   BEM:     bem@kampus.ac.id\n";
         echo "   HMI:     hmi@kampus.ac.id\n";
-        echo "\n";
-        echo "💡 Jalankan: php artisan db:seed --class=DosenPembinaSeeder\n";
-        echo "   untuk menambah Dosen Pembina & Additional Roles\n";
         echo "\n";
     }
 }

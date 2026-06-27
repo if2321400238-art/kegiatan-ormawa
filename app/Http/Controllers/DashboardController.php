@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\PengajuanKegiatan;
 use App\Models\VerifikasiBauak;
 use App\Models\PersetujuanWarek3;
+use App\Models\PersetujuanDekan;
+use App\Models\VerifikasiDosen;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -41,6 +43,20 @@ class DashboardController extends Controller
     private function dashboardOrmawa()
     {
         $ormawa = Auth::user()->ormawa;
+
+        if (!$ormawa) {
+            $stats = [
+                'total_pengajuan' => 0,
+                'draft' => 0,
+                'menunggu_verifikasi' => 0,
+                'disetujui' => 0,
+                'ditolak' => 0,
+                'revisi' => 0,
+            ];
+            $recentPengajuan = collect();
+            $upcomingEvents = collect();
+            return view('dashboard.ormawa', compact('stats', 'recentPengajuan', 'upcomingEvents'))->with('warning', 'Profil Ormawa Anda belum lengkap atau belum terhubung dengan data master Ormawa. Silakan hubungi Admin.');
+        }
 
         $stats = [
             'total_pengajuan' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->count(),
@@ -135,22 +151,20 @@ class DashboardController extends Controller
         $stats = [
             'menunggu_persetujuan' => PengajuanKegiatan::whereIn('status', ['menunggu_dosen', 'revisi_dosen'])
                 ->whereHas('ormawa', function ($query) {
-                    $query->where('pembina', Auth::user()->nama);
+                    $query->where('pembina', Auth::user()->nama)
+                          ->orWhere('pembina_user_id', Auth::id());
                 })
                 ->count(),
-            'disetujui' => PengajuanKegiatan::where('status', 'disetujui')
-                ->whereHas('ormawa', function ($query) {
-                    $query->where('pembina', Auth::user()->nama);
-                })
+            'disetujui' => VerifikasiDosen::where('status', 'disetujui')
+                ->where('user_dosen_id', Auth::id())
                 ->count(),
-            'ditolak' => PengajuanKegiatan::where('status', 'ditolak')
-                ->whereHas('ormawa', function ($query) {
-                    $query->where('pembina', Auth::user()->nama);
-                })
+            'ditolak' => VerifikasiDosen::where('status', 'ditolak')
+                ->where('user_dosen_id', Auth::id())
                 ->count(),
             'revisi' => PengajuanKegiatan::where('status', 'revisi_dosen')
                 ->whereHas('ormawa', function ($query) {
-                    $query->where('pembina', Auth::user()->nama);
+                    $query->where('pembina', Auth::user()->nama)
+                          ->orWhere('pembina_user_id', Auth::id());
                 })
                 ->count(),
         ];
@@ -158,7 +172,8 @@ class DashboardController extends Controller
         $pengajuanMenunggu = PengajuanKegiatan::with('ormawa')
             ->whereIn('status', ['menunggu_dosen', 'revisi_dosen'])
             ->whereHas('ormawa', function ($query) {
-                $query->where('pembina', Auth::user()->nama);
+                $query->where('pembina', Auth::user()->nama)
+                      ->orWhere('pembina_user_id', Auth::id());
             })
             ->latest()
             ->paginate(10);
@@ -168,18 +183,33 @@ class DashboardController extends Controller
 
     private function dashboardDekan()
     {
+        $fakultasId = Auth::user()->fakultas_id;
+
         // Dekan melihat pengajuan Ormawa tingkat fakultas di area mereka
         $stats = [
-            'menunggu_persetujuan' => PengajuanKegiatan::where('status', 'menunggu_dekan')->count(),
-            'disetujui_hari_ini' => PengajuanKegiatan::where('status', 'disetujui')
-                ->whereDate('updated_at', today())
+            'menunggu_persetujuan' => PengajuanKegiatan::where('status', 'menunggu_dekan')
+                ->whereHas('ormawa', function ($query) use ($fakultasId) {
+                    $query->where('fakultas_id', $fakultasId);
+                })
                 ->count(),
-            'total_disetujui' => PengajuanKegiatan::where('status', 'disetujui')->count(),
-            'perlu_revisi' => PengajuanKegiatan::where('status', 'revisi_dekan')->count(),
+            'disetujui_hari_ini' => PersetujuanDekan::whereDate('tanggal_acc', today())
+                ->where('user_dekan_id', Auth::id())
+                ->count(),
+            'total_disetujui' => PersetujuanDekan::where('status', 'disetujui')
+                ->where('user_dekan_id', Auth::id())
+                ->count(),
+            'perlu_revisi' => PengajuanKegiatan::where('status', 'revisi_dekan')
+                ->whereHas('ormawa', function ($query) use ($fakultasId) {
+                    $query->where('fakultas_id', $fakultasId);
+                })
+                ->count(),
         ];
 
         $pengajuanMenunggu = PengajuanKegiatan::with('ormawa')
             ->whereIn('status', ['menunggu_dekan', 'revisi_dekan'])
+            ->whereHas('ormawa', function ($query) use ($fakultasId) {
+                $query->where('fakultas_id', $fakultasId);
+            })
             ->latest()
             ->paginate(10);
 

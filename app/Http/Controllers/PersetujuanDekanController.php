@@ -34,7 +34,12 @@ class PersetujuanDekanController extends Controller
 
         $pengajuanMenunggu = $query->latest()->paginate(10);
 
-        return view('dekan.persetujuan.index', compact('pengajuanMenunggu'));
+        $riwayatPersetujuan = PersetujuanDekan::with('pengajuanKegiatan.ormawa')
+            ->where('user_dekan_id', auth()->id())
+            ->latest()
+            ->paginate(10);
+
+        return view('dekan.persetujuan.index', compact('pengajuanMenunggu', 'riwayatPersetujuan'));
     }
 
     public function show(PengajuanKegiatan $pengajuan)

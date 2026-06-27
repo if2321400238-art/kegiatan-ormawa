@@ -12,9 +12,14 @@ use App\Http\Controllers\{
     ProfileController,
     OrmawaController,
     OrmawaAnggotaController,
+    FakultasController,
+    DekanController,
+    MahasiswaController,
     MahasiswaDashboardController,
     LaporanController,
-    Proposal\ProposalController
+    Proposal\ProposalController,
+    Dosen\OrmawaBinaanController,
+    Dekan\OrmawaFakultasController
 };
 use Illuminate\Support\Facades\Route;
 
@@ -47,11 +52,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/read-all', [NotifikasiController::class, 'markAllAsRead'])->name('read-all');
     });
 
-    // Profile accessible WITHOUT middleware (for completing profile)
-    Route::middleware(['role:ormawa'])->group(function () {
-        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-        Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    });
+
 
     // ==========================================
     // PROPOSAL KEGIATAN MODULE ROUTES
@@ -81,7 +82,7 @@ Route::middleware(['auth'])->group(function () {
     //     Route::get('/print/view', [PengajuanKegiatanController::class, 'printView'])->name('printView');
     // });
 
-    Route::middleware(['auth', 'role:ormawa|bauak|dosen|dekan|warek3|rektor|admin|pp'])
+    Route::middleware(['auth', 'role:ormawa|bauak|dosen|dekan|warek3|rektor|admin|pp|mahasiswa'])
     ->prefix('pengajuan')
     ->name('pengajuan.')
     ->group(function () {
@@ -90,7 +91,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [PengajuanKegiatanController::class, 'index'])->name('index');
 
         // CREATE harus di atas route dinamis
-        Route::middleware(['role:ormawa', 'ormawa.complete'])->group(function () {
+        Route::middleware(['role:ormawa|mahasiswa', 'ormawa.complete'])->group(function () {
             Route::get('/create', [PengajuanKegiatanController::class, 'create'])->name('create');
             Route::post('/', [PengajuanKegiatanController::class, 'store'])->name('store');
         });
@@ -98,7 +99,7 @@ Route::middleware(['auth'])->group(function () {
         // ROUTE DINAMIS TARUH PALING BAWAH
         Route::get('/{pengajuan}', [PengajuanKegiatanController::class, 'show'])->name('show');
 
-        Route::middleware(['role:ormawa', 'ormawa.complete'])->group(function () {
+        Route::middleware(['role:ormawa|mahasiswa', 'ormawa.complete'])->group(function () {
             Route::get('/{pengajuan}/edit', [PengajuanKegiatanController::class, 'edit'])->name('edit');
             Route::patch('/{pengajuan}', [PengajuanKegiatanController::class, 'update'])->name('update');
         });
@@ -111,14 +112,16 @@ Route::middleware(['auth'])->group(function () {
 
     // ==========================================
 
-    // Allow Ormawa without complete profile to access profile page
-    Route::middleware(['role:ormawa'])->group(function () {
-        Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    });
+
 
     // ==========================================
     // DOSEN ROUTES
     Route::middleware(['role:dosen'])->prefix('dosen')->name('dosen.')->group(function () {
+        Route::prefix('ormawa-binaan')->name('ormawa.')->group(function () {
+            Route::get('/', [OrmawaBinaanController::class, 'index'])->name('index');
+            Route::get('/{ormawa}', [OrmawaBinaanController::class, 'show'])->name('show');
+        });
+
         Route::prefix('verifikasi')->name('verifikasi.')->group(function () {
             Route::get('/', [VerifikasiDosenController::class, 'index'])->name('index');
             Route::get('/{pengajuan}', [VerifikasiDosenController::class, 'show'])->name('show');
@@ -129,6 +132,11 @@ Route::middleware(['auth'])->group(function () {
     // ==========================================
     // DEKAN ROUTES
     Route::middleware(['role:dekan'])->prefix('dekan')->name('dekan.')->group(function () {
+        Route::prefix('ormawa-fakultas')->name('ormawa.')->group(function () {
+            Route::get('/', [OrmawaFakultasController::class, 'index'])->name('index');
+            Route::get('/{ormawa}', [OrmawaFakultasController::class, 'show'])->name('show');
+        });
+
         Route::prefix('persetujuan')->name('persetujuan.')->group(function () {
             Route::get('/', [PersetujuanDekanController::class, 'index'])->name('index');
             Route::get('/{pengajuan}', [PersetujuanDekanController::class, 'show'])->name('show');
@@ -163,11 +171,28 @@ Route::middleware(['auth'])->group(function () {
 
         // Kelola Dosen Pembina Ormawa
         Route::prefix('ormawa')->name('ormawa.')->group(function () {
+            // Search route HARUS sebelum route dinamis
+            Route::get('/search/mahasiswa', [OrmawaController::class, 'searchMahasiswa'])->name('search-mahasiswa');
+
+            // Standard routes
             Route::get('/', [OrmawaController::class, 'index'])->name('index');
+            Route::get('/create', [OrmawaController::class, 'create'])->name('create');
+            Route::post('/', [OrmawaController::class, 'store'])->name('store');
+
+            // Dynamic routes harus di akhir
+            Route::get('/{pengajuan}', [OrmawaController::class, 'show'])->name('show');
             Route::get('/{pengajuan}/edit', [OrmawaController::class, 'edit'])->name('edit');
             Route::patch('/{pengajuan}', [OrmawaController::class, 'update'])->name('update');
-        });
+            Route::delete('/{pengajuan}', [OrmawaController::class, 'destroy'])->name('destroy');
 
+            // Anggota resource
+            Route::resource('{ormawa}/anggota', OrmawaAnggotaController::class)
+                ->parameters(['anggota' => 'user'])
+                ->except(['show']);
+
+            Route::get('{ormawa}/anggota/search', [OrmawaAnggotaController::class, 'search'])
+                ->name('anggota.search');
+        });
         // Reports
         Route::get('/laporan', [LaporanController::class, 'bauak'])->name('laporan');
     });
@@ -232,7 +257,9 @@ Route::middleware(['auth'])->group(function () {
                 ->name('anggota.search');
         });
 
-
+        Route::resource('fakultas', FakultasController::class)->except(['show']);
+        Route::resource('dekan', DekanController::class)->except(['show']);
+        Route::resource('mahasiswa', MahasiswaController::class)->except(['show']);
 
         // Untuk admin juga bisa akses semua resource
         Route::resource('pengajuan', PengajuanKegiatanController::class);

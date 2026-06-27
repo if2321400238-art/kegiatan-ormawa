@@ -19,10 +19,16 @@ class FakultasSeeder extends Seeder
 
         foreach ($faculties as $f) {
             $dekan = User::where('email', $f['dekan_email'])->first();
-            Fakultas::firstOrCreate(
+            
+            $fakultas = Fakultas::firstOrCreate(
                 ['nama' => $f['nama']],
                 ['dekan_user_id' => $dekan?->id]
             );
+
+            // Set fakultas_id on the user so the authorization checks work
+            if ($dekan) {
+                $dekan->update(['fakultas_id' => $fakultas->id]);
+            }
         }
     }
 }

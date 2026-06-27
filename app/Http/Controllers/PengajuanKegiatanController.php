@@ -10,9 +10,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class PengajuanKegiatanController extends Controller
 {
+    private const TEMP_UPLOAD_SESSION_KEY = 'pengajuan_temp_uploads';
+
     public function index(Request $request)
     {
         $query = PengajuanKegiatan::with([
@@ -84,9 +89,10 @@ class PengajuanKegiatanController extends Controller
 
     public function store(Request $request)
     {
-        try {
+        $this->captureTemporaryUploads($request);
+        $validated = $this->validatePengajuan($request, true);
 
-            $validated = $this->validatePengajuan($request, true);
+        try {
 
             DB::beginTransaction();
 
@@ -170,15 +176,19 @@ class PengajuanKegiatanController extends Controller
             403
         );
 
+        $validated = $this->validatePengajuan($request);
+
         try {
-
-            $validated = $this->validatePengajuan($request);
-
             DB::beginTransaction();
 
             $pengajuan->update(
                 array_merge(
-                    $validated,
+                    Arr::except($validated, [
+                        'file_proposal',
+                        'file_rab',
+                        'temp_file_proposal',
+                        'temp_file_rab',
+                    ]),
                     [
                         'updated_by_user_id' => Auth::id()
                     ]
@@ -326,18 +336,89 @@ class PengajuanKegiatanController extends Controller
      */
     private function validatePengajuan(Request $request, bool $isNew = false): array
     {
+        $proposalRequired = $isNew && !$this->hasTemporaryUpload($request, 'file_proposal');
+        $rabRequired = $isNew && !$this->hasTemporaryUpload($request, 'file_rab');
+
         return $request->validate([
             'judul_kegiatan' => 'required|string|max:255',
             'tujuan_kegiatan' => 'required|string',
             'lokasi_kegiatan' => 'required|string|max:255',
             'tempat_pesantren' => 'nullable|string|max:255',
             'tanggal_mulai' => 'required|date',
-            'tanggal_selesai' => 'required|date|after:tanggal_mulai',
+            'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'ketua_pelaksana' => 'required|string|max:255',
             'nama_pemohon' => 'required|string|max:255',
-            'file_proposal' => $isNew ? 'required|file|mimes:pdf,doc,docx' : 'nullable|file|mimes:pdf,doc,docx',
-            'file_rab' => $isNew ? 'required|file|mimes:xls,xlsx,pdf' : 'nullable|file|mimes:xls,xlsx,pdf',
+            'temp_file_proposal' => 'nullable|string',
+            'temp_file_rab' => 'nullable|string',
+            'file_proposal' => ($proposalRequired ? 'required' : 'nullable') . '|file|mimes:pdf,doc,docx',
+            'file_rab' => ($rabRequired ? 'required' : 'nullable') . '|file|mimes:xls,xlsx,pdf',
         ]);
+    }
+
+    private function captureTemporaryUploads(Request $request): void
+    {
+        $fields = [
+            'file_proposal' => 'file|mimes:pdf,doc,docx',
+            'file_rab' => 'file|mimes:xls,xlsx,pdf',
+        ];
+
+        $uploads = session(self::TEMP_UPLOAD_SESSION_KEY, []);
+        $tokens = [];
+
+        foreach ($fields as $field => $rules) {
+            if (!$request->hasFile($field)) {
+                continue;
+            }
+
+            $request->validate([$field => $rules]);
+
+            $file = $request->file($field);
+            $token = (string) Str::uuid();
+            $oldToken = $request->input("temp_{$field}");
+
+            if (is_string($oldToken) && isset($uploads[$oldToken])) {
+                Storage::disk('local')->delete($uploads[$oldToken]['path']);
+                unset($uploads[$oldToken]);
+            }
+
+            $uploads[$token] = [
+                'path' => $file->store('tmp/pengajuan', 'local'),
+                'original_name' => $file->getClientOriginalName(),
+            ];
+
+            $tokens["temp_{$field}"] = $token;
+        }
+
+        if ($tokens !== []) {
+            session()->put(self::TEMP_UPLOAD_SESSION_KEY, $uploads);
+            $request->merge($tokens);
+        }
+    }
+
+    private function hasTemporaryUpload(Request $request, string $field): bool
+    {
+        $token = $request->input("temp_{$field}");
+        $uploads = session(self::TEMP_UPLOAD_SESSION_KEY, []);
+
+        return is_string($token)
+            && isset($uploads[$token]['path'])
+            && Storage::disk('local')->exists($uploads[$token]['path']);
+    }
+
+    private function consumeTemporaryUpload(Request $request, string $field): ?array
+    {
+        $token = $request->input("temp_{$field}");
+        $uploads = session(self::TEMP_UPLOAD_SESSION_KEY, []);
+
+        if (!is_string($token) || !isset($uploads[$token])) {
+            return null;
+        }
+
+        $upload = $uploads[$token];
+        unset($uploads[$token]);
+        session()->put(self::TEMP_UPLOAD_SESSION_KEY, $uploads);
+
+        return $upload;
     }
 
     /**
@@ -345,15 +426,25 @@ class PengajuanKegiatanController extends Controller
      */
     private function handleProposalUpload(Request $request, PengajuanKegiatan $pengajuan, int $ormawaId): void
     {
-        if (!$request->hasFile('file_proposal')) {
+        $temporaryUpload = $this->consumeTemporaryUpload($request, 'file_proposal');
+
+        if (!$request->hasFile('file_proposal') && !$temporaryUpload) {
             return;
         }
 
-        $file = $request->file('file_proposal');
-        $filename = 'proposal_' . $pengajuan->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $extension = $temporaryUpload
+            ? pathinfo($temporaryUpload['original_name'], PATHINFO_EXTENSION)
+            : $request->file('file_proposal')->getClientOriginalExtension();
+
+        $filename = 'proposal_' . $pengajuan->id . '_' . time() . '.' . $extension;
         $path = 'pengajuan/proposal/' . $filename;
 
-        $file->storeAs('pengajuan/proposal', $filename, 'public');
+        if ($temporaryUpload) {
+            Storage::disk('public')->put($path, Storage::disk('local')->get($temporaryUpload['path']));
+            Storage::disk('local')->delete($temporaryUpload['path']);
+        } else {
+            $request->file('file_proposal')->storeAs('pengajuan/proposal', $filename, 'public');
+        }
 
         $pengajuan->proposal()->updateOrCreate(
             ['pengajuan_id' => $pengajuan->id],
@@ -368,15 +459,25 @@ class PengajuanKegiatanController extends Controller
      */
     private function handleRabUpload(Request $request, PengajuanKegiatan $pengajuan, int $ormawaId): void
     {
-        if (!$request->hasFile('file_rab')) {
+        $temporaryUpload = $this->consumeTemporaryUpload($request, 'file_rab');
+
+        if (!$request->hasFile('file_rab') && !$temporaryUpload) {
             return;
         }
 
-        $file = $request->file('file_rab');
-        $filename = 'rab_' . $pengajuan->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $extension = $temporaryUpload
+            ? pathinfo($temporaryUpload['original_name'], PATHINFO_EXTENSION)
+            : $request->file('file_rab')->getClientOriginalExtension();
+
+        $filename = 'rab_' . $pengajuan->id . '_' . time() . '.' . $extension;
         $path = 'pengajuan/rab/' . $filename;
 
-        $file->storeAs('pengajuan/rab', $filename, 'public');
+        if ($temporaryUpload) {
+            Storage::disk('public')->put($path, Storage::disk('local')->get($temporaryUpload['path']));
+            Storage::disk('local')->delete($temporaryUpload['path']);
+        } else {
+            $request->file('file_rab')->storeAs('pengajuan/rab', $filename, 'public');
+        }
 
         $pengajuan->rab()->updateOrCreate(
             ['pengajuan_id' => $pengajuan->id],
@@ -394,7 +495,7 @@ class PengajuanKegiatanController extends Controller
         if ($request->hasFile('file_proposal')) {
             // Delete old file if exists
             if ($pengajuan->proposal?->file_proposal) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($pengajuan->proposal->file_proposal);
+                Storage::disk('public')->delete($pengajuan->proposal->file_proposal);
             }
 
             $this->handleProposalUpload($request, $pengajuan, $pengajuan->ormawa_id);
@@ -409,7 +510,7 @@ class PengajuanKegiatanController extends Controller
         if ($request->hasFile('file_rab')) {
             // Delete old file if exists
             if ($pengajuan->rab?->file_rab) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($pengajuan->rab->file_rab);
+                Storage::disk('public')->delete($pengajuan->rab->file_rab);
             }
 
             $this->handleRabUpload($request, $pengajuan, $pengajuan->ormawa_id);

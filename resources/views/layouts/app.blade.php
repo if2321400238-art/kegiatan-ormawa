@@ -43,6 +43,18 @@
                         <div class="nav-icon"><i class="ti ti-building-community"></i></div>
                         <span>Kelola Ormawa</span>
                     </a>
+                    <a href="{{ route('admin.fakultas.index') }}" class="nav-item {{ request()->routeIs('admin.fakultas.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-school"></i></div>
+                        <span>Kelola Fakultas</span>
+                    </a>
+                    <a href="{{ route('admin.dekan.index') }}" class="nav-item {{ request()->routeIs('admin.dekan.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-users"></i></div>
+                        <span>Kelola Dekan</span>
+                    </a>
+                    <a href="{{ route('admin.mahasiswa.index') }}" class="nav-item {{ request()->routeIs('admin.mahasiswa.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-id-badge-2"></i></div>
+                        <span>Kelola Mahasiswa</span>
+                    </a>
                 @endif
 
                 @if (auth()->user()->isOrmawa())
@@ -51,6 +63,25 @@
                         <div class="nav-icon"><i class="ti ti-file-description"></i></div>
                         <span>Pengajuan</span>
                     </a>
+                @endif
+
+                @if (auth()->user()->isMahasiswa())
+                    @php
+                        $activeOrmawaSidebar = \App\Http\Controllers\MahasiswaDashboardController::getActiveOrmawa();
+                        $jabatanSidebar = $activeOrmawaSidebar ? $activeOrmawaSidebar->anggota()->where('user_id', auth()->id())->first()?->jabatan : null;
+                    @endphp
+                    <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Kegiatan</div>
+                    <a href="{{ route('pengajuan.index') }}" class="nav-item {{ request()->routeIs('pengajuan.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-file-description"></i></div>
+                        <span>Kelola Pengajuan</span>
+                    </a>
+                    
+                    @if($activeOrmawaSidebar && in_array($jabatanSidebar, ['ketua', 'wakil_ketua']))
+                        <a href="{{ route('ormawa.anggota.index', $activeOrmawaSidebar->id) }}" class="nav-item {{ request()->routeIs('ormawa.anggota.*') ? 'active' : '' }}">
+                            <div class="nav-icon"><i class="ti ti-users"></i></div>
+                            <span>Kelola Anggota</span>
+                        </a>
+                    @endif
                 @endif
 
                 @if (auth()->user()->isBauak())
@@ -63,12 +94,32 @@
                         <div class="nav-icon"><i class="ti ti-file-description"></i></div>
                         <span>Semua Pengajuan</span>
                     </a>
+                    <a href="{{ route('bauak.ormawa.index') }}" class="nav-item {{ request()->routeIs('bauak.ormawa.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-file-plus"></i></div>
+                        <span>Data Ormawa</span>
+                    </a>
                 @endif
                 @if (auth()->user()->isDosen())
                     <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Tugas Saya</div>
                     <a href="{{ route('dosen.verifikasi.index') }}" class="nav-item {{ request()->routeIs('dosen.verifikasi.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-clipboard-check"></i></div>
                         <span>Verifikasi Dosen</span>
+                    </a>
+                    <a href="{{ route('dosen.ormawa.index') }}" class="nav-item {{ request()->routeIs('dosen.ormawa.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-users"></i></div>
+                        <span>Ormawa Binaan</span>
+                    </a>
+                @endif
+
+                @if (auth()->user()->isDekan())
+                    <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Tugas Saya</div>
+                    <a href="{{ route('dekan.persetujuan.index') }}" class="nav-item {{ request()->routeIs('dekan.persetujuan.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-clipboard-check"></i></div>
+                        <span>Persetujuan Dekan</span>
+                    </a>
+                    <a href="{{ route('dekan.ormawa.index') }}" class="nav-item {{ request()->routeIs('dekan.ormawa.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-school"></i></div>
+                        <span>Daftar Ormawa</span>
                     </a>
                 @endif
 
@@ -293,4 +344,3 @@
 </body>
 
 </html>
-

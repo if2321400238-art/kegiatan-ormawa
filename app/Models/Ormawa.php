@@ -16,6 +16,7 @@ class Ormawa extends Model
         'user_id',
         'nama_ormawa',
         'ketua',
+        'periode',
         'pembina',
         'pembina_user_id',
         'kategori_organisasi',

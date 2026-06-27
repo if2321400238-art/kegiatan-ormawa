@@ -50,64 +50,88 @@
     </div>
 
     {{-- Content Section --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
         {{-- Pengajuan Menunggu Persetujuan --}}
-        <div class="lg:col-span-2">
-            <div class="card">
-                <div class="card-header border-b">
-                    <h5 class="card-title">📋 Pengajuan Tingkat Fakultas Menunggu Persetujuan</h5>
-                </div>
-                <div class="card-body p-0">
-                    @forelse($pengajuanMenunggu as $pengajuan)
-                        <div class="border-b last:border-b-0 hover:bg-gray-50 transition-colors">
-                            <a href="{{ route('pengajuan.show', $pengajuan) }}" class="block p-4 text-decoration-none">
-                                <div class="flex justify-between items-start mb-2">
-                                    <div>
-                                        <h6 class="font-semibold text-gray-900 mb-1">{{ $pengajuan->nama_kegiatan }}</h6>
-                                        <p class="text-sm text-gray-600 mb-2">{{ $pengajuan->ormawa->nama_ormawa ?? 'N/A' }}</p>
-                                    </div>
-                                    <span class="badge badge-{{ $pengajuan->status_badge }}">{{ $pengajuan->status_label }}</span>
-                                </div>
-                                <div class="flex gap-3 text-xs text-gray-500">
-                                    <span>📅 {{ $pengajuan->tanggal_mulai?->format('d M Y') ?? '-' }}</span>
-                                    <span>📍 {{ $pengajuan->lokasi ?? '-' }}</span>
-                                </div>
-                            </a>
-                        </div>
-                    @empty
-                        <div class="p-8 text-center text-gray-500">
-                            <i class="ti ti-inbox text-4xl mb-2 block opacity-50"></i>
-                            <p>Tidak ada pengajuan menunggu persetujuan</p>
-                        </div>
-                    @endforelse
-                </div>
-                @if($pengajuanMenunggu->hasPages())
-                    <div class="card-footer border-t">
-                        {{ $pengajuanMenunggu->links() }}
+        <div class="xl:col-span-2 flex flex-col gap-6 min-h-0">
+            <div class="table-card flex-1">
+                <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-[15px] font-semibold text-gray-900">Pengajuan Menunggu Persetujuan</h3>
+                        <p class="text-[12px] text-gray-400">Pengajuan tingkat fakultas yang perlu ditinjau</p>
                     </div>
+                    <a href="{{ route('dekan.persetujuan.index') }}" class="badge badge-warning hover:bg-warning-light/80">Lihat Semua</a>
+                </div>
+
+                @if(count($pengajuanMenunggu ?? []) > 0)
+                <div class="overflow-x-auto">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ormawa & Kegiatan</th>
+                                <th>Waktu Pengajuan</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($pengajuanMenunggu as $pengajuan)
+                            <tr>
+                                <td>
+                                    <div class="font-medium text-gray-900">{{ $pengajuan->nama_kegiatan }}</div>
+                                    <div class="text-[11px] text-gray-500">{{ $pengajuan->ormawa->nama_ormawa ?? 'N/A' }}</div>
+                                </td>
+                                <td>
+                                    <div class="text-[12px]">{{ $pengajuan->created_at->diffForHumans() }}</div>
+                                    <div class="text-[11px] text-gray-400">{{ $pengajuan->created_at->format('d M Y, H:i') }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge badge-{{ $pengajuan->status_badge }}">{{ $pengajuan->status_label }}</span>
+                                </td>
+                                <td>
+                                    <a href="{{ route('dekan.persetujuan.show', $pengajuan) }}" class="badge badge-info hover:underline text-xs">Persetujuan</a>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                @else
+                <div class="flex-1 flex flex-col items-center justify-center p-8 gap-3">
+                    <div class="w-12 h-12 rounded-full bg-success-light flex items-center justify-center text-success text-2xl">
+                        <i class="ti ti-check"></i>
+                    </div>
+                    <p class="text-sm text-gray-400">Semua pengajuan telah disetujui</p>
+                </div>
+                @endif
+                
+                @if($pengajuanMenunggu->hasPages())
+                <div class="p-4 border-t border-gray-100">
+                    {{ $pengajuanMenunggu->links() }}
+                </div>
                 @endif
             </div>
         </div>
 
         {{-- Quick Info --}}
-        <div>
-            <div class="card">
-                <div class="card-header border-b">
-                    <h5 class="card-title">ℹ️ Informasi</h5>
+        <div class="flex flex-col gap-6 min-h-0">
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col min-h-0 overflow-hidden">
+                <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-[15px] font-semibold text-gray-900">Informasi</h3>
+                        <p class="text-[12px] text-gray-400">Panduan persetujuan Dekan</p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="space-y-3">
-                        <div class="p-3 bg-blue-50 rounded">
-                            <p class="text-sm text-gray-700">
-                                <strong>Peran Anda:</strong> Memberikan persetujuan untuk pengajuan kegiatan Ormawa tingkat fakultas.
-                            </p>
-                        </div>
-                        <div class="p-3 bg-green-50 rounded">
-                            <p class="text-sm text-gray-700">
-                                <strong>Langkah Berikutnya:</strong> Pengajuan yang disetujui akan diteruskan ke BAUAK untuk verifikasi administrasi.
-                            </p>
-                        </div>
+                <div class="p-4 flex flex-col gap-3">
+                    <div class="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                        <p class="text-sm text-gray-700">
+                            <strong>Peran Anda:</strong> Memberikan persetujuan untuk pengajuan kegiatan Ormawa tingkat fakultas.
+                        </p>
+                    </div>
+                    <div class="p-3 bg-green-50 rounded-lg border border-green-100">
+                        <p class="text-sm text-gray-700">
+                            <strong>Langkah Berikutnya:</strong> Pengajuan yang disetujui akan diteruskan ke BAUAK untuk verifikasi administrasi.
+                        </p>
                     </div>
                 </div>
             </div>

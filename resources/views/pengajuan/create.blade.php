@@ -1,6 +1,12 @@
 <x-app-layout>
     <x-slot name="title">Ajukan Kegiatan Baru</x-slot>
 
+    @php
+        $temporaryUploads = session('pengajuan_temp_uploads', []);
+        $temporaryProposal = old('temp_file_proposal') ? ($temporaryUploads[old('temp_file_proposal')] ?? null) : null;
+        $temporaryRab = old('temp_file_rab') ? ($temporaryUploads[old('temp_file_rab')] ?? null) : null;
+    @endphp
+
     <div class="mb-6">
         <h2 class="text-lg font-semibold text-gray-900">Form Pengajuan Kegiatan</h2>
         <p class="text-[12px] text-gray-500">Lengkapi formulir di bawah ini untuk mengajukan kegiatan baru</p>
@@ -25,6 +31,8 @@
 
                 <form action="{{ route('pengajuan.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                     @csrf
+                    <input type="hidden" name="temp_file_proposal" value="{{ old('temp_file_proposal') }}">
+                    <input type="hidden" name="temp_file_rab" value="{{ old('temp_file_rab') }}">
 
                     {{-- Informasi Kegiatan --}}
                     <div>
@@ -138,8 +146,13 @@
                                 <label for="file_proposal" class="block text-[13px] font-medium text-gray-700 mb-1">
                                     File Proposal (PDF) <span class="text-danger">*</span>
                                 </label>
-                                <input type="file" name="file_proposal" id="file_proposal" required accept=".pdf"
+                                <input type="file" name="file_proposal" id="file_proposal" @required(!$temporaryProposal) accept=".pdf"
                                     class="block w-full text-[13px] text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-[13px] file:font-semibold file:bg-brand/10 file:text-brand hover:file:bg-brand/20 transition-colors border border-gray-200 rounded-lg bg-gray-50">
+                                @if($temporaryProposal)
+                                    <p class="text-[11px] text-emerald-700 mt-1">
+                                        <i class="ti ti-check"></i> File sebelumnya sudah tersimpan sementara: {{ $temporaryProposal['original_name'] }}
+                                    </p>
+                                @endif
                                 <p class="text-[11px] text-gray-500 mt-1"><i class="ti ti-info-circle"></i> Format: PDF, Max: 5MB</p>
                             </div>
 
@@ -147,8 +160,13 @@
                                 <label for="file_rab" class="block text-[13px] font-medium text-gray-700 mb-1">
                                     File RAB - Rencana Anggaran Biaya (PDF) <span class="text-danger">*</span>
                                 </label>
-                                <input type="file" name="file_rab" id="file_rab" required accept=".pdf"
+                                <input type="file" name="file_rab" id="file_rab" @required(!$temporaryRab) accept=".pdf"
                                     class="block w-full text-[13px] text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-[13px] file:font-semibold file:bg-brand/10 file:text-brand hover:file:bg-brand/20 transition-colors border border-gray-200 rounded-lg bg-gray-50">
+                                @if($temporaryRab)
+                                    <p class="text-[11px] text-emerald-700 mt-1">
+                                        <i class="ti ti-check"></i> File sebelumnya sudah tersimpan sementara: {{ $temporaryRab['original_name'] }}
+                                    </p>
+                                @endif
                                 <p class="text-[11px] text-gray-500 mt-1"><i class="ti ti-info-circle"></i> Format: PDF, Max: 5MB</p>
                             </div>
                         </div>
