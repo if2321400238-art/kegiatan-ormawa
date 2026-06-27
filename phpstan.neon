@@ -1,0 +1,11 @@
+parameters:
+    level: 7
+    paths:
+        - app
+        - routes
+        - bootstrap
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        - '#Undefined method.*ormawas#'
+        - '#Undefined type.*MahasiswaDashboardController#'
+        - '#Undefined function.*sendNotification#'

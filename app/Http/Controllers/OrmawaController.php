@@ -19,17 +19,20 @@ class OrmawaController extends Controller
 
     public function create()
     {
-        $dosen = User::where('role', 'dosen')->get();
+        $dosenList = User::where('role', 'dosen')->get();
+        $mahasiswaList = User::where('role', 'mahasiswa')->get();
         $fakultas = Fakultas::all();
-        return view('ormawa.create', compact('dosen', 'fakultas'));
+        return view('ormawa.create', compact('dosenList', 'mahasiswaList', 'fakultas'));
     }
 
     public function store(Request $request)
     {
-        // Validasi input
+        $ketuaUserId = $request->input('user_id');
+        $request->merge(['user_id' => $ketuaUserId]);
+
         $request->validate([
             'nama_ormawa'  => 'required|string|max:255',
-            'ketua' => 'required|string|max:255',
+            'user_id' => 'required|exists:users,id',
             'pembina_user_id' => 'nullable|exists:users,id',
             'kategori_organisasi' => 'required|in:internal,eksternal',
             'tingkat_organisasi' => 'nullable|in:universitas,fakultas',
@@ -45,18 +48,27 @@ class OrmawaController extends Controller
             return back()->withErrors(['fakultas_id' => 'Fakultas harus dipilih untuk organisasi tingkat fakultas.'])->withInput();
         }
 
+        $ketuaUser = User::find($ketuaUserId);
         $pembinaUser = $request->pembina_user_id ? User::find($request->pembina_user_id) : null;
-        $pembinaName = $pembinaUser?->nama;
 
-        Ormawa::create([
+        $ormawa = Ormawa::create([
+            'user_id' => $ketuaUserId,
             'nama_ormawa'  => $request->nama_ormawa,
-            'ketua' => $request->ketua,
-            'pembina' => $pembinaName,
+            'ketua' => $ketuaUser->nama,
+            'pembina' => $pembinaUser?->nama,
             'pembina_user_id' => $pembinaUser?->id,
             'kategori_organisasi' => $request->kategori_organisasi,
             'tingkat_organisasi' => $request->kategori_organisasi === 'internal' ? $request->tingkat_organisasi : null,
             'fakultas_id' => $request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' ? $request->fakultas_id : null,
             'kontak' => $request->kontak,
+        ]);
+
+        // Automatically add ketua as member
+        \App\Models\AnggotaOrmawa::create([
+            'ormawa_id' => $ormawa->id,
+            'user_id' => $ketuaUserId,
+            'jabatan' => 'ketua',
+            'status' => true,
         ]);
 
         // Redirect kembali ke daftar ormawa
@@ -78,19 +90,20 @@ class OrmawaController extends Controller
         // Using $pengajuan as parameter name but it's actually Ormawa
         $ormawa = $pengajuan;
         $dosenList = User::where('role', 'dosen')->get();
+        $mahasiswaList = User::where('role', 'mahasiswa')->get();
         $fakultas = Fakultas::all();
-        return view('ormawa.edit', compact('ormawa', 'dosenList', 'fakultas'));
+        return view('ormawa.edit', compact('ormawa', 'dosenList', 'mahasiswaList', 'fakultas'));
     }
 
     public function update(Request $request, Ormawa $pengajuan)
     {
-        // Using $pengajuan as parameter name but it's actually Ormawa
         $ormawa = $pengajuan;
+        $ketuaUserId = $request->input('user_id');
+        $request->merge(['user_id' => $ketuaUserId]);
 
-        // Validasi input
         $request->validate([
             'nama_ormawa'  => 'required|string|max:255',
-            'ketua' => 'required|string|max:255',
+            'user_id' => 'required|exists:users,id',
             'pembina_user_id' => 'nullable|exists:users,id',
             'kategori_organisasi' => 'required|in:internal,eksternal',
             'tingkat_organisasi' => 'nullable|in:universitas,fakultas',
@@ -107,14 +120,15 @@ class OrmawaController extends Controller
             return back()->withErrors(['fakultas_id' => 'Fakultas harus dipilih untuk organisasi tingkat fakultas.'])->withInput();
         }
 
+        $ketuaUser = User::find($ketuaUserId);
         $pembinaUser = $request->pembina_user_id ? User::find($request->pembina_user_id) : null;
-        $pembinaName = $pembinaUser?->nama;
 
         // Update data
         $ormawa->update([
+            'user_id' => $ketuaUserId,
             'nama_ormawa' => $request->nama_ormawa,
-            'ketua' => $request->ketua,
-            'pembina' => $pembinaName,
+            'ketua' => $ketuaUser->nama,
+            'pembina' => $pembinaUser?->nama,
             'pembina_user_id' => $pembinaUser?->id,
             'kategori_organisasi' => $request->kategori_organisasi,
             'tingkat_organisasi' => $request->kategori_organisasi === 'internal' ? $request->tingkat_organisasi : null,
@@ -122,6 +136,22 @@ class OrmawaController extends Controller
             'kontak' => $request->kontak,
             'deskripsi' => $request->deskripsi,
         ]);
+
+        // If ketua changed, update in anggota_ormawa
+        $existingKetua = \App\Models\AnggotaOrmawa::where('ormawa_id', $ormawa->id)
+            ->where('jabatan', 'ketua')
+            ->first();
+
+        if ($existingKetua && $existingKetua->user_id !== $ketuaUserId) {
+            $existingKetua->update(['user_id' => $ketuaUserId]);
+        } elseif (!$existingKetua) {
+            \App\Models\AnggotaOrmawa::create([
+                'ormawa_id' => $ormawa->id,
+                'user_id' => $ketuaUserId,
+                'jabatan' => 'ketua',
+                'status' => true,
+            ]);
+        }
 
         $redirectRoute = auth()->user()->role === 'bauak' ? 'bauak.ormawa.index' : 'admin.ormawa.index';
 

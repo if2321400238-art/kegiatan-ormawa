@@ -3,10 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\PengajuanKegiatan;
-
 use App\Models\VerifikasiBauak;
 use App\Models\PersetujuanWarek3;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -17,6 +15,8 @@ class DashboardController extends Controller
 
         // Route ke dashboard sesuai role
         switch ($user->role) {
+            case 'mahasiswa':
+                return redirect()->route('mahasiswa.dashboard');
             case 'ormawa':
                 return $this->dashboardOrmawa();
             case 'dosen':

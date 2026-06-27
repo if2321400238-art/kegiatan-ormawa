@@ -44,11 +44,21 @@ class Ormawa extends Model
     {
         return $this->belongsToMany(
             User::class,
-            'ormawa_users',
+            'anggota_ormawa',
             'ormawa_id',
             'user_id'
-        )->withPivot('jabatan', 'aktif')
+        )->withPivot('jabatan', 'status')
             ->withTimestamps();
+    }
+
+    public function ketua()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function anggota()
+    {
+        return $this->hasMany(AnggotaOrmawa::class, 'ormawa_id');
     }
 
     // ==========================================
@@ -78,6 +88,11 @@ class Ormawa extends Model
         return !empty($this->nama_ormawa)
             && !empty($this->ketua)
             && !empty($this->kop_surat);
+    }
+
+    public function isKetua(User $user): bool
+    {
+        return $this->user_id === $user->id;
     }
 
     public function isInternal(): bool

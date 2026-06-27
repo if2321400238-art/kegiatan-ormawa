@@ -12,7 +12,9 @@ use App\Http\Controllers\{
     ProfileController,
     OrmawaController,
     OrmawaAnggotaController,
-    LaporanController
+    MahasiswaDashboardController,
+    LaporanController,
+    Proposal\ProposalController
 };
 use Illuminate\Support\Facades\Route;
 
@@ -52,11 +54,10 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // ==========================================
-    // ORMAWA ROUTES
-    // ==========================================
-    // Other routes WITH middleware (require complete profile)
-    Route::middleware(['role:ormawa', 'ormawa.complete'])->group(function () {
-
+    // PROPOSAL KEGIATAN MODULE ROUTES
+    Route::middleware(['role:ormawa'])->group(function () {
+        Route::resource('proposal-kegiatan', ProposalController::class)
+            ->parameters(['proposal-kegiatan' => 'proposal']);
     });
 
     // ==========================================
@@ -188,8 +189,24 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/monitoring', [PersetujuanWarek3Controller::class, 'monitoring'])->name('monitoring');
     });
 
+    // ==========================================
+    // MAHASISWA ROUTES
+    // ==========================================
+    Route::middleware(['role:mahasiswa'])->prefix('mahasiswa')->name('mahasiswa.')->group(function () {
+        Route::get('/dashboard', [MahasiswaDashboardController::class, 'index'])->name('dashboard');
+        Route::post('/set-active-ormawa', [MahasiswaDashboardController::class, 'setActiveOrmawa'])
+            ->name('setActiveOrmawa');
+    });
 
+    // ==========================================
+    // ORMAWA MEMBER MANAGEMENT ROUTES
+    // ==========================================
+    Route::resource('ormawa.anggota', OrmawaAnggotaController::class)
+        ->parameters(['anggota' => 'user'])
+        ->except(['show']);
 
+    Route::get('ormawa/{ormawa}/anggota/search', [OrmawaAnggotaController::class, 'search'])
+        ->name('ormawa.anggota.search');
 
     // ==========================================
     // ADMIN ROUTES
@@ -207,15 +224,12 @@ Route::middleware(['auth'])->group(function () {
             Route::patch('/{pengajuan}', [OrmawaController::class, 'update'])->name('update');
             Route::delete('/{pengajuan}', [OrmawaController::class, 'destroy'])->name('destroy');
 
-            // Nested routes for anggota
-            Route::prefix('{ormawa}/anggota')->name('anggota.')->group(function () {
-                Route::get('/', [OrmawaAnggotaController::class, 'index'])->name('index');
-                Route::get('/create', [OrmawaAnggotaController::class, 'create'])->name('create');
-                Route::post('/', [OrmawaAnggotaController::class, 'store'])->name('store');
-                Route::get('{user}/edit', [OrmawaAnggotaController::class, 'edit'])->name('edit');
-                Route::patch('{user}', [OrmawaAnggotaController::class, 'update'])->name('update');
-                Route::delete('{user}', [OrmawaAnggotaController::class, 'destroy'])->name('destroy');
-            });
+            Route::resource('{ormawa}/anggota', OrmawaAnggotaController::class)
+                ->parameters(['anggota' => 'user'])
+                ->except(['show']);
+
+            Route::get('{ormawa}/anggota/search', [OrmawaAnggotaController::class, 'search'])
+                ->name('anggota.search');
         });
 
 

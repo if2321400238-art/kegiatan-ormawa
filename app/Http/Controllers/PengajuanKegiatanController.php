@@ -2,87 +2,44 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\PengajuanHelper;
 use App\Models\PengajuanKegiatan;
-use App\Models\Proposal;
-use App\Models\Rab;
 use App\Models\SuratRekomendasi;
 use App\Services\ExportService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 
 class PengajuanKegiatanController extends Controller
 {
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $query = PengajuanKegiatan::with([
+            'proposal',
+            'rab',
+            'suratRekomendasi'
+        ]);
 
-        $query = PengajuanKegiatan::with(['proposal', 'rab', 'suratRekomendasi']);
+        PengajuanHelper::applyRoleFilter($query);
+        PengajuanHelper::applyFilters($query, $request);
 
-        // Filter by role
-        if ($user->role === 'ormawa') {
-            // ORMAWA hanya lihat pengajuan mereka sendiri
-            $query->where('ormawa_id', $user->ormawa->id);
-        }
-        // BAUAK dan admin bisa lihat semua pengajuan (no filter)
+        $perPage = in_array(
+            $request->per_page,
+            [10, 25, 50, 100]
+        ) ? $request->per_page : 10;
 
-        // Search by judul kegiatan or ormawa
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('judul_kegiatan', 'like', "%$search%")
-                  ->orWhere('ketua_pelaksana', 'like', "%$search%")
-                  ->orWhere('lokasi_kegiatan', 'like', "%$search%");
-            });
-        }
+        $pengajuan = $query
+            ->latest()
+            ->paginate($perPage)
+            ->appends($request->query());
 
-        // Filter by status
-        if ($request->filled('status') && $request->input('status') !== '') {
-            $query->where('status', $request->input('status'));
-        }
+        $stats = PengajuanHelper::getStats();
 
-        // Filter by date range
-        if ($request->filled('tanggal_dari')) {
-            $query->where('tanggal_mulai', '>=', $request->input('tanggal_dari'));
-        }
-
-        if ($request->filled('tanggal_sampai')) {
-            $query->where('tanggal_selesai', '<=', $request->input('tanggal_sampai'));
-        }
-
-        // Pagination with custom per_page
-        $perPage = $request->input('per_page', 10);
-        $perPage = in_array($perPage, [10, 25, 50, 100]) ? $perPage : 10;
-
-        $pengajuan = $query->latest()->paginate($perPage)->appends($request->query());
-
-        // Statistics
-        $pendingStatuses = ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor'];
-        $revisionStatuses = ['revisi_dosen', 'revisi_dekan', 'revisi_bauak', 'revisi_warek3', 'revisi_rektor'];
-
-        if ($user->role === 'ormawa') {
-            $stats = [
-                'total' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->count(),
-                'draft' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->where('status', 'draft')->count(),
-                'pending' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->whereIn('status', $pendingStatuses)->count(),
-                'approved' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->where('status', 'disetujui')->count(),
-                'rejected' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->where('status', 'ditolak')->count(),
-                'revision' => PengajuanKegiatan::where('ormawa_id', $user->ormawa->id)->whereIn('status', $revisionStatuses)->count(),
-            ];
-        } else {
-            // BAUAK dan admin lihat statistik semua pengajuan
-            $stats = [
-                'total' => PengajuanKegiatan::count(),
-                'draft' => PengajuanKegiatan::where('status', 'draft')->count(),
-                'pending' => PengajuanKegiatan::whereIn('status', $pendingStatuses)->count(),
-                'approved' => PengajuanKegiatan::where('status', 'disetujui')->count(),
-                'rejected' => PengajuanKegiatan::where('status', 'ditolak')->count(),
-                'revision' => PengajuanKegiatan::whereIn('status', $revisionStatuses)->count(),
-            ];
-        }
-
-        return view('pengajuan.index', compact('pengajuan', 'stats'));
+        return view(
+            'pengajuan.index',
+            compact('pengajuan', 'stats')
+        );
     }
 
     public function create()
@@ -90,47 +47,57 @@ class PengajuanKegiatanController extends Controller
         return view('pengajuan.create');
     }
 
+    public function show(PengajuanKegiatan $pengajuan)
+    {
+        abort_unless(
+            PengajuanHelper::authorizePengajuan($pengajuan),
+            403
+        );
+
+        $pengajuan->load([
+            'ormawa',
+            'proposal',
+            'rab',
+            'suratRekomendasi',
+            'verifikasiBauak.user',
+            'persetujuanWarek3.user',
+        ]);
+
+        return view(
+            'pengajuan.show',
+            compact('pengajuan')
+        );
+    }
+
+    public function edit(PengajuanKegiatan $pengajuan)
+    {
+        abort_unless(
+            $pengajuan->canBeEditedBy(Auth::user()),
+            403
+        );
+
+        return view(
+            'pengajuan.edit',
+            compact('pengajuan')
+        );
+    }
+
     public function store(Request $request)
     {
         try {
-            // Validate input
-            $validated = $request->validate([
-                'judul_kegiatan' => 'required|string|max:255',
-                'tujuan_kegiatan' => 'required|string',
-                'lokasi_kegiatan' => 'required|string|max:255',
-                'tempat_pesantren' => 'nullable|string|max:255',
-                'tanggal_mulai' => 'required|date',
-                'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-                'ketua_pelaksana' => 'required|string|max:255',
-                'nama_pemohon' => 'required|string|max:255',
-                'file_proposal' => 'required|file|mimes:pdf|max:5120',
-                'file_rab' => 'required|file|mimes:pdf|max:5120',
-            ], [
-                'judul_kegiatan.required' => 'Judul kegiatan harus diisi',
-                'tujuan_kegiatan.required' => 'Tujuan kegiatan harus diisi',
-                'lokasi_kegiatan.required' => 'Lokasi kegiatan harus diisi',
-                'tanggal_mulai.required' => 'Tanggal mulai harus diisi',
-                'tanggal_selesai.required' => 'Tanggal selesai harus diisi',
-                'tanggal_selesai.after_or_equal' => 'Tanggal selesai harus setelah atau sama dengan tanggal mulai',
-                'ketua_pelaksana.required' => 'Ketua pelaksana harus diisi',
-                'nama_pemohon.required' => 'Nama pemohon harus diisi',
-                'file_proposal.required' => 'File proposal harus diupload',
-                'file_proposal.mimes' => 'File proposal harus berformat PDF',
-                'file_proposal.max' => 'File proposal maksimal 5MB',
-                'file_rab.required' => 'File RAB harus diupload',
-                'file_rab.mimes' => 'File RAB harus berformat PDF',
-                'file_rab.max' => 'File RAB maksimal 5MB',
-            ]);
+
+            $validated = $this->validatePengajuan($request, true);
 
             DB::beginTransaction();
 
-            $ormawa = auth()->user()->ormawa;
+            $ormawa = PengajuanHelper::getOrmawa();
 
             if (!$ormawa) {
-                throw new \Exception('Data Ormawa tidak ditemukan. Silakan lengkapi profile terlebih dahulu.');
+                throw new \Exception(
+                    'Silakan pilih organisasi terlebih dahulu.'
+                );
             }
 
-            // Create Pengajuan
             $pengajuan = PengajuanKegiatan::create([
                 'ormawa_id' => $ormawa->id,
                 'judul_kegiatan' => $validated['judul_kegiatan'],
@@ -142,300 +109,316 @@ class PengajuanKegiatanController extends Controller
                 'ketua_pelaksana' => $validated['ketua_pelaksana'],
                 'nama_pemohon' => $validated['nama_pemohon'],
                 'status' => 'menunggu_dosen',
+                'created_by_user_id' => Auth::id(),
             ]);
 
-            // Upload Proposal
-            if ($request->hasFile('file_proposal')) {
-                $proposalFile = $request->file('file_proposal');
-                $proposalPath = $proposalFile->store('proposal/' . $ormawa->id, 'public');
+            $this->handleProposalUpload(
+                $request,
+                $pengajuan,
+                $ormawa->id
+            );
 
-                Proposal::create([
-                    'pengajuan_id' => $pengajuan->id,
-                    'file_proposal' => $proposalPath,
-                    'status' => 'draft',
-                ]);
-            }
+            $this->handleRabUpload(
+                $request,
+                $pengajuan,
+                $ormawa->id
+            );
 
-            // Upload RAB
-            if ($request->hasFile('file_rab')) {
-                $rabFile = $request->file('file_rab');
-                $rabPath = $rabFile->store('rab/' . $ormawa->id, 'public');
-
-                Rab::create([
-                    'pengajuan_id' => $pengajuan->id,
-                    'file_rab' => $rabPath,
-                    'status' => 'draft',
-                ]);
-            }
-
-            // Generate nomor surat
-            $nomorSurat = $this->generateNomorSurat();
-
-            // Create Draft Surat Rekomendasi (without generating PDF yet)
             SuratRekomendasi::create([
                 'pengajuan_id' => $pengajuan->id,
-                'nomor_surat' => $nomorSurat,
+                'nomor_surat' => $this->generateNomorSurat(),
                 'status' => 'draft',
             ]);
 
-            // Create notification for Dosen Pembina
-                $this->createNotificationForDosen($pengajuan);
-
-                // If pengajuan perlu dikirim ke Dekan tertentu, notify that specific Dekan
-                if ($pengajuan->ormawa->isFakultas() && $pengajuan->ormawa->fakultas && $pengajuan->ormawa->fakultas->dekan) {
-                    sendNotification(
-                        $pengajuan->ormawa->fakultas->dekan,
-                        'Pengajuan Kegiatan Menunggu Persetujuan Dekan',
-                        "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu persetujuan Anda.",
-                        'info',
-                        route('dekan.persetujuan.show', $pengajuan),
-                        ['telegram', 'email', 'in_app']
-                    );
-                }
+            PengajuanHelper::notifyRole(
+                'dosen',
+                'Pengajuan Kegiatan Menunggu Verifikasi Dosen Pembina',
+                "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu verifikasi Anda.",
+                'dosen.verifikasi.show',
+                $pengajuan
+            );
 
             DB::commit();
 
             return redirect()
                 ->route('pengajuan.show', $pengajuan)
-                ->with('success', 'Pengajuan kegiatan berhasil menunggu_dosen!');
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            DB::rollBack();
-            return back()
-                ->withErrors($e->errors())
-                ->withInput()
-                ->with('error', 'Validation error. Silakan periksa form Anda.');
+                ->with(
+                    'success',
+                    'Pengajuan kegiatan berhasil dibuat.'
+                );
         } catch (\Exception $e) {
+
             DB::rollBack();
-            Log::error('Error creating pengajuan: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
+
+            Log::error($e);
 
             return back()
                 ->withInput()
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+                ->with(
+                    'error',
+                    $e->getMessage()
+                );
         }
     }
 
-    public function show(PengajuanKegiatan $pengajuan)
-    {
-        // Check authorization
-        if (auth()->user()->isOrmawa() && $pengajuan->ormawa_id !== auth()->user()->ormawa->id) {
-            abort(403, 'Anda tidak memiliki akses ke pengajuan ini.');
-        }
-
-
-        $pengajuan->load([
-            'ormawa',
-            'proposal',
-            'rab',
-            'suratRekomendasi',
-            'verifikasiBauak.user',
-            'persetujuanWarek3.user',
-        ]);
-
-        return view('pengajuan.show', compact('pengajuan'));
-    }
-
-    public function edit(PengajuanKegiatan $pengajuan)
-    {
-        // Check authorization
-        if (!$pengajuan->canBeEditedBy(auth()->user())) {
-            abort(403, 'Anda tidak dapat mengedit pengajuan ini.');
-        }
-
-        return view('pengajuan.edit', compact('pengajuan'));
-    }
-
-    public function update(Request $request, PengajuanKegiatan $pengajuan)
-    {
-        // Check authorization
-        if (!$pengajuan->canBeEditedBy(auth()->user())) {
-            abort(403, 'Anda tidak dapat mengedit pengajuan ini.');
-        }
+    public function update(
+        Request $request,
+        PengajuanKegiatan $pengajuan
+    ) {
+        abort_unless(
+            $pengajuan->canBeEditedBy(Auth::user()),
+            403
+        );
 
         try {
-            $validated = $request->validate([
-                'judul_kegiatan' => 'required|string|max:255',
-                'tujuan_kegiatan' => 'required|string',
-                'lokasi_kegiatan' => 'required|string|max:255',
-                'tempat_pesantren' => 'nullable|string|max:255',
-                'tanggal_mulai' => 'required|date',
-                'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-                'ketua_pelaksana' => 'required|string|max:255',
-                'nama_pemohon' => 'required|string|max:255',
-                'file_proposal' => 'nullable|file|mimes:pdf|max:5120',
-                'file_rab' => 'nullable|file|mimes:pdf|max:5120',
-            ]);
+
+            $validated = $this->validatePengajuan($request);
 
             DB::beginTransaction();
 
-            $pengajuan->update($validated);
+            $pengajuan->update(
+                array_merge(
+                    $validated,
+                    [
+                        'updated_by_user_id' => Auth::id()
+                    ]
+                )
+            );
 
-            // Update Proposal if new file uploaded
-            if ($request->hasFile('file_proposal')) {
-                // Delete old file
-                if ($pengajuan->proposal && $pengajuan->proposal->file_proposal) {
-                    Storage::disk('public')->delete($pengajuan->proposal->file_proposal);
-                }
+            $this->updateProposal($request, $pengajuan);
+            $this->updateRab($request, $pengajuan);
 
-                $proposalPath = $request->file('file_proposal')->store(
-                    'proposal/' . $pengajuan->ormawa_id,
-                    'public'
-                );
-
-                $pengajuan->proposal()->update([
-                    'file_proposal' => $proposalPath,
-                    'versi' => ($pengajuan->proposal->versi ?? 0) + 1,
-                ]);
-            }
-
-            // Update RAB if new file uploaded
-            if ($request->hasFile('file_rab')) {
-                // Delete old file
-                if ($pengajuan->rab && $pengajuan->rab->file_rab) {
-                    Storage::disk('public')->delete($pengajuan->rab->file_rab);
-                }
-
-                $rabPath = $request->file('file_rab')->store(
-                    'rab/' . $pengajuan->ormawa_id,
-                    'public'
-                );
-
-                $pengajuan->rab()->update([
-                    'file_rab' => $rabPath,
-                    'versi' => ($pengajuan->rab->versi ?? 0) + 1,
-                ]);
-            }
-
-
-            // Update status back to menunggu_dosen and clear previous BAUAK notes
             $nextStatus = match ($pengajuan->status) {
-                'revisi_dosen', 'menunggu_dosen', 'draft', 'ditolak' => 'menunggu_dosen',
-                'revisi_dekan' => 'menunggu_dekan',
-                'revisi_bauak' => 'menunggu_bauak',
-                'revisi_warek3' => 'menunggu_warek3',
-                'revisi_rektor' => 'menunggu_rektor',
-                default => 'menunggu_dosen',
+                'revisi_dosen',
+                'draft',
+                'ditolak',
+                'menunggu_dosen'
+                => 'menunggu_dosen',
+
+                'revisi_dekan'
+                => 'menunggu_dekan',
+
+                'revisi_bauak'
+                => 'menunggu_bauak',
+
+                'revisi_warek3'
+                => 'menunggu_warek3',
+
+                'revisi_rektor'
+                => 'menunggu_rektor',
+
+                default
+                => 'menunggu_dosen',
             };
 
-            $pengajuan->update(['status' => $nextStatus, 'catatan' => null]);
+            $pengajuan->update([
+                'status' => $nextStatus,
+                'catatan' => null
+            ]);
 
-            if ($nextStatus === 'menunggu_dekan') {
-                $this->createNotificationForDekan($pengajuan);
-            } elseif ($nextStatus === 'menunggu_bauak') {
-                $this->createNotificationForBauak($pengajuan);
-            } elseif ($nextStatus === 'menunggu_warek3') {
-                $this->createNotificationForWarek3($pengajuan);
-            } elseif ($nextStatus === 'menunggu_rektor') {
-                $this->createNotificationForRektor($pengajuan);
-            } else {
-                $this->createNotificationForDosen($pengajuan);
-            }
+            $this->sendNotificationByStatus(
+                $nextStatus,
+                $pengajuan
+            );
 
             DB::commit();
 
             return redirect()
-                ->route('pengajuan.show', $pengajuan)
-                ->with('success', 'Pengajuan kegiatan berhasil diperbarui!');
-
+                ->route(
+                    'pengajuan.show',
+                    $pengajuan
+                )
+                ->with(
+                    'success',
+                    'Pengajuan berhasil diperbarui.'
+                );
         } catch (\Exception $e) {
+
             DB::rollBack();
-            Log::error('Error updating pengajuan: ' . $e->getMessage());
+
+            Log::error($e);
 
             return back()
                 ->withInput()
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+                ->with(
+                    'error',
+                    $e->getMessage()
+                );
         }
     }
 
-    /**
-     * Export pengajuan to CSV
-     */
     public function exportCSV(Request $request)
     {
-        $user = auth()->user();
+        $ormawaId = PengajuanHelper::getOrmawaId();
 
-        $query = PengajuanKegiatan::where('ormawa_id', $user->ormawa->id);
+        abort_if(!$ormawaId, 403);
 
-        // Apply same filters as index
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('judul_kegiatan', 'like', "%$search%")
-                  ->orWhere('ketua_pelaksana', 'like', "%$search%")
-                  ->orWhere('lokasi_kegiatan', 'like', "%$search%");
-            });
-        }
+        $query = PengajuanKegiatan::where(
+            'ormawa_id',
+            $ormawaId
+        );
 
-        if ($request->filled('status') && $request->input('status') !== '') {
-            $query->where('status', $request->input('status'));
-        }
-
-        if ($request->filled('tanggal_dari')) {
-            $query->where('tanggal_mulai', '>=', $request->input('tanggal_dari'));
-        }
-
-        if ($request->filled('tanggal_sampai')) {
-            $query->where('tanggal_selesai', '<=', $request->input('tanggal_sampai'));
-        }
+        PengajuanHelper::applyFilters(
+            $query,
+            $request
+        );
 
         $pengajuan = $query->latest()->get();
 
-        $headers = ['Judul Kegiatan', 'Lokasi', 'Tanggal Mulai', 'Tanggal Selesai', 'Ketua Pelaksana', 'Status', 'Dibuat'];
+        $headers = [
+            'Judul Kegiatan',
+            'Lokasi',
+            'Tanggal Mulai',
+            'Tanggal Selesai',
+            'Ketua Pelaksana',
+            'Status',
+            'Dibuat'
+        ];
 
-        $data = [];
-        foreach ($pengajuan as $item) {
-            $data[] = [
-                $item->judul_kegiatan,
-                $item->lokasi_kegiatan,
-                $item->tanggal_mulai->format('Y-m-d'),
-                $item->tanggal_selesai->format('Y-m-d'),
-                $item->ketua_pelaksana,
-                ExportService::getStatusLabel($item->status),
-                $item->created_at->format('Y-m-d H:i'),
-            ];
-        }
+        $data = $pengajuan->map(fn($item) => [
+            $item->judul_kegiatan,
+            $item->lokasi_kegiatan,
+            $item->tanggal_mulai->format('Y-m-d'),
+            $item->tanggal_selesai->format('Y-m-d'),
+            $item->ketua_pelaksana,
+            ExportService::getStatusLabel(
+                $item->status
+            ),
+            $item->created_at->format('Y-m-d H:i'),
+        ]);
 
-        ExportService::toCSV($headers, collect($data), 'pengajuan-kegiatan-' . now()->format('Y-m-d'));
+        ExportService::toCSV(
+            $headers,
+            $data,
+            'pengajuan-kegiatan-' .
+                now()->format('Y-m-d')
+        );
+    }
+
+    public function printView(Request $request)
+    {
+        $ormawaId = PengajuanHelper::getOrmawaId();
+
+        abort_if(!$ormawaId, 403);
+
+        $query = PengajuanKegiatan::where(
+            'ormawa_id',
+            $ormawaId
+        );
+
+        PengajuanHelper::applyFilters(
+            $query,
+            $request
+        );
+
+        $pengajuan = $query
+            ->latest()
+            ->get();
+
+        return view(
+            'pengajuan.print',
+            compact('pengajuan')
+        );
     }
 
     /**
-     * Print pengajuan in PDF-friendly format
+     * Validate pengajuan data
      */
-    public function printView(Request $request)
+    private function validatePengajuan(Request $request, bool $isNew = false): array
     {
-        $user = auth()->user();
-
-        $query = PengajuanKegiatan::with(['proposal', 'rab', 'suratRekomendasi'])
-            ->where('ormawa_id', $user->ormawa->id);
-
-        // Apply same filters as index
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('judul_kegiatan', 'like', "%$search%")
-                  ->orWhere('ketua_pelaksana', 'like', "%$search%")
-                  ->orWhere('lokasi_kegiatan', 'like', "%$search%");
-            });
-        }
-
-        if ($request->filled('status') && $request->input('status') !== '') {
-            $query->where('status', $request->input('status'));
-        }
-
-        if ($request->filled('tanggal_dari')) {
-            $query->where('tanggal_mulai', '>=', $request->input('tanggal_dari'));
-        }
-
-        if ($request->filled('tanggal_sampai')) {
-            $query->where('tanggal_selesai', '<=', $request->input('tanggal_sampai'));
-        }
-
-        $pengajuan = $query->latest()->get();
-
-        return view('pengajuan.print', compact('pengajuan'));
+        return $request->validate([
+            'judul_kegiatan' => 'required|string|max:255',
+            'tujuan_kegiatan' => 'required|string',
+            'lokasi_kegiatan' => 'required|string|max:255',
+            'tempat_pesantren' => 'nullable|string|max:255',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date|after:tanggal_mulai',
+            'ketua_pelaksana' => 'required|string|max:255',
+            'nama_pemohon' => 'required|string|max:255',
+            'file_proposal' => $isNew ? 'required|file|mimes:pdf,doc,docx' : 'nullable|file|mimes:pdf,doc,docx',
+            'file_rab' => $isNew ? 'required|file|mimes:xls,xlsx,pdf' : 'nullable|file|mimes:xls,xlsx,pdf',
+        ]);
     }
 
+    /**
+     * Handle proposal file upload
+     */
+    private function handleProposalUpload(Request $request, PengajuanKegiatan $pengajuan, int $ormawaId): void
+    {
+        if (!$request->hasFile('file_proposal')) {
+            return;
+        }
+
+        $file = $request->file('file_proposal');
+        $filename = 'proposal_' . $pengajuan->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $path = 'pengajuan/proposal/' . $filename;
+
+        $file->storeAs('pengajuan/proposal', $filename, 'public');
+
+        $pengajuan->proposal()->updateOrCreate(
+            ['pengajuan_id' => $pengajuan->id],
+            [
+                'file_proposal' => $path,
+            ]
+        );
+    }
+
+    /**
+     * Handle RAB file upload
+     */
+    private function handleRabUpload(Request $request, PengajuanKegiatan $pengajuan, int $ormawaId): void
+    {
+        if (!$request->hasFile('file_rab')) {
+            return;
+        }
+
+        $file = $request->file('file_rab');
+        $filename = 'rab_' . $pengajuan->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $path = 'pengajuan/rab/' . $filename;
+
+        $file->storeAs('pengajuan/rab', $filename, 'public');
+
+        $pengajuan->rab()->updateOrCreate(
+            ['pengajuan_id' => $pengajuan->id],
+            [
+                'file_rab' => $path,
+            ]
+        );
+    }
+
+    /**
+     * Update proposal file
+     */
+    private function updateProposal(Request $request, PengajuanKegiatan $pengajuan): void
+    {
+        if ($request->hasFile('file_proposal')) {
+            // Delete old file if exists
+            if ($pengajuan->proposal?->file_proposal) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($pengajuan->proposal->file_proposal);
+            }
+
+            $this->handleProposalUpload($request, $pengajuan, $pengajuan->ormawa_id);
+        }
+    }
+
+    /**
+     * Update RAB file
+     */
+    private function updateRab(Request $request, PengajuanKegiatan $pengajuan): void
+    {
+        if ($request->hasFile('file_rab')) {
+            // Delete old file if exists
+            if ($pengajuan->rab?->file_rab) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($pengajuan->rab->file_rab);
+            }
+
+            $this->handleRabUpload($request, $pengajuan, $pengajuan->ormawa_id);
+        }
+    }
+
+    /**
+     * Generate nomor surat
+     */
     private function generateNomorSurat(): string
     {
         $year = date('Y');
@@ -450,111 +433,39 @@ class PengajuanKegiatanController extends Controller
         return "{$number}/BAUAK-SR/{$month}/{$year}";
     }
 
-    private function createNotificationForDosen($pengajuan)
+    /**
+     * Send notification based on status
+     */
+    private function sendNotificationByStatus(string $status, PengajuanKegiatan $pengajuan): void
     {
-        try {
-            $dosenUsers = \App\Models\User::where('role', 'dosen')
-                ->where('is_active', true)
-                ->get();
+        $roleMap = [
+            'menunggu_dosen' => ['role' => 'dosen', 'title' => 'Pengajuan Kegiatan Menunggu Verifikasi Dosen Pembina'],
+            'menunggu_dekan' => ['role' => 'dekan', 'title' => 'Pengajuan Kegiatan Menunggu Persetujuan Dekan'],
+            'menunggu_bauak' => ['role' => 'bauak', 'title' => 'Pengajuan Kegiatan Menunggu Verifikasi BAUAK'],
+            'menunggu_warek3' => ['role' => 'warek3', 'title' => 'Pengajuan Kegiatan Menunggu Persetujuan Warek III'],
+            'menunggu_rektor' => ['role' => 'rektor', 'title' => 'Pengajuan Kegiatan Menunggu Persetujuan Rektor'],
+        ];
 
-            foreach ($dosenUsers as $dosen) {
-                sendNotification(
-                    $dosen,
-                    'Pengajuan Kegiatan Menunggu Verifikasi Dosen Pembina',
-                    "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu verifikasi Anda.",
-                    'info',
-                    route('dosen.verifikasi.show', $pengajuan),
-                    ['telegram', 'email', 'in_app']
-                );
-            }
-        } catch (\Exception $e) {
-            Log::error('Error creating Dosen notification: ' . $e->getMessage());
+        if (!isset($roleMap[$status])) {
+            return;
         }
-    }
 
-    private function createNotificationForDekan($pengajuan)
-    {
-        try {
-            $dekan = $pengajuan->ormawa->fakultas?->dekan;
+        $config = $roleMap[$status];
+        $message = "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} {$status}.";
+        $routeName = match ($config['role']) {
+            'dosen' => 'dosen.verifikasi.show',
+            'dekan' => 'dekan.persetujuan.show',
+            'bauak' => 'bauak.verifikasi.show',
+            'warek3' => 'warek3.persetujuan.show',
+            'rektor' => 'rektor.persetujuan.show',
+        };
 
-            if ($dekan && $dekan->is_active) {
-                sendNotification(
-                    $dekan,
-                    'Pengajuan Kegiatan Menunggu Persetujuan Dekan',
-                    "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu persetujuan Dekan.",
-                    'info',
-                    route('dekan.persetujuan.show', $pengajuan),
-                    ['telegram', 'email', 'in_app']
-                );
-            }
-        } catch (\Exception $e) {
-            Log::error('Error creating Dekan notification: ' . $e->getMessage());
-        }
-    }
-
-    private function createNotificationForBauak($pengajuan)
-    {
-        try {
-            $bauakUsers = \App\Models\User::where('role', 'bauak')
-                ->where('is_active', true)
-                ->get();
-
-            foreach ($bauakUsers as $bauak) {
-                sendNotification(
-                    $bauak,
-                    'Pengajuan Kegiatan Menunggu Verifikasi BAUAK',
-                    "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu verifikasi BAUAK.",
-                    'info',
-                    route('bauak.verifikasi.show', $pengajuan),
-                    ['telegram', 'email', 'in_app']
-                );
-            }
-        } catch (\Exception $e) {
-            Log::error('Error creating BAUAK notification: ' . $e->getMessage());
-        }
-    }
-
-    private function createNotificationForWarek3($pengajuan)
-    {
-        try {
-            $warek3Users = \App\Models\User::where('role', 'warek3')
-                ->where('is_active', true)
-                ->get();
-
-            foreach ($warek3Users as $warek3) {
-                sendNotification(
-                    $warek3,
-                    'Pengajuan Kegiatan Menunggu Persetujuan Wakil Rektor III',
-                    "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu persetujuan Wakil Rektor III.",
-                    'info',
-                    route('warek3.persetujuan.show', $pengajuan),
-                    ['telegram', 'email', 'in_app']
-                );
-            }
-        } catch (\Exception $e) {
-            Log::error('Error creating Warek3 notification: ' . $e->getMessage());
-        }
-    }
-
-    private function createNotificationForRektor($pengajuan)
-    {
-        try {
-            $rektorUsers = \App\Models\User::where('role', 'rektor')
-                ->where('is_active', true)
-                ->get();
-
-            foreach ($rektorUsers as $rektor) {
-                sendNotification(
-                    $rektor,
-                    'Pengajuan Kegiatan Menunggu Persetujuan Rektor',
-                    "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu persetujuan Rektor.",
-                    'info',
-                    route('rektor.persetujuan.show', $pengajuan),
-                    ['telegram', 'email', 'in_app']
-                );
-            }
-        } catch (\Exception $e) {
-            Log::error('Error creating Rektor notification: ' . $e->getMessage());
-        }
+        PengajuanHelper::notifyRole(
+            $config['role'],
+            $config['title'],
+            $message,
+            $routeName,
+            $pengajuan
+        );
     }
 }

@@ -24,10 +24,19 @@ class LoginRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
+    public function prepareForValidation(): void
+    {
+        if (! $this->has('login') && $this->filled('email')) {
+            $this->merge([
+                'login' => $this->input('email'),
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'login' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -41,11 +50,16 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        $login = $this->string('login');
+        $password = $this->string('password');
+
+        $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'nim';
+
+        if (! Auth::attempt([$field => $login, 'password' => $password], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'login' => trans('auth.failed'),
             ]);
         }
 
@@ -55,14 +69,14 @@ class LoginRequest extends FormRequest
         if ($user && ! in_array($user->role, \App\Models\User::allowedRoles(), true)) {
             Auth::logout();
             throw ValidationException::withMessages([
-                'email' => 'Akun Anda tidak memiliki hak akses yang valid.',
+                'login' => 'Akun Anda tidak memiliki hak akses yang valid.',
             ]);
         }
 
         if ($user && ! $user->is_active) {
             Auth::logout();
             throw ValidationException::withMessages([
-                'email' => 'Akun Anda sedang tidak aktif.',
+                'login' => 'Akun Anda sedang tidak aktif.',
             ]);
         }
     }
@@ -95,6 +109,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('login')).'|'.$this->ip());
     }
 }

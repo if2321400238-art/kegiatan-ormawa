@@ -100,6 +100,7 @@ class PersetujuanWarek3Controller extends Controller
             $pengajuan->update([
                 'status' => 'menunggu_rektor',
                 'catatan' => $validated['catatan'] ?? null,
+                'updated_by_user_id' => auth()->id(),
             ]);
 
             // Send notification to Ormawa and Rektor

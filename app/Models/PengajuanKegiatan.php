@@ -14,6 +14,8 @@ class PengajuanKegiatan extends Model
 
     protected $fillable = [
         'ormawa_id',
+        'created_by_user_id',
+        'updated_by_user_id',
         'judul_kegiatan',
         'tujuan_kegiatan',
         'lokasi_kegiatan',
@@ -38,6 +40,16 @@ class PengajuanKegiatan extends Model
     public function ormawa()
     {
         return $this->belongsTo(Ormawa::class);
+    }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by_user_id');
+    }
+
+    public function updater()
+    {
+        return $this->belongsTo(User::class, 'updated_by_user_id');
     }
 
     public function proposal()

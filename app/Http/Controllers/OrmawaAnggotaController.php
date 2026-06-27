@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Ormawa;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class OrmawaAnggotaController extends Controller
 {
@@ -14,8 +13,10 @@ class OrmawaAnggotaController extends Controller
      */
     public function index(Ormawa $ormawa)
     {
+        $this->authorize('manageMembers', $ormawa);
+
         $anggota = $ormawa->users()
-            ->withPivot('jabatan', 'aktif', 'created_at')
+            ->withPivot(['jabatan', 'status', 'created_at'])
             ->paginate(10);
 
         return view('ormawa.anggota.index', compact('ormawa', 'anggota'));
@@ -24,13 +25,27 @@ class OrmawaAnggotaController extends Controller
     /**
      * Show the form for creating a new anggota.
      */
-    public function create(Ormawa $ormawa)
+    public function create(Request $request, Ormawa $ormawa)
     {
-        // Get users yang belum menjadi anggota di ormawa ini
-        $existingUserIds = $ormawa->users()->pluck('users.id')->toArray();
-        $availableUsers = User::whereNotIn('id', $existingUserIds)
+        $this->authorize('manageMembers', $ormawa);
+
+        $search = $request->query('search');
+        $availableUsers = User::where('role', 'mahasiswa')
+            ->whereNotIn('id', function ($query) use ($ormawa) {
+                $query->select('user_id')
+                    ->from('anggota_ormawa')
+                    ->where('ormawa_id', $ormawa->id);
+            })
             ->where('is_active', true)
+            ->where('id', '!=', $ormawa->user_id)
+            ->when($search, function ($query, $search) {
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('nim', 'like', "%{$search}%")
+                        ->orWhere('nama', 'like', "%{$search}%");
+                });
+            })
             ->orderBy('nama')
+            ->limit(30)
             ->get();
 
         $jabatanOptions = [
@@ -41,7 +56,37 @@ class OrmawaAnggotaController extends Controller
             'anggota' => 'Anggota',
         ];
 
-        return view('ormawa.anggota.create', compact('ormawa', 'availableUsers', 'jabatanOptions'));
+        return view('ormawa.anggota.create', compact('ormawa', 'availableUsers', 'jabatanOptions', 'search'));
+    }
+
+    /**
+     * Search mahasiswa to add as anggota.
+     */
+    public function search(Request $request, Ormawa $ormawa)
+    {
+        $this->authorize('manageMembers', $ormawa);
+
+        $validated = $request->validate([
+            'search' => 'required|string|min:2',
+        ]);
+
+        $users = User::where('role', 'mahasiswa')
+            ->whereNotIn('id', function ($query) use ($ormawa) {
+                $query->select('user_id')
+                    ->from('anggota_ormawa')
+                    ->where('ormawa_id', $ormawa->id);
+            })
+            ->where('is_active', true)
+            ->where('id', '!=', $ormawa->user_id)
+            ->where(function ($query) use ($validated) {
+                $query->where('nim', 'like', "%{$validated['search']}%")
+                    ->orWhere('nama', 'like', "%{$validated['search']}%");
+            })
+            ->orderBy('nama')
+            ->limit(20)
+            ->get(['id', 'nama', 'nim', 'email']);
+
+        return response()->json(['data' => $users]);
     }
 
     /**
@@ -49,13 +94,18 @@ class OrmawaAnggotaController extends Controller
      */
     public function store(Request $request, Ormawa $ormawa)
     {
+        $this->authorize('manageMembers', $ormawa);
+
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'jabatan' => 'required|in:ketua,wakil_ketua,sekretaris,bendahara,anggota',
-            'aktif' => 'boolean',
+            'status' => 'nullable|boolean',
         ]);
 
-        // Check if user is already a member
+        if ($validated['user_id'] === $ormawa->user_id) {
+            return back()->withErrors(['user_id' => 'Mahasiswa tersebut adalah ketua organisasi.'])->withInput();
+        }
+
         $existingMember = $ormawa->users()->where('users.id', $validated['user_id'])->first();
         if ($existingMember) {
             return back()->withErrors(['user_id' => 'User sudah menjadi anggota ormawa ini.'])->withInput();
@@ -63,10 +113,10 @@ class OrmawaAnggotaController extends Controller
 
         $ormawa->users()->attach($validated['user_id'], [
             'jabatan' => $validated['jabatan'],
-            'aktif' => $request->boolean('aktif', true),
+            'status' => $request->boolean('status', true),
         ]);
 
-        return redirect()->route('admin.ormawa.anggota.index', $ormawa)
+        return redirect()->route('ormawa.anggota.index', $ormawa)
             ->with('success', 'Anggota berhasil ditambahkan.');
     }
 
@@ -75,7 +125,8 @@ class OrmawaAnggotaController extends Controller
      */
     public function edit(Ormawa $ormawa, User $user)
     {
-        // Verify user is a member of this ormawa
+        $this->authorize('manageMembers', $ormawa);
+
         $member = $ormawa->users()->where('users.id', $user->id)->first();
         if (!$member) {
             abort(404);
@@ -97,7 +148,8 @@ class OrmawaAnggotaController extends Controller
      */
     public function update(Request $request, Ormawa $ormawa, User $user)
     {
-        // Verify user is a member of this ormawa
+        $this->authorize('manageMembers', $ormawa);
+
         $member = $ormawa->users()->where('users.id', $user->id)->first();
         if (!$member) {
             abort(404);
@@ -105,15 +157,15 @@ class OrmawaAnggotaController extends Controller
 
         $validated = $request->validate([
             'jabatan' => 'required|in:ketua,wakil_ketua,sekretaris,bendahara,anggota',
-            'aktif' => 'boolean',
+            'status' => 'nullable|boolean',
         ]);
 
         $ormawa->users()->updateExistingPivot($user->id, [
             'jabatan' => $validated['jabatan'],
-            'aktif' => $request->boolean('aktif', true),
+            'status' => $request->boolean('status', true),
         ]);
 
-        return redirect()->route('admin.ormawa.anggota.index', $ormawa)
+        return redirect()->route('ormawa.anggota.index', $ormawa)
             ->with('success', 'Data anggota berhasil diperbarui.');
     }
 
@@ -122,15 +174,20 @@ class OrmawaAnggotaController extends Controller
      */
     public function destroy(Ormawa $ormawa, User $user)
     {
-        // Verify user is a member of this ormawa
+        $this->authorize('manageMembers', $ormawa);
+
         $member = $ormawa->users()->where('users.id', $user->id)->first();
         if (!$member) {
             abort(404);
         }
 
+        if ($ormawa->isKetua($user)) {
+            return back()->withErrors(['user_id' => 'Ketua organisasi tidak dapat dihapus dari anggota.']);
+        }
+
         $ormawa->users()->detach($user->id);
 
-        return redirect()->route('admin.ormawa.anggota.index', $ormawa)
+        return redirect()->route('ormawa.anggota.index', $ormawa)
             ->with('success', 'Anggota berhasil dihapus.');
     }
 }

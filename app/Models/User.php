@@ -18,6 +18,7 @@ class User extends Authenticatable
         'role',
         'fakultas_id',
         'nama',
+        'nim',
         'no_hp',
         'telegram_id',
         'is_active',
@@ -70,14 +71,30 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(
             Ormawa::class,
-            'ormawa_users',
+            'anggota_ormawa',
             'user_id',
             'ormawa_id'
-        )->withPivot('jabatan', 'aktif')
+        )->withPivot('jabatan', 'status')
             ->withTimestamps();
     }
 
+    public function ormawaDipimpin()
+    {
+        return $this->hasMany(Ormawa::class, 'user_id');
+    }
+
+    public function isKetuaOf(Ormawa $ormawa): bool
+    {
+        return $ormawa->user_id === $this->id;
+    }
+
+    public function isKetua(): bool
+    {
+        return $this->ormawaDipimpin()->exists();
+    }
+
     public const ROLE_ORMAWA = 'ormawa';
+    public const ROLE_MAHASISWA = 'mahasiswa';
     public const ROLE_BAUAK = 'bauak';
     public const ROLE_WAREK3 = 'warek3';
     public const ROLE_ADMIN = 'admin';
@@ -90,6 +107,7 @@ class User extends Authenticatable
     {
         return [
             self::ROLE_ORMAWA,
+            self::ROLE_MAHASISWA,
             self::ROLE_BAUAK,
             self::ROLE_WAREK3,
             self::ROLE_ADMIN,
@@ -107,6 +125,11 @@ class User extends Authenticatable
     public function isOrmawa(): bool
     {
         return $this->role === self::ROLE_ORMAWA;
+    }
+
+    public function isMahasiswa(): bool
+    {
+        return $this->role === self::ROLE_MAHASISWA;
     }
 
     public function isBauak(): bool

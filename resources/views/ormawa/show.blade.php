@@ -7,12 +7,19 @@
             <h2 class="text-lg font-semibold text-gray-900">{{ $ormawa->nama_ormawa }}</h2>
             <p class="text-[12px] text-gray-500">Detail informasi organisasi mahasiswa</p>
         </div>
-        @php
-            $editRoute = auth()->user()->role === 'bauak' ? route('bauak.ormawa.edit', $ormawa->id) : route('admin.ormawa.edit', $ormawa->id);
-        @endphp
-        <a href="{{ $editRoute }}" class="px-4 py-2 bg-warning text-white rounded-lg hover:bg-orange-600 transition text-[13px] font-medium flex items-center gap-2">
-            <i class="ti ti-edit"></i> Edit Data
-        </a>
+        <div class="flex gap-2">
+            @if(auth()->user()->role === 'admin' || auth()->user()->id === $ormawa->user_id)
+                <a href="{{ route('ormawa.anggota.index', $ormawa->id) }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-[13px] font-medium flex items-center gap-2">
+                    <i class="ti ti-users"></i> Kelola Anggota
+                </a>
+            @endif
+            @php
+                $editRoute = auth()->user()->role === 'bauak' ? route('bauak.ormawa.edit', $ormawa->id) : route('admin.ormawa.edit', $ormawa->id);
+            @endphp
+            <a href="{{ $editRoute }}" class="px-4 py-2 bg-warning text-white rounded-lg hover:bg-orange-600 transition text-[13px] font-medium flex items-center gap-2">
+                <i class="ti ti-edit"></i> Edit Data
+            </a>
+        </div>
     </div>
 
     {{-- Detail Cards Grid --}}

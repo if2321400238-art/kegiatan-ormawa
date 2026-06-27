@@ -1,6 +1,10 @@
 <x-app-layout>
     <x-slot name="title">Anggota {{ $ormawa->nama_ormawa }}</x-slot>
 
+    @php
+        $routePrefix = request()->routeIs('admin.*') ? 'admin.' : '';
+    @endphp
+
     {{-- Top Header Section --}}
     <div class="mb-6">
         <div class="flex items-center justify-between">
@@ -8,7 +12,7 @@
                 <h2 class="text-lg font-semibold text-gray-900">Anggota {{ $ormawa->nama_ormawa }}</h2>
                 <p class="text-[12px] text-gray-500">Kelola anggota organisasi mahasiswa</p>
             </div>
-            <a href="{{ route('admin.ormawa.anggota.create', $ormawa) }}"
+            <a href="{{ route($routePrefix . 'ormawa.anggota.create', $ormawa) }}"
                 class="px-4 py-2 bg-brand text-white rounded-lg text-[13px] font-medium hover:bg-brand-active transition shadow-sm flex items-center gap-2">
                 <i class="ti ti-plus"></i> Tambah Anggota
             </a>
@@ -17,7 +21,7 @@
 
     {{-- Back Link --}}
     <div class="mb-4">
-        <a href="{{ route('admin.ormawa.index') }}"
+        <a href="{{ route('dashboard') }}"
             class="text-[12px] text-blue-600 hover:text-blue-700 flex items-center gap-1">
             <i class="ti ti-arrow-left"></i> Kembali ke Daftar Ormawa
         </a>
@@ -55,18 +59,18 @@
                             {{ ucwords(str_replace('_', ' ', $member->pivot->jabatan)) }}
                         </span>
                         <span
-                            class="text-[11px] px-2 py-1 {{ $member->pivot->aktif ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' }} rounded">
-                            {{ $member->pivot->aktif ? 'Aktif' : 'Tidak Aktif' }}
+                            class="text-[11px] px-2 py-1 {{ $member->pivot->status ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' }} rounded">
+                            {{ $member->pivot->status ? 'Aktif' : 'Tidak Aktif' }}
                         </span>
                     </div>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('admin.ormawa.anggota.edit', [$ormawa, $member]) }}"
+                    <a href="{{ route($routePrefix . 'ormawa.anggota.edit', [$ormawa, $member]) }}"
                         class="px-3 py-1.5 bg-gray-100 text-gray-700 rounded text-[12px] font-medium hover:bg-gray-200 transition">
                         <i class="ti ti-edit"></i> Edit
                     </a>
-                    <form action="{{ route('admin.ormawa.anggota.destroy', [$ormawa, $member]) }}" method="POST"
+                    <form action="{{ route($routePrefix . 'ormawa.anggota.destroy', [$ormawa, $member]) }}" method="POST"
                         class="inline"
                         onsubmit="return confirm('Yakin ingin menghapus anggota ini?');">
                         @csrf
@@ -82,7 +86,7 @@
             <div class="p-8 text-center">
                 <i class="ti ti-user-plus text-gray-300 text-4xl mb-3 block"></i>
                 <p class="text-[13px] text-gray-500">Belum ada anggota.</p>
-                <a href="{{ route('admin.ormawa.anggota.create', $ormawa) }}"
+                <a href="{{ route($routePrefix . 'ormawa.anggota.create', $ormawa) }}"
                     class="text-[12px] text-blue-600 hover:text-blue-700 font-medium mt-2">
                     Tambah anggota sekarang
                 </a>

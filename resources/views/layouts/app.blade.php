@@ -263,7 +263,9 @@
                         </div>
                     @endif
 
-                    {{ $slot }}
+                    {{-- Support both component slots and section-based views --}}
+                    {!! $slot ?? '' !!}
+                    @yield('content')
 
                 </div>
             </main>

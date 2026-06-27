@@ -64,6 +64,7 @@ class PersetujuanRektorController extends Controller
             $pengajuan->update([
                 'status' => 'disetujui',
                 'catatan' => $validated['catatan'] ?? null,
+                'updated_by_user_id' => auth()->id(),
             ]);
 
             $this->notifyOrmawa($pengajuan, 'disetujui', $validated['catatan'] ?? null);
@@ -100,9 +101,8 @@ class PersetujuanRektorController extends Controller
             $pengajuan->update([
                 'status' => 'ditolak',
                 'catatan' => $validated['catatan'],
+                'updated_by_user_id' => auth()->id(),
             ]);
-
-            $this->notifyOrmawa($pengajuan, 'ditolak', $validated['catatan']);
 
             DB::commit();
 

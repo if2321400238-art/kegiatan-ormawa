@@ -32,17 +32,27 @@
 
             {{-- Ketua Ormawa --}}
             <div>
-                <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Nama
-                    Ketua</label>
+                <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Pilih Ketua
+                    Organisasi</label>
                 <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                         <i class="ti ti-user text-gray-400"></i>
                     </div>
-                    <input type="text" name="ketua"
-                        class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors"
-                        placeholder="Misal: Ahmad Fulan"
-                        value="{{ old('ketua') }}"
+                    <select name="user_id"
+                        class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors appearance-none"
                         required>
+                        <option value="">-- Pilih Ketua Organisasi --</option>
+                        @forelse($mahasiswaList as $mahasiswa)
+                            <option value="{{ $mahasiswa->id }}" {{ old('user_id') == $mahasiswa->id ? 'selected' : '' }}>
+                                {{ $mahasiswa->nama }} ({{ $mahasiswa->nim ?? $mahasiswa->email }})
+                            </option>
+                        @empty
+                            <option disabled>Tidak ada mahasiswa yang terdaftar</option>
+                        @endforelse
+                    </select>
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                        <i class="ti ti-chevron-down"></i>
+                    </div>
                 </div>
             </div>
 
@@ -59,7 +69,7 @@
                         class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors appearance-none"
                         required>
                         <option value="">-- Pilih Dosen Pembina --</option>
-                        @forelse($dosen as $item)
+                        @forelse($dosenList as $item)
                             <option value="{{ $item->id }}" {{ old('pembina_user_id') == $item->id ? 'selected' : '' }}>{{ $item->nama }} ({{ $item->email }})</option>
                         @empty
                             <option disabled>Tidak ada dosen pembina yang terdaftar</option>

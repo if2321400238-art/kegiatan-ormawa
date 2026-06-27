@@ -70,6 +70,7 @@ class VerifikasiBauakController extends Controller
             $pengajuan->update([
                 'status' => $newStatus,
                 'catatan' => $validated['catatan'],
+                'updated_by_user_id' => auth()->id(),
             ]);
 
             // Update proposal & RAB status

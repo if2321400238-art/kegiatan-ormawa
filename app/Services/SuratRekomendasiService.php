@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Models\PengajuanKegiatan;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class SuratRekomendasiService
 {
@@ -42,7 +44,7 @@ class SuratRekomendasiService
             'tanggal_ttd' => now()->format('d F Y'),
             'ormawa' => $pengajuan->ormawa,
             'pengajuan' => $pengajuan,
-            'warek3' => auth()->user(),
+            'warek3' => Auth::user(),
             'ttd_path' => $ttdPath,
             'is_draft' => false,
         ];
@@ -66,7 +68,7 @@ class SuratRekomendasiService
         $url = route('surat.verify', ['nomor' => $nomorSurat]);
 
         // Using SimpleSoftwareIO/simple-qrcode package
-        $qrCode = \QrCode::format('png')
+        $qrCode = QrCode::format('png')
             ->size(200)
             ->generate($url);
 
