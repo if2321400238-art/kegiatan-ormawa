@@ -217,6 +217,7 @@
                             'menunggu_bauak' => 'Menunggu BAUAK',
                             'menunggu_warek3' => 'Menunggu Wakil Rektor III',
                             'menunggu_rektor' => 'Menunggu Rektor',
+                            'menunggu_pp' => 'Menunggu Kepala/Wakil PP',
                             'disetujui' => 'Disetujui',
                             'revisi_dosen' => 'Revisi Dosen Pembina',
                             'revisi_dekan' => 'Revisi Dekan',
@@ -224,6 +225,12 @@
                             'revisi_warek3' => 'Revisi Wakil Rektor III',
                             'revisi_rektor' => 'Revisi Rektor',
                             'ditolak' => 'Ditolak',
+                            'ditolak_dosen' => 'Ditolak Dosen Pembina',
+                            'ditolak_dekan' => 'Ditolak Dekan',
+                            'ditolak_bauak' => 'Ditolak BAUAK',
+                            'ditolak_warek3' => 'Ditolak Wakil Rektor III',
+                            'ditolak_rektor' => 'Ditolak Rektor',
+                            'ditolak_pp' => 'Ditolak Kepala/Wakil PP',
                         ];
                     @endphp
                     {{ $filterLabelMap[$filterStatus] ?? ucfirst(str_replace('_', ' ', $filterStatus)) }}
@@ -262,13 +269,19 @@
                                     'menunggu_bauak' => 'status-bauak',
                                     'menunggu_warek3' => 'status-warek3',
                                     'menunggu_rektor' => 'status-rektor',
+                                    'menunggu_pp' => 'status-rektor',
                                     'disetujui' => 'status-approved',
                                     'revisi_dosen',
                                     'revisi_dekan',
                                     'revisi_bauak',
                                     'revisi_warek3',
                                     'revisi_rektor' => 'status-revision',
-                                    'ditolak' => 'status-rejected',
+                                    'ditolak_dosen',
+                                    'ditolak_dekan',
+                                    'ditolak_bauak',
+                                    'ditolak_warek3',
+                                    'ditolak_rektor' => 'status-rejected',
+                                    'ditolak_pp' => 'status-rejected',
                                     default => 'status-draft'
                                 };
                             @endphp

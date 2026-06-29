@@ -1,25 +1,19 @@
 <x-app-layout>
-    <x-slot name="title">Daftar Mahasiswa</x-slot>
+    <x-slot name="title">Mahasiswa Tersinkron</x-slot>
 
     <div class="page-header">
         <div class="page-header-main">
             <div class="page-header-title">
-                <h2 class="text-lg font-semibold text-gray-900">Daftar Mahasiswa</h2>
-                <p class="text-[12px] text-gray-500">Kelola akun, NIM, jabatan, dan organisasi aktif mahasiswa</p>
+                <h2 class="text-lg font-semibold text-gray-900">Mahasiswa Tersinkron</h2>
+                <p class="text-[12px] text-gray-500">Data mahasiswa yang otomatis tersinkron saat dipilih melalui API UNUJA</p>
             </div>
         </div>
 
-        <div class="page-header-actions">
-            <div class="summary-stats">
-                <div class="summary-stat">
-                    <div class="text-[20px] font-bold text-gray-900">{{ $mahasiswaList->total() }}</div>
-                    <div class="text-[11px] text-gray-500 font-medium">Total Mahasiswa</div>
-                </div>
+        <div class="summary-stats">
+            <div class="summary-stat-card" style="--accent: #3B82F6">
+                <div class="text-[20px] font-bold text-gray-900">{{ $mahasiswaList->total() }}</div>
+                <div class="text-[11px] text-gray-500 font-medium">Total Tersinkron</div>
             </div>
-
-            <a href="{{ route('admin.mahasiswa.create') }}" class="w-full sm:w-auto px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-active transition text-[13px] font-medium flex items-center justify-center gap-2 shadow-sm">
-                <i class="ti ti-plus"></i> Tambah Mahasiswa
-            </a>
         </div>
     </div>
 
@@ -31,7 +25,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="ti ti-search text-gray-400"></i>
                         </div>
-                        <input type="text" name="search" placeholder="Cari nama, NIM, email, atau username..."
+                        <input type="text" name="search" placeholder="Cari nama atau NIM..."
                             value="{{ request('search') }}"
                             class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors">
                     </div>
@@ -72,10 +66,10 @@
                         <tr>
                             <th style="width: 60px;">No</th>
                             <th>Mahasiswa</th>
-                            <th>Kontak</th>
+                            <th>Disinkronkan</th>
                             <th>Organisasi Aktif</th>
                             <th>Status Akun</th>
-                            <th style="width: 120px;">Aksi</th>
+                            <th style="width: 90px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -94,13 +88,13 @@
                                         </div>
                                         <div>
                                             <div class="font-semibold text-gray-900">{{ $item->nama }}</div>
-                                            <div class="text-[11px] text-gray-500">NIM: {{ $item->nim ?? '-' }} | {{ $item->username }}</div>
+                                            <div class="text-[11px] text-gray-500">NIM: {{ $item->nim ?? '-' }}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="text-[12px] text-gray-700">{{ $item->email }}</div>
-                                    <div class="text-[11px] text-gray-500">{{ $item->no_hp ?? '-' }}</div>
+                                    <div class="text-[12px] text-gray-700">{{ $item->created_at?->format('d M Y') }}</div>
+                                    <div class="text-[11px] text-gray-500">{{ $item->created_at?->format('H:i') }}</div>
                                 </td>
                                 <td>
                                     @if($activeOrmawas->isNotEmpty())
@@ -128,19 +122,15 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <div class="flex gap-2">
-                                        <a href="{{ route('admin.mahasiswa.edit', $item->id) }}" class="p-1.5 bg-warning-light text-warning rounded-md hover:bg-warning hover:text-white transition-colors" title="Edit">
-                                            <i class="ti ti-edit"></i>
-                                        </a>
-
-                                        <form action="{{ route('admin.mahasiswa.destroy', $item->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus data mahasiswa ini? Keanggotaan organisasinya juga akan dilepas.');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-1.5 bg-danger-light text-danger rounded-md hover:bg-danger hover:text-white transition-colors" title="Hapus">
-                                                <i class="ti ti-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
+                                    <form action="{{ route('admin.mahasiswa.reset-password', $item) }}" method="POST"
+                                        onsubmit="return confirm('Reset password mahasiswa ini menjadi NIM dan wajibkan ganti password saat login?');">
+                                        @csrf
+                                        <button type="submit"
+                                            class="p-1.5 bg-warning-light text-warning rounded-md hover:bg-warning hover:text-white transition-colors"
+                                            title="Reset password ke NIM">
+                                            <i class="ti ti-key"></i>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         @endforeach
@@ -166,10 +156,10 @@
                             @endif
                         </div>
 
-                        <div class="grid grid-cols-1 gap-2 text-[12px] mb-4">
+                        <div class="grid grid-cols-1 gap-2 text-[12px]">
                             <div class="flex items-center gap-2 text-gray-700">
-                                <i class="ti ti-mail text-gray-400 w-4"></i>
-                                <span>{{ $item->email }}</span>
+                                <i class="ti ti-refresh text-gray-400 w-4"></i>
+                                <span>Disinkronkan {{ $item->created_at?->format('d M Y, H:i') }}</span>
                             </div>
                             <div class="flex items-start gap-2 text-gray-700">
                                 <i class="ti ti-building-community text-gray-400 w-4 mt-0.5"></i>
@@ -183,19 +173,14 @@
                             </div>
                         </div>
 
-                        <div class="flex gap-2">
-                            <a href="{{ route('admin.mahasiswa.edit', $item->id) }}" class="flex-1 text-center py-2 px-3 text-[12px] bg-warning-light text-warning font-medium rounded-lg hover:bg-warning hover:text-white transition-colors">
-                                Edit
-                            </a>
+                        <form action="{{ route('admin.mahasiswa.reset-password', $item) }}" method="POST" class="mt-4"
+                            onsubmit="return confirm('Reset password mahasiswa ini menjadi NIM?');">
+                            @csrf
+                            <button type="submit" class="w-full py-2 px-3 text-[12px] bg-warning-light text-warning font-medium rounded-lg hover:bg-warning hover:text-white transition-colors">
+                                Reset Password ke NIM
+                            </button>
+                        </form>
 
-                            <form action="{{ route('admin.mahasiswa.destroy', $item->id) }}" method="POST" class="flex-1" onsubmit="return confirm('Hapus data mahasiswa ini?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="w-full text-center py-2 px-3 text-[12px] bg-danger-light text-danger font-medium rounded-lg hover:bg-danger hover:text-white transition-colors">
-                                    Hapus
-                                </button>
-                            </form>
-                        </div>
                     </div>
                 @endforeach
             </div>
@@ -211,11 +196,8 @@
                 <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 text-3xl mb-4">
                     <i class="ti ti-id-badge-2"></i>
                 </div>
-                <h3 class="text-[15px] font-semibold text-gray-900 mb-1">Tidak ada data mahasiswa</h3>
-                <p class="text-[13px] text-gray-500 mb-6">Belum ada akun mahasiswa yang sesuai dengan filter Anda.</p>
-                <a href="{{ route('admin.mahasiswa.create') }}" class="px-5 py-2.5 bg-brand text-white rounded-lg hover:bg-brand-active transition text-[13px] font-medium flex items-center gap-2 shadow-sm">
-                    <i class="ti ti-plus"></i> Tambah Mahasiswa
-                </a>
+                <h3 class="text-[15px] font-semibold text-gray-900 mb-1">Belum ada mahasiswa tersinkron</h3>
+                <p class="text-[13px] text-gray-500 max-w-md">Data akan muncul otomatis setelah ketua Ormawa atau admin memilih mahasiswa melalui pencarian API UNUJA.</p>
             </div>
         @endif
     </div>

@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
+use App\Services\UnujaMahasiswaService;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -55,7 +57,20 @@ class LoginRequest extends FormRequest
 
         $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'nim';
 
-        if (! Auth::attempt([$field => $login, 'password' => $password], $this->boolean('remember'))) {
+        $credentials = [$field => $login, 'password' => $password];
+
+        if ($field === 'nim'
+            && preg_match('/^\d+$/', $login->toString())
+            && hash_equals($login->toString(), $password->toString())
+            && ! User::where('nim', $login)->exists()) {
+            try {
+                app(UnujaMahasiswaService::class)->syncUserByNim($login->toString());
+            } catch (\Throwable $exception) {
+                report($exception);
+            }
+        }
+
+        if (! Auth::attempt($credentials, $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([

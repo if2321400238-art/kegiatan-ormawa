@@ -368,7 +368,7 @@ it('bauak approval finalizes proposal and rab, and notifies warek3', function ()
     expect($hasNotif)->toBeTrue();
 });
 
-it('warek3 approval forwards to rektor and notifies rektor; rektor approval sets disetujui and notifies ormawa', function () {
+it('forwards approval from warek3 to rektor and then to pp for the final decision', function () {
     createTemporaryPublicDisk();
     Mail::fake();
 
@@ -386,6 +386,7 @@ it('warek3 approval forwards to rektor and notifies rektor; rektor approval sets
     $bauak = User::factory()->create(['role' => 'bauak']);
     $warek3 = User::factory()->create(['role' => 'warek3']);
     $rektor = User::factory()->create(['role' => 'rektor']);
+    $pp = User::factory()->create(['role' => 'pp']);
 
     $this->actingAs($ormawaUser)
         ->post(route('pengajuan.store'), [
@@ -430,9 +431,56 @@ it('warek3 approval forwards to rektor and notifies rektor; rektor approval sets
         ->assertStatus(302);
 
     $pengajuan->refresh();
+    expect($pengajuan->status)->toBe('menunggu_pp');
+
+    expect(Notifikasi::where('user_id', $pp->id)->exists())->toBeTrue();
+
+    $this->actingAs($pp)
+        ->post(route('pp.persetujuan.approve', $pengajuan), ['catatan' => 'Persetujuan akhir'])
+        ->assertStatus(302);
+
+    $pengajuan->refresh();
     expect($pengajuan->status)->toBe('disetujui');
 
     // Notification to Ormawa
     $hasNotifOrmawa = Notifikasi::where('user_id', $ormawaUser->id)->exists();
     expect($hasNotifOrmawa)->toBeTrue();
+});
+
+it('pp rejection records the final actor and reason', function () {
+    Mail::fake();
+
+    $ormawaUser = User::factory()->create(['role' => 'ormawa']);
+    $ormawa = Ormawa::create([
+        'user_id' => $ormawaUser->id,
+        'nama_ormawa' => 'Ormawa Uji PP',
+        'ketua' => 'Ketua Uji',
+        'kategori_organisasi' => 'internal',
+        'tingkat_organisasi' => 'universitas',
+    ]);
+    $pp = User::factory()->create(['role' => 'pp']);
+    $pengajuan = PengajuanKegiatan::create([
+        'ormawa_id' => $ormawa->id,
+        'judul_kegiatan' => 'Kegiatan Uji Persetujuan PP',
+        'tujuan_kegiatan' => 'Pengujian',
+        'lokasi_kegiatan' => 'Aula',
+        'tanggal_mulai' => now()->addDay(),
+        'tanggal_selesai' => now()->addDays(2),
+        'ketua_pelaksana' => 'Ketua',
+        'nama_pemohon' => 'Pemohon',
+        'status' => 'menunggu_pp',
+        'created_by_user_id' => $ormawaUser->id,
+    ]);
+
+    $this->actingAs($pp)
+        ->post(route('pp.persetujuan.reject', $pengajuan), ['catatan' => 'Belum sesuai arahan pesantren'])
+        ->assertRedirect(route('pp.persetujuan.index'));
+
+    expect($pengajuan->fresh()->status)->toBe('ditolak_pp');
+    $this->assertDatabaseHas('persetujuan_pp', [
+        'pengajuan_id' => $pengajuan->id,
+        'user_pp_id' => $pp->id,
+        'status' => 'ditolak',
+        'catatan' => 'Belum sesuai arahan pesantren',
+    ]);
 });

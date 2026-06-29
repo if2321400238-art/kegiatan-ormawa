@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Helpers\PengajuanHelper;
 use App\Models\PengajuanKegiatan;
-use App\Models\SuratRekomendasi;
 use App\Services\ExportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,8 +21,7 @@ class PengajuanKegiatanController extends Controller
     {
         $query = PengajuanKegiatan::with([
             'proposal',
-            'rab',
-            'suratRekomendasi'
+            'rab'
         ]);
 
         PengajuanHelper::applyRoleFilter($query);
@@ -63,7 +61,6 @@ class PengajuanKegiatanController extends Controller
             'ormawa',
             'proposal',
             'rab',
-            'suratRekomendasi',
             'verifikasiBauak.user',
             'persetujuanWarek3.user',
         ]);
@@ -130,12 +127,6 @@ class PengajuanKegiatanController extends Controller
                 $ormawa->id
             );
 
-            SuratRekomendasi::create([
-                'pengajuan_id' => $pengajuan->id,
-                'nomor_surat' => $this->generateNomorSurat(),
-                'status' => 'draft',
-            ]);
-
             PengajuanHelper::notifyRole(
                 'dosen',
                 'Pengajuan Kegiatan Menunggu Verifikasi Dosen Pembina',
@@ -201,7 +192,12 @@ class PengajuanKegiatanController extends Controller
             $nextStatus = match ($pengajuan->status) {
                 'revisi_dosen',
                 'draft',
-                'ditolak',
+                'ditolak_dosen',
+                'ditolak_dekan',
+                'ditolak_bauak',
+                'ditolak_warek3',
+                'ditolak_rektor',
+                'ditolak_pp',
                 'menunggu_dosen'
                 => 'menunggu_dosen',
 
@@ -515,23 +511,6 @@ class PengajuanKegiatanController extends Controller
 
             $this->handleRabUpload($request, $pengajuan, $pengajuan->ormawa_id);
         }
-    }
-
-    /**
-     * Generate nomor surat
-     */
-    private function generateNomorSurat(): string
-    {
-        $year = date('Y');
-        $month = date('m');
-
-        $latest = SuratRekomendasi::whereYear('created_at', $year)
-            ->whereMonth('created_at', $month)
-            ->count();
-
-        $number = str_pad($latest + 1, 4, '0', STR_PAD_LEFT);
-
-        return "{$number}/BAUAK-SR/{$month}/{$year}";
     }
 
     /**

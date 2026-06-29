@@ -53,7 +53,7 @@
                     </a>
                     <a href="{{ route('admin.mahasiswa.index') }}" class="nav-item {{ request()->routeIs('admin.mahasiswa.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-id-badge-2"></i></div>
-                        <span>Kelola Mahasiswa</span>
+                        <span>Mahasiswa Tersinkron</span>
                     </a>
                 @endif
 
@@ -137,6 +137,18 @@
                         <span>Persetujuan Rektor</span>
                     </a>
 
+                @endif
+
+                @if (auth()->user()->isPP())
+                    <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Persetujuan Akhir</div>
+                    <a href="{{ route('pp.persetujuan.index') }}" class="nav-item {{ request()->routeIs('pp.persetujuan.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-clipboard-check"></i></div>
+                        <span>Persetujuan Kepala PP</span>
+                    </a>
+                    <a href="{{ route('pengajuan.index') }}" class="nav-item {{ request()->routeIs('pengajuan.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-file-description"></i></div>
+                        <span>Semua Pengajuan</span>
+                    </a>
                 @endif
 
                 {{-- User Settings Section in Sidebar for Mobile/Alternative --}}

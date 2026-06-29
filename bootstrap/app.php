@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ormawa.complete' => \App\Http\Middleware\CheckOrmawaComplete::class,
             'log.activity' => \App\Http\Middleware\LogActivity::class,
             'active.ormawa' => \App\Http\Middleware\EnsureActiveOrmawa::class,
+            'password.changed' => \App\Http\Middleware\EnsurePasswordChanged::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

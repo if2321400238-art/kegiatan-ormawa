@@ -2,18 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Fakultas;
 use App\Models\Ormawa;
 use App\Models\User;
-use App\Models\Fakultas;
-use App\Models\PengajuanKegiatan;
+use App\Services\UnujaMahasiswaService;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\DB;
+use RuntimeException;
+use Throwable;
 
 class OrmawaController extends Controller
 {
     public function index()
     {
         $ormawa = Ormawa::paginate(10);
+
         return view('ormawa.index', compact('ormawa'));
     }
 
@@ -21,21 +24,21 @@ class OrmawaController extends Controller
     {
         $dosenList = User::where('role', 'dosen')->get();
         $fakultas = Fakultas::all();
-        
-        $submitRoute = route('admin.ormawa.store');
-        $backRoute = route('admin.ormawa.index');
-        
-        return view('ormawa.create', compact('dosenList', 'fakultas', 'submitRoute', 'backRoute'));
+
+        $routePrefix = auth()->user()->role === 'bauak' ? 'bauak.' : 'admin.';
+        $submitRoute = route($routePrefix.'ormawa.store');
+        $backRoute = route($routePrefix.'ormawa.index');
+        $searchMahasiswaRoute = route($routePrefix.'ormawa.search-mahasiswa');
+
+        return view('ormawa.create', compact('dosenList', 'fakultas', 'submitRoute', 'backRoute', 'searchMahasiswaRoute'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request, UnujaMahasiswaService $mahasiswaService)
     {
-        $ketuaUserId = $request->input('user_id');
-        $request->merge(['user_id' => $ketuaUserId]);
-
         $request->validate([
-            'nama_ormawa'  => 'required|string|max:255',
-            'user_id' => 'required|exists:users,id',
+            'nama_ormawa' => 'required|string|max:255',
+            'ketua_nim' => 'nullable|string|max:30|required_without:user_id',
+            'user_id' => 'nullable|exists:users,id|required_without:ketua_nim',
             'pembina_user_id' => 'nullable|exists:users,id',
             'kategori_organisasi' => 'required|in:internal,eksternal',
             'tingkat_organisasi' => 'nullable|in:universitas,fakultas',
@@ -44,20 +47,25 @@ class OrmawaController extends Controller
             'periode' => 'nullable|string|max:50',
         ]);
 
-        if ($request->kategori_organisasi === 'internal' && !$request->filled('tingkat_organisasi')) {
+        $ketuaUser = $this->resolveKetua($request, $mahasiswaService);
+        if (! $ketuaUser) {
+            return back()->withErrors(['ketua_nim' => 'Data ketua tidak dapat diverifikasi melalui API mahasiswa.'])->withInput();
+        }
+        $ketuaUserId = $ketuaUser->id;
+
+        if ($request->kategori_organisasi === 'internal' && ! $request->filled('tingkat_organisasi')) {
             return back()->withErrors(['tingkat_organisasi' => 'Tingkat Organisasi harus diisi untuk organisasi internal.'])->withInput();
         }
 
-        if ($request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' && !$request->filled('fakultas_id')) {
+        if ($request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' && ! $request->filled('fakultas_id')) {
             return back()->withErrors(['fakultas_id' => 'Fakultas harus dipilih untuk organisasi tingkat fakultas.'])->withInput();
         }
 
-        $ketuaUser = User::find($ketuaUserId);
         $pembinaUser = $request->pembina_user_id ? User::find($request->pembina_user_id) : null;
 
         $ormawa = Ormawa::create([
             'user_id' => $ketuaUserId,
-            'nama_ormawa'  => $request->nama_ormawa,
+            'nama_ormawa' => $request->nama_ormawa,
             'ketua' => $ketuaUser->nama,
             'pembina' => $pembinaUser?->nama,
             'pembina_user_id' => $pembinaUser?->id,
@@ -87,6 +95,7 @@ class OrmawaController extends Controller
     {
         // Using $pengajuan as parameter name but it's actually Ormawa
         $ormawa = $pengajuan;
+
         return view('ormawa.show', compact('ormawa'));
     }
 
@@ -96,28 +105,29 @@ class OrmawaController extends Controller
         $ormawa = $pengajuan;
         $dosenList = User::where('role', 'dosen')->get();
         $fakultas = Fakultas::all();
-        
-        $role = auth()->user()->role;
-        $submitRoute = $role === 'bauak' 
-            ? route('bauak.ormawa.update', $ormawa->id) 
-            : route('admin.ormawa.update', $ormawa->id);
-            
-        $backRoute = $role === 'bauak' 
-            ? route('bauak.ormawa.index') 
-            : route('admin.ormawa.index');
 
-        return view('ormawa.edit', compact('ormawa', 'dosenList', 'fakultas', 'submitRoute', 'backRoute'));
+        $role = auth()->user()->role;
+        $submitRoute = $role === 'bauak'
+            ? route('bauak.ormawa.update', $ormawa->id)
+            : route('admin.ormawa.update', $ormawa->id);
+
+        $backRoute = $role === 'bauak'
+            ? route('bauak.ormawa.index')
+            : route('admin.ormawa.index');
+        $searchMahasiswaRoute = $role === 'bauak'
+            ? route('bauak.ormawa.search-mahasiswa')
+            : route('admin.ormawa.search-mahasiswa');
+
+        return view('ormawa.edit', compact('ormawa', 'dosenList', 'fakultas', 'submitRoute', 'backRoute', 'searchMahasiswaRoute'));
     }
 
-    public function update(Request $request, Ormawa $pengajuan)
+    public function update(Request $request, Ormawa $pengajuan, UnujaMahasiswaService $mahasiswaService)
     {
         $ormawa = $pengajuan;
-        $ketuaUserId = $request->input('user_id');
-        $request->merge(['user_id' => $ketuaUserId]);
-
         $request->validate([
-            'nama_ormawa'  => 'required|string|max:255',
-            'user_id' => 'required|exists:users,id',
+            'nama_ormawa' => 'required|string|max:255',
+            'ketua_nim' => 'nullable|string|max:30|required_without:user_id',
+            'user_id' => 'nullable|exists:users,id|required_without:ketua_nim',
             'pembina_user_id' => 'nullable|exists:users,id',
             'kategori_organisasi' => 'required|in:internal,eksternal',
             'tingkat_organisasi' => 'nullable|in:universitas,fakultas',
@@ -127,47 +137,50 @@ class OrmawaController extends Controller
             'deskripsi' => 'nullable|string',
         ]);
 
-        if ($request->kategori_organisasi === 'internal' && !$request->filled('tingkat_organisasi')) {
+        $ketuaUser = $this->resolveKetua($request, $mahasiswaService);
+        if (! $ketuaUser) {
+            return back()->withErrors(['ketua_nim' => 'Data ketua tidak dapat diverifikasi melalui API mahasiswa.'])->withInput();
+        }
+        $ketuaUserId = $ketuaUser->id;
+
+        if ($request->kategori_organisasi === 'internal' && ! $request->filled('tingkat_organisasi')) {
             return back()->withErrors(['tingkat_organisasi' => 'Tingkat Organisasi harus diisi untuk organisasi internal.'])->withInput();
         }
 
-        if ($request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' && !$request->filled('fakultas_id')) {
+        if ($request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' && ! $request->filled('fakultas_id')) {
             return back()->withErrors(['fakultas_id' => 'Fakultas harus dipilih untuk organisasi tingkat fakultas.'])->withInput();
         }
 
-        $ketuaUser = User::find($ketuaUserId);
         $pembinaUser = $request->pembina_user_id ? User::find($request->pembina_user_id) : null;
 
-        // Update data
-        $ormawa->update([
-            'user_id' => $ketuaUserId,
-            'nama_ormawa' => $request->nama_ormawa,
-            'ketua' => $ketuaUser->nama,
-            'pembina' => $pembinaUser?->nama,
-            'pembina_user_id' => $pembinaUser?->id,
-            'kategori_organisasi' => $request->kategori_organisasi,
-            'tingkat_organisasi' => $request->kategori_organisasi === 'internal' ? $request->tingkat_organisasi : null,
-            'fakultas_id' => $request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' ? $request->fakultas_id : null,
-            'kontak' => $request->kontak,
-            'periode' => $request->periode,
-            'deskripsi' => $request->deskripsi,
-        ]);
+        DB::transaction(function () use ($ormawa, $request, $ketuaUser, $ketuaUserId, $pembinaUser) {
+            $ormawa->update([
+                'user_id' => $ketuaUserId,
+                'nama_ormawa' => $request->nama_ormawa,
+                'ketua' => $ketuaUser->nama,
+                'pembina' => $pembinaUser?->nama,
+                'pembina_user_id' => $pembinaUser?->id,
+                'kategori_organisasi' => $request->kategori_organisasi,
+                'tingkat_organisasi' => $request->kategori_organisasi === 'internal' ? $request->tingkat_organisasi : null,
+                'fakultas_id' => $request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' ? $request->fakultas_id : null,
+                'kontak' => $request->kontak,
+                'periode' => $request->periode,
+                'deskripsi' => $request->deskripsi,
+            ]);
 
-        // If ketua changed, update in anggota_ormawa
-        $existingKetua = \App\Models\AnggotaOrmawa::where('ormawa_id', $ormawa->id)
-            ->where('jabatan', 'ketua')
-            ->first();
+            \App\Models\AnggotaOrmawa::where('ormawa_id', $ormawa->id)
+                ->where('jabatan', 'ketua')
+                ->where('user_id', '!=', $ketuaUserId)
+                ->delete();
 
-        if ($existingKetua && $existingKetua->user_id !== $ketuaUserId) {
-            $existingKetua->update(['user_id' => $ketuaUserId]);
-        } elseif (!$existingKetua) {
-            \App\Models\AnggotaOrmawa::create([
+            \App\Models\AnggotaOrmawa::updateOrCreate([
                 'ormawa_id' => $ormawa->id,
                 'user_id' => $ketuaUserId,
+            ], [
                 'jabatan' => 'ketua',
                 'status' => true,
             ]);
-        }
+        });
 
         $redirectRoute = auth()->user()->role === 'bauak' ? 'bauak.ormawa.index' : 'admin.ormawa.index';
 
@@ -192,22 +205,39 @@ class OrmawaController extends Controller
     /**
      * Search mahasiswa by name or NIM
      */
-    public function searchMahasiswa(Request $request)
+    public function searchMahasiswa(Request $request, UnujaMahasiswaService $mahasiswaService)
     {
         $query = $request->get('q', '');
 
-        if (strlen($query) < 1) {
+        if (mb_strlen($query) < 2) {
             return response()->json([]);
         }
 
-        $mahasiswa = User::where('role', 'mahasiswa')
-            ->where(function ($q) use ($query) {
-                $q->where('nama', 'like', "%{$query}%")
-                    ->orWhere('nim', 'like', "%{$query}%");
-            })
-            ->limit(10)
-            ->get(['id', 'nama', 'nim', 'email']);
+        try {
+            return response()->json(collect($mahasiswaService->search($query))->take(10)->values());
+        } catch (Throwable $exception) {
+            report($exception);
 
-        return response()->json($mahasiswa);
+            return response()->json([
+                'message' => $exception instanceof RuntimeException
+                    ? $exception->getMessage()
+                    : 'API mahasiswa UNUJA sedang tidak dapat diakses. Silakan coba lagi.',
+            ], 503);
+        }
+    }
+
+    private function resolveKetua(Request $request, UnujaMahasiswaService $mahasiswaService): ?User
+    {
+        try {
+            if ($request->filled('ketua_nim')) {
+                return $mahasiswaService->syncUserByNim($request->string('ketua_nim')->toString());
+            }
+
+            return User::find($request->input('user_id'));
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
+        }
     }
 }

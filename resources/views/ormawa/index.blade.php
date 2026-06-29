@@ -8,26 +8,25 @@
                 <h2 class="text-lg font-semibold text-gray-900">Daftar Ormawa</h2>
                 <p class="text-[12px] text-gray-500">Kelola dan pantau informasi organisasi mahasiswa</p>
             </div>
+
+            @if(auth()->user()->role === 'admin')
+                <div class="page-header-actions">
+                    <a href="{{ route('admin.ormawa.create') }}" class="w-full sm:w-auto px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-active transition text-[13px] font-medium flex items-center justify-center gap-2 shadow-sm">
+                        <i class="ti ti-plus"></i> Tambah Ormawa Baru
+                    </a>
+                </div>
+            @endif
         </div>
 
-        <div class="page-header-actions">
-            <div class="summary-stats">
-                <div class="summary-stat">
-                    <div class="text-[20px] font-bold text-gray-900">{{ $ormawa->total() ?? $ormawa->count() }}</div>
-                    <div class="text-[11px] text-gray-500 font-medium">Total Ormawa</div>
-                </div>
-                <div class="summary-stat-card" style="--accent: #10B981">
-                    <div class="text-[20px] font-bold text-success">{{ $ormawa->total() ?? $ormawa->count() }}</div>
-                    <div class="text-[11px] text-gray-500 font-medium">Aktif</div>
-                </div>
+        <div class="summary-stats">
+            <div class="summary-stat-card" style="--accent: #3B82F6">
+                <div class="text-[20px] font-bold text-gray-900">{{ $ormawa->total() ?? $ormawa->count() }}</div>
+                <div class="text-[11px] text-gray-500 font-medium">Total Ormawa</div>
             </div>
-
-            {{-- Tombol Tambah hanya untuk Admin --}}
-            @if(auth()->user()->role === 'admin')
-                <a href="{{ route('admin.ormawa.create') }}" class="w-full sm:w-auto px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-active transition text-[13px] font-medium flex items-center justify-center gap-2 shadow-sm">
-                    <i class="ti ti-plus"></i> Tambah Ormawa Baru
-                </a>
-            @endif
+            <div class="summary-stat-card" style="--accent: #10B981">
+                <div class="text-[20px] font-bold text-success">{{ $ormawa->total() ?? $ormawa->count() }}</div>
+                <div class="text-[11px] text-gray-500 font-medium">Aktif</div>
+            </div>
         </div>
     </div>
 

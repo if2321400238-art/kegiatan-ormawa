@@ -40,4 +40,13 @@ return [
         'api_url' => 'https://api.telegram.org',
     ],
 
+    'unuja' => [
+        'base_url' => env('UNUJA_API_BASE_URL', 'https://v2-api.unuja.ac.id'),
+        'login_url' => env('UNUJA_API_LOGIN_URL', 'https://v2-api.unuja.ac.id/log/masuk'),
+        'username' => env('UNUJA_API_USERNAME'),
+        'password' => env('UNUJA_API_PASSWORD'),
+        'api_key_header' => env('UNUJA_API_KEY_HEADER', 'unujasimptapikey'),
+        'timeout' => env('UNUJA_API_TIMEOUT', 10),
+    ],
+
 ];

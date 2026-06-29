@@ -56,25 +56,25 @@
 
   /* Header halaman */
   .page-header {
-    @apply mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between;
+    @apply mb-6 flex flex-col gap-4;
   }
   .page-header-main {
-    @apply flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center;
+    @apply flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between;
   }
   .page-header-title {
     @apply min-w-0;
   }
   .page-header-actions {
-    @apply flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center;
+    @apply flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end;
   }
   .summary-stats {
-    @apply flex w-full flex-wrap gap-3 sm:w-auto lg:justify-end;
+    @apply grid w-full grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4;
   }
   .summary-stat {
-    @apply min-w-[120px] rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm;
+    @apply rounded-lg border border-gray-200 bg-white px-5 py-4 shadow-sm;
   }
   .summary-stat-card {
-    @apply min-w-[120px] rounded-lg border border-gray-200 border-l-4 bg-white px-4 py-3 shadow-sm;
+    @apply rounded-lg border border-gray-200 border-l-4 bg-white px-5 py-4 shadow-sm;
     border-left-color: var(--accent);
   }
 

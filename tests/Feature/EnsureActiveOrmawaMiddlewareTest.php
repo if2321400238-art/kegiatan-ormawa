@@ -83,10 +83,28 @@ it('clears invalid active ormawa when membership is removed', function () {
     // Remove from ormawa
     $mahasiswa->ormawas()->detach($targetOrmawa->id);
 
-    // Session should have the value still (browser cookie)
-    // But if middleware is applied, it would detect the membership is gone
-    // and clear it. For now, just verify the detach worked.
-    expect($mahasiswa->ormawas()->count())->toBe(1);
+    $this->actingAs($mahasiswa)
+        ->get(route('pengajuan.create'))
+        ->assertRedirect(route('mahasiswa.dashboard'))
+        ->assertSessionMissing('active_ormawa_id');
+});
+
+it('requires mahasiswa to select an active ormawa before creating a pengajuan', function () {
+    $mahasiswa = createMahasiswaWithOrmawasForMiddleware('Siti Aminah', 1);
+
+    $this->actingAs($mahasiswa)
+        ->get(route('pengajuan.create'))
+        ->assertRedirect(route('mahasiswa.dashboard'));
+});
+
+it('allows mahasiswa with a valid active ormawa to create a pengajuan', function () {
+    $mahasiswa = createMahasiswaWithOrmawasForMiddleware('Dewi Lestari', 1);
+    $ormawa = $mahasiswa->ormawas()->firstOrFail();
+
+    $this->actingAs($mahasiswa)
+        ->withSession(['active_ormawa_id' => $ormawa->id])
+        ->get(route('pengajuan.create'))
+        ->assertOk();
 });
 
 it('mahasiswa can only set active ormawa they are member of', function () {
@@ -124,4 +142,3 @@ it('active ormawa session persists across multiple requests', function () {
     $this->actingAs($mahasiswa)->get(route('mahasiswa.dashboard'));
     expect(session('active_ormawa_id'))->toBe($targetOrmawa->id);
 });
-

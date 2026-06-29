@@ -62,12 +62,12 @@ class DashboardController extends Controller
             'total_pengajuan' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->count(),
             'draft' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->where('status', 'draft')->count(),
             'menunggu_verifikasi' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)
-                ->whereIn('status', ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor'])
+                ->whereIn('status', ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'menunggu_pp'])
                 ->count(),
             'disetujui' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)
                 ->where('status', 'disetujui')
                 ->count(),
-            'ditolak' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->where('status', 'ditolak')->count(),
+            'ditolak' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->ditolak()->count(),
             'revisi' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->whereIn('status', ['revisi_dosen','revisi_dekan','revisi_bauak','revisi_warek3','revisi_rektor'])->count(),
 
         ];
@@ -97,7 +97,7 @@ class DashboardController extends Controller
             'total_disetujui' => PengajuanKegiatan::where('status', 'menunggu_warek3')->count(),
             'perlu_revisi' => PengajuanKegiatan::where('status', 'revisi_bauak')->count(),
             'total_pengajuan' => PengajuanKegiatan::count(),
-            'pengajuan_ditolak' => PengajuanKegiatan::where('status', 'ditolak')->count(),
+            'pengajuan_ditolak' => PengajuanKegiatan::ditolak()->count(),
             'pengajuan_draft' => PengajuanKegiatan::where('status', 'draft')->count(),
         ];
 
@@ -126,7 +126,7 @@ class DashboardController extends Controller
                 ->where('user_warek3_id', Auth::id())
                 ->count(),
             'total_disetujui' => PengajuanKegiatan::where('status', 'disetujui')->count(),
-            'ditolak' => PengajuanKegiatan::where('status', 'ditolak')->count(),
+            'ditolak' => PengajuanKegiatan::ditolak()->count(),
         ];
 
         // FIX: Use paginate() instead of get()
@@ -222,7 +222,7 @@ class DashboardController extends Controller
         $stats = [
             'menunggu_persetujuan' => PengajuanKegiatan::where('status', 'menunggu_rektor')->count(),
             'disetujui' => PengajuanKegiatan::where('status', 'disetujui')->count(),
-            'ditolak' => PengajuanKegiatan::where('status', 'ditolak')->count(),
+            'ditolak' => PengajuanKegiatan::ditolak()->count(),
             'perlu_revisi' => PengajuanKegiatan::where('status', 'revisi_rektor')->count(),
         ];
 
@@ -241,13 +241,14 @@ class DashboardController extends Controller
         // PP (Kepala/Wakil PP) melihat monitoring seluruh pengajuan
         $stats = [
             'total_pengajuan' => PengajuanKegiatan::count(),
-            'menunggu_persetujuan' => PengajuanKegiatan::whereIn('status', ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor'])->count(),
+            'menunggu_persetujuan' => PengajuanKegiatan::where('status', 'menunggu_pp')->count(),
             'disetujui' => PengajuanKegiatan::where('status', 'disetujui')->count(),
-            'ditolak' => PengajuanKegiatan::where('status', 'ditolak')->count(),
+            'ditolak' => PengajuanKegiatan::ditolak()->count(),
             'perlu_revisi' => PengajuanKegiatan::whereIn('status', ['revisi_dosen', 'revisi_dekan', 'revisi_bauak', 'revisi_warek3', 'revisi_rektor'])->count(),
         ];
 
         $pengajuanTerbaru = PengajuanKegiatan::with('ormawa')
+            ->where('status', 'menunggu_pp')
             ->latest()
             ->take(15)
             ->get();
@@ -264,10 +265,10 @@ class DashboardController extends Controller
             'total_ormawa' => \App\Models\Ormawa::count(),
             'total_pengajuan' => PengajuanKegiatan::count(),
 
-            'pengajuan_pending' => PengajuanKegiatan::whereIn('status', ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor'])->count(),
+            'pengajuan_pending' => PengajuanKegiatan::whereIn('status', ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'menunggu_pp'])->count(),
             'pengajuan_disetujui' => PengajuanKegiatan::where('status', 'disetujui')->count(),
             'pengajuan_revisi' => PengajuanKegiatan::whereIn('status', ['revisi_dosen', 'revisi_dekan', 'revisi_bauak', 'revisi_warek3', 'revisi_rektor'])->count(),
-            'pengajuan_ditolak' => PengajuanKegiatan::where('status', 'ditolak')->count(),
+            'pengajuan_ditolak' => PengajuanKegiatan::ditolak()->count(),
 
         ];
 

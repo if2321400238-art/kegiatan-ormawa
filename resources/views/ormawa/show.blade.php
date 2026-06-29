@@ -117,7 +117,7 @@
                     <div>
                         <p class="text-[11px] text-gray-500 uppercase font-semibold">Menunggu Verifikasi</p>
                         <p class="text-lg font-bold text-gray-900">
-                            {{ $ormawa->pengajuanKegiatan->whereIn('status', ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor'])->count() }}
+                            {{ $ormawa->pengajuanKegiatan->whereIn('status', ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'menunggu_pp'])->count() }}
                         </p>
                     </div>
                     <i class="ti ti-clock-down text-2xl text-yellow-500 opacity-20"></i>
@@ -127,7 +127,7 @@
                 <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                     <div>
                         <p class="text-[11px] text-gray-500 uppercase font-semibold">Ditolak</p>
-                        <p class="text-lg font-bold text-gray-900">{{ $ormawa->pengajuanKegiatan->where('status', 'ditolak')->count() }}</p>
+                        <p class="text-lg font-bold text-gray-900">{{ $ormawa->pengajuanKegiatan->whereIn('status', \App\Models\PengajuanKegiatan::REJECTED_STATUSES)->count() }}</p>
                     </div>
                     <i class="ti ti-x text-2xl text-red-500 opacity-20"></i>
                 </div>

@@ -44,7 +44,7 @@ class PersetujuanDekanController extends Controller
 
     public function show(PengajuanKegiatan $pengajuan)
     {
-        $pengajuan->load(['ormawa.user', 'proposal', 'rab', 'suratRekomendasi']);
+        $pengajuan->load(['ormawa.user', 'proposal', 'rab']);
 
         // Cek akses: dekan hanya boleh melihat pengajuan dari fakultasnya
         if (auth()->user()->isDekan() && auth()->user()->fakultas) {
@@ -124,7 +124,7 @@ class PersetujuanDekanController extends Controller
             ]);
 
             $pengajuan->update([
-                'status' => 'ditolak',
+                'status' => 'ditolak_dekan',
                 'catatan' => $validated['catatan'],
                 'updated_by_user_id' => auth()->id(),
             ]);

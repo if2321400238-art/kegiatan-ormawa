@@ -83,29 +83,18 @@
 
                             <form action="{{ route('rektor.persetujuan.approve', $pengajuan) }}" method="POST">
                                 @csrf
-
                                 <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        Keputusan <span class="text-red-500">*</span>
-                                    </label>
-                                    <select name="status" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                                        <option value="">-- Pilih --</option>
-                                        <option value="disetujui">✓ Setujui & TTD</option>
-                                        <option value="revisi">⚠ Perlu Revisi</option>
-                                        <option value="ditolak">✗ Tolak</option>
-                                    </select>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Catatan persetujuan</label>
+                                    <textarea name="catatan" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Catatan opsional..."></textarea>
                                 </div>
-
-                                <div class="mb-4">
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">
-                                        Catatan / Alasan <span class="text-red-500">*</span>
-                                    </label>
-                                    <textarea name="catatan" required rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Berikan catatan, alasan penolakan, atau instruksi revisi..."></textarea>
-                                </div>
-
                                 <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                                    Simpan Keputusan
+                                    Setujui dan Teruskan ke Kepala PP
                                 </button>
+                            </form>
+                            <form action="{{ route('rektor.persetujuan.reject', $pengajuan) }}" method="POST" class="mt-5 pt-5 border-t">
+                                @csrf
+                                <textarea name="catatan" required rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md mb-3" placeholder="Alasan penolakan (wajib)"></textarea>
+                                <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Tolak Pengajuan</button>
                             </form>
                         </div>
                     </div>

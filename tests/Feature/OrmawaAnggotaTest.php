@@ -3,6 +3,7 @@
 use App\Models\Ormawa;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 
 uses(RefreshDatabase::class);
 
@@ -10,8 +11,8 @@ uses(RefreshDatabase::class);
 function createOrmawaWithOwner($name = 'Test Organization'): Ormawa
 {
     $owner = User::create([
-        'username' => 'ormawa_' . str()->random(5),
-        'email' => 'ormawa_' . str()->random(5) . '@test.com',
+        'username' => 'ormawa_'.str()->random(5),
+        'email' => 'ormawa_'.str()->random(5).'@test.com',
         'password' => bcrypt('password'),
         'role' => 'ormawa',
         'nama' => 'Ormawa Owner',
@@ -295,13 +296,26 @@ it('ketua can search mahasiswa through anggota search endpoint', function () {
         'is_active' => true,
     ]);
 
+    config([
+        'services.unuja.username' => 'test-user',
+        'services.unuja.password' => 'test-secret',
+    ]);
+    Http::fake([
+        '*/log/masuk' => Http::response(['unujasimptapikey' => 'fake-key']),
+        '*/mst/mahasiswa/cari/b/nama/p/Candidate' => Http::response(['data' => [[
+            'nim' => $candidate->nim,
+            'nama' => $candidate->nama,
+            'email' => $candidate->email,
+        ]]]),
+    ]);
+
     $this->actingAs($ketua)
         ->get(route('ormawa.anggota.search', ['ormawa' => $ormawa->id, 'search' => 'Candidate']))
         ->assertOk()
         ->assertJsonFragment(['id' => $candidate->id]);
 });
 
-it('search does not return mahasiswa who are already anggota', function () {
+it('marks mahasiswa who are already anggota in API search results', function () {
     $ormawa = createOrmawaWithOwner();
     $ketua = User::find($ormawa->user_id);
 
@@ -320,11 +334,27 @@ it('search does not return mahasiswa who are already anggota', function () {
         'status' => true,
     ]);
 
+    config([
+        'services.unuja.username' => 'test-user',
+        'services.unuja.password' => 'test-secret',
+    ]);
+    Http::fake([
+        '*/log/masuk' => Http::response(['unujasimptapikey' => 'fake-key']),
+        '*/mst/mahasiswa/cari/b/nama/p/Existing%20Member' => Http::response(['data' => [[
+            'nim' => $existingMember->nim,
+            'nama' => $existingMember->nama,
+            'email' => $existingMember->email,
+        ]]]),
+    ]);
+
     $response = $this->actingAs($ketua)
         ->get(route('ormawa.anggota.search', ['ormawa' => $ormawa->id, 'search' => 'Existing Member']));
 
     $response->assertOk();
-    $response->assertJsonMissing(['id' => $existingMember->id]);
+    $response->assertJsonFragment([
+        'id' => $existingMember->id,
+        'already_member' => true,
+    ]);
 });
 
 it('does not allow adding the ketua as anggota', function () {

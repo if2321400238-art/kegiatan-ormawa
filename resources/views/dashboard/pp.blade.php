@@ -72,17 +72,17 @@
                 <div class="card-body p-0">
                     @forelse($pengajuanTerbaru as $pengajuan)
                         <div class="border-b last:border-b-0 hover:bg-gray-50 transition-colors">
-                            <a href="{{ route('pengajuan.show', $pengajuan) }}" class="block p-4 text-decoration-none">
+                            <a href="{{ route('pp.persetujuan.show', $pengajuan) }}" class="block p-4 text-decoration-none">
                                 <div class="flex justify-between items-start mb-2">
                                     <div>
-                                        <h6 class="font-semibold text-gray-900 mb-1">{{ $pengajuan->nama_kegiatan }}</h6>
+                                        <h6 class="font-semibold text-gray-900 mb-1">{{ $pengajuan->judul_kegiatan }}</h6>
                                         <p class="text-sm text-gray-600 mb-2">{{ $pengajuan->ormawa->nama_ormawa ?? 'N/A' }}</p>
                                     </div>
                                     <span class="badge badge-{{ $pengajuan->status_badge }}">{{ $pengajuan->status_label }}</span>
                                 </div>
                                 <div class="flex gap-3 text-xs text-gray-500">
                                     <span>📅 {{ $pengajuan->tanggal_mulai?->format('d M Y') ?? '-' }}</span>
-                                    <span>📍 {{ $pengajuan->lokasi ?? '-' }}</span>
+                                    <span>📍 {{ $pengajuan->lokasi_kegiatan ?? '-' }}</span>
                                 </div>
                             </a>
                         </div>
@@ -128,7 +128,7 @@
                 <div class="card-body">
                     <div class="p-3 bg-blue-50 rounded">
                         <p class="text-sm text-gray-700">
-                            <strong>Peran Anda:</strong> Melakukan monitoring terhadap seluruh pengajuan kegiatan Ormawa dari awal sampai akhir proses.
+                            <strong>Peran Anda:</strong> Melakukan monitoring dan memberikan persetujuan akhir setelah pengajuan disetujui Rektor.
                         </p>
                     </div>
                 </div>

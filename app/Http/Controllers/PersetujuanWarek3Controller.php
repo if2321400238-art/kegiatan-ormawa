@@ -4,21 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\PengajuanKegiatan;
 use App\Models\PersetujuanWarek3;
-use App\Models\SuratRekomendasi;
-use App\Services\SuratRekomendasiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class PersetujuanWarek3Controller extends Controller
 {
-    // protected $suratService;
-
-    // public function __construct(SuratRekomendasiService $suratService)
-    // {
-    //     $this->suratService = $suratService;
-    // }
-
     /**
      * Display a listing of pending approvals.
      */
@@ -48,7 +39,7 @@ class PersetujuanWarek3Controller extends Controller
         $stats = [
             'menunggu' => PengajuanKegiatan::where('status', 'menunggu_warek3')->count(),
             'disetujui' => PengajuanKegiatan::where('status', 'disetujui')->count(),
-            'ditolak' => PengajuanKegiatan::where('status', 'ditolak')->count(),
+            'ditolak' => PengajuanKegiatan::ditolak()->count(),
         ];
 
         return view('warek3.persetujuan.index', compact('pengajuan', 'stats'));
@@ -63,7 +54,6 @@ class PersetujuanWarek3Controller extends Controller
             'ormawa.user',
             'proposal',
             'rab',
-            'suratRekomendasi',
             'verifikasiBauak.user',
             'persetujuanWarek3.user'
         ]);
@@ -72,7 +62,7 @@ class PersetujuanWarek3Controller extends Controller
     }
 
     /**
-     * Approve pengajuan and generate final surat rekomendasi.
+     * Approve pengajuan.
      */
     public function approve(Request $request, PengajuanKegiatan $pengajuan)
     {
@@ -146,7 +136,7 @@ class PersetujuanWarek3Controller extends Controller
 
             // Update pengajuan status
             $pengajuan->update([
-                'status' => 'ditolak',
+                'status' => 'ditolak_warek3',
                 'catatan' => $validated['catatan'],
             ]);
 
@@ -247,7 +237,7 @@ class PersetujuanWarek3Controller extends Controller
             : '❌ Pengajuan Ditolak Warek III';
 
         $pesan = $status === 'disetujui'
-            ? "Selamat! Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' telah disetujui oleh Warek III. Surat rekomendasi dapat diunduh dan Anda dapat melanjutkan pelaksanaan kegiatan."
+            ? "Selamat! Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' telah disetujui oleh Warek III dan diteruskan ke Rektor."
             : "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' ditolak oleh Warek III. Hubungi BAUAK untuk detail dan kemungkinan revisi.";
 
         $tipe = $status === 'disetujui' ? 'success' : 'error';

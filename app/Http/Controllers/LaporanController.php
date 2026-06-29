@@ -27,7 +27,7 @@ class LaporanController extends Controller
             'menunggu_dosen' => $pengajuan->where('status', 'menunggu_dosen')->count(),
             'disetujui' => $pengajuan->where('status', 'menunggu_warek3')->count(),
             'revisi' => $pengajuan->where('status', 'revisi_bauak')->count(),
-            'ditolak' => $pengajuan->where('status', 'ditolak')->count(),
+            'ditolak' => $pengajuan->whereIn('status', PengajuanKegiatan::REJECTED_STATUSES)->count(),
         ];
 
         // Group by Ormawa
@@ -55,7 +55,7 @@ class LaporanController extends Controller
         $tanggalMulai = $request->input('tanggal_mulai', now()->startOfMonth()->format('Y-m-d'));
         $tanggalSelesai = $request->input('tanggal_selesai', now()->endOfMonth()->format('Y-m-d'));
 
-        $pendingStatuses = ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor'];
+        $pendingStatuses = ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'menunggu_pp'];
         $revisionStatuses = ['revisi_dosen', 'revisi_dekan', 'revisi_bauak', 'revisi_warek3', 'revisi_rektor'];
 
         // Statistik Pengajuan
@@ -63,7 +63,7 @@ class LaporanController extends Controller
         $statistikPengajuan = [
             'total' => $pengajuan->count(),
             'disetujui' => $pengajuan->where('status', 'disetujui')->count(),
-            'ditolak' => $pengajuan->where('status', 'ditolak')->count(),
+            'ditolak' => $pengajuan->whereIn('status', PengajuanKegiatan::REJECTED_STATUSES)->count(),
             'pending' => $pengajuan->whereIn('status', $pendingStatuses)->count(),
             'revision' => $pengajuan->whereIn('status', $revisionStatuses)->count(),
         ];

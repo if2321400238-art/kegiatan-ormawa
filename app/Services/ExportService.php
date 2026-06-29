@@ -63,13 +63,19 @@ class ExportService
             'menunggu_bauak' => 'Menunggu BAUAK',
             'menunggu_warek3' => 'Menunggu Wakil Rektor III',
             'menunggu_rektor' => 'Menunggu Rektor',
+            'menunggu_pp' => 'Menunggu Kepala/Wakil PP',
             'disetujui' => 'Disetujui',
             'revisi_dosen' => 'Revisi Dosen Pembina',
             'revisi_dekan' => 'Revisi Dekan',
             'revisi_bauak' => 'Revisi BAUAK',
             'revisi_warek3' => 'Revisi Wakil Rektor III',
             'revisi_rektor' => 'Revisi Rektor',
-            'ditolak' => 'Ditolak',
+            'ditolak_dosen' => 'Ditolak Dosen Pembina',
+            'ditolak_dekan' => 'Ditolak Dekan',
+            'ditolak_bauak' => 'Ditolak BAUAK',
+            'ditolak_warek3' => 'Ditolak Wakil Rektor III',
+            'ditolak_rektor' => 'Ditolak Rektor',
+            'ditolak_pp' => 'Ditolak Kepala/Wakil PP',
         ];
 
         return $labels[$status] ?? $status;

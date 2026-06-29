@@ -1,6 +1,7 @@
 @props([
     'submitRoute',
     'backRoute',
+    'searchMahasiswaRoute',
     'ormawa' => null,
     'dosenList' => [],
     'fakultas' => []
@@ -47,7 +48,7 @@
             '{{ $initialKetuaName }}',
             '{{ $initialKetuaNim }}',
             '{{ $initialKetuaEmail }}',
-            '{{ route('bauak.ormawa.search-mahasiswa') }}'
+            '{{ $searchMahasiswaRoute }}'
         )" 
         @click.outside="showResults = false"
     >
@@ -60,7 +61,8 @@
                 placeholder="Cari nama atau NIM ketua..."
                 class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors"
                 autocomplete="off">
-            <input type="hidden" name="user_id" :value="selectedId" required>
+            <input type="hidden" name="ketua_nim" :value="selectedMahasiswa?.nim || ''">
+            <input type="hidden" name="user_id" :value="selectedId">
             
             {{-- Search Results Dropdown --}}
             <div x-show="showResults && results.length > 0"
@@ -68,12 +70,15 @@
                 style="display: none;"
                 x-transition
             >
-                <template x-for="mahasiswa in results" :key="mahasiswa.id">
+                <template x-for="mahasiswa in results" :key="mahasiswa.nim">
                     <button type="button" @click="selectMahasiswa(mahasiswa)"
                         class="w-full text-left px-4 py-2.5 hover:bg-gray-50 border-b border-gray-100 last:border-0 transition text-[13px] block">
                         <div class="font-medium text-gray-900" x-text="mahasiswa.nama"></div>
                         <div class="text-xs text-gray-500"
-                            x-text="'NIM: ' + (mahasiswa.nim ? mahasiswa.nim : '-') + ' | ' + mahasiswa.email"></div>
+                            x-text="[
+                                'NIM: ' + (mahasiswa.nim || '-'),
+                                mahasiswa.program_studi,
+                            ].filter(Boolean).join(' | ')"></div>
                     </button>
                 </template>
             </div>
@@ -84,6 +89,9 @@
         @error('user_id')
             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
         @enderror
+        @error('ketua_nim')
+            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+        @enderror
 
         {{-- Selected Item Display --}}
         <div x-show="selectedMahasiswa" class="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-[13px]" style="display: none;">
@@ -91,7 +99,10 @@
                 <div>
                     <div class="font-medium text-blue-900" x-text="selectedMahasiswa?.nama"></div>
                     <div class="text-xs text-blue-700"
-                        x-text="'NIM: ' + (selectedMahasiswa?.nim ? selectedMahasiswa?.nim : '-') + ' | ' + selectedMahasiswa?.email"></div>
+                        x-text="[
+                            'NIM: ' + (selectedMahasiswa?.nim || '-'),
+                            selectedMahasiswa?.program_studi,
+                        ].filter(Boolean).join(' | ')"></div>
                 </div>
                 <button type="button" @click="clearSelection()" class="text-blue-500 hover:text-blue-700">
                     <i class="ti ti-x text-sm"></i>
@@ -134,7 +145,13 @@
                 @forelse($dosenList as $dosen)
                     <option value="{{ $dosen->id }}"
                         {{ old('pembina_user_id', $ormawa?->pembina_user_id ?? '') == $dosen->id ? 'selected' : '' }}>
-                        {{ $dosen->nama }} ({{ $dosen->email }})
+                        {{ $dosen->nama }}
+                        @if($dosen->nidn)
+                            — NIDN {{ $dosen->nidn }}
+                        @endif
+                        @if($dosen->program_studi)
+                            — {{ $dosen->program_studi }}
+                        @endif
                     </option>
                 @empty
                     <option disabled>Tidak ada dosen pembina yang terdaftar</option>

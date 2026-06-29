@@ -44,7 +44,7 @@ class VerifikasiDosenController extends Controller
 
     public function show(PengajuanKegiatan $pengajuan)
     {
-        $pengajuan->load(['ormawa.user', 'proposal', 'rab', 'suratRekomendasi']);
+        $pengajuan->load(['ormawa.user', 'proposal', 'rab']);
 
         // Pastikan dosen hanya dapat melihat pengajuan Ormawa yang dia bina
         $pembinaUserId = $pengajuan->ormawa->pembina_user_id ?? null;
@@ -96,7 +96,7 @@ class VerifikasiDosenController extends Controller
             $newStatus = match ($validated['status']) {
                 'disetujui' => $pengajuan->ormawa->isFakultas() ? 'menunggu_dekan' : 'menunggu_bauak',
                 'revisi' => 'revisi_dosen',
-                'ditolak' => 'ditolak',
+                'ditolak' => 'ditolak_dosen',
             };
 
             $pengajuan->update([

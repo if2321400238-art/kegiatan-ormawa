@@ -90,13 +90,19 @@
                                             'menunggu_bauak' => 'badge-warning',
                                             'menunggu_warek3' => 'badge-info',
                                             'menunggu_rektor' => 'badge-info',
+                                            'menunggu_pp' => 'badge-info',
                                             'disetujui' => 'badge-success',
                                             'revisi_dosen' => 'badge-orange',
                                             'revisi_dekan' => 'badge-orange',
                                             'revisi_bauak' => 'badge-orange',
                                             'revisi_warek3' => 'badge-orange',
                                             'revisi_rektor' => 'badge-orange',
-                                            'ditolak' => 'badge-danger',
+                                            'ditolak_dosen',
+                                            'ditolak_dekan',
+                                            'ditolak_bauak',
+                                            'ditolak_warek3',
+                                            'ditolak_rektor' => 'badge-danger',
+                                            'ditolak_pp' => 'badge-danger',
                                             default => 'badge-gray'
                                         };
                                     @endphp

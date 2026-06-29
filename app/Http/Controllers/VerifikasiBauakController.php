@@ -31,7 +31,6 @@ class VerifikasiBauakController extends Controller
             'ormawa.user',
             'proposal',
             'rab',
-            'suratRekomendasi',
             'verifikasiBauak.user'
         ]);
 
@@ -64,7 +63,7 @@ class VerifikasiBauakController extends Controller
             $newStatus = match($validated['status']) {
                 'disetujui' => 'menunggu_warek3',
                 'revisi' => 'revisi_bauak',
-                'ditolak' => 'ditolak',
+                'ditolak' => 'ditolak_bauak',
             };
 
             $pengajuan->update([

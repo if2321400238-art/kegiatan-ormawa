@@ -10,6 +10,15 @@ class PengajuanKegiatan extends Model
 {
     use HasFactory, SoftDeletes;
 
+    public const REJECTED_STATUSES = [
+        'ditolak_dosen',
+        'ditolak_dekan',
+        'ditolak_bauak',
+        'ditolak_warek3',
+        'ditolak_rektor',
+        'ditolak_pp',
+    ];
+
     protected $table = 'pengajuan_kegiatan';
 
     protected $fillable = [
@@ -62,11 +71,6 @@ class PengajuanKegiatan extends Model
         return $this->hasOne(Rab::class, 'pengajuan_id');
     }
 
-    public function suratRekomendasi()
-    {
-        return $this->hasOne(SuratRekomendasi::class, 'pengajuan_id');
-    }
-
     public function verifikasiBauak()
     {
         return $this->hasMany(VerifikasiBauak::class, 'pengajuan_id');
@@ -115,6 +119,16 @@ class PengajuanKegiatan extends Model
     public function latestPersetujuanRektor()
     {
         return $this->hasOne(PersetujuanRektor::class, 'pengajuan_id')->latest();
+    }
+
+    public function persetujuanPp()
+    {
+        return $this->hasMany(PersetujuanPp::class, 'pengajuan_id');
+    }
+
+    public function latestPersetujuanPp()
+    {
+        return $this->hasOne(PersetujuanPp::class, 'pengajuan_id')->latest();
     }
 
     // ==========================================
@@ -176,6 +190,11 @@ class PengajuanKegiatan extends Model
         return $query->where('status', 'revisi_rektor');
     }
 
+    public function scopeMenungguPp($query)
+    {
+        return $query->where('status', 'menunggu_pp');
+    }
+
     public function scopeDisetujui($query)
     {
         return $query->where('status', 'disetujui');
@@ -183,7 +202,7 @@ class PengajuanKegiatan extends Model
 
     public function scopeDitolak($query)
     {
-        return $query->where('status', 'ditolak');
+        return $query->whereIn('status', self::REJECTED_STATUSES);
     }
 
     public function scopeUpcoming($query)
@@ -206,13 +225,19 @@ class PengajuanKegiatan extends Model
             'menunggu_bauak' => 'warning',
             'menunggu_warek3' => 'warning',
             'menunggu_rektor' => 'warning',
+            'menunggu_pp' => 'warning',
             'disetujui' => 'success',
             'revisi_dosen' => 'warning',
             'revisi_dekan' => 'warning',
             'revisi_bauak' => 'warning',
             'revisi_warek3' => 'warning',
             'revisi_rektor' => 'warning',
-            'ditolak' => 'danger',
+            'ditolak_dosen' => 'danger',
+            'ditolak_dekan' => 'danger',
+            'ditolak_bauak' => 'danger',
+            'ditolak_warek3' => 'danger',
+            'ditolak_rektor' => 'danger',
+            'ditolak_pp' => 'danger',
             'selesai' => 'dark',
         ];
 
@@ -228,13 +253,19 @@ class PengajuanKegiatan extends Model
             'menunggu_bauak' => 'Menunggu BAUAK',
             'menunggu_warek3' => 'Menunggu Wakil Rektor III',
             'menunggu_rektor' => 'Menunggu Rektor',
+            'menunggu_pp' => 'Menunggu Kepala/Wakil PP',
             'disetujui' => 'Disetujui',
             'revisi_dosen' => 'Revisi Dosen Pembina',
             'revisi_dekan' => 'Revisi Dekan',
             'revisi_bauak' => 'Revisi BAUAK',
             'revisi_warek3' => 'Revisi Wakil Rektor III',
             'revisi_rektor' => 'Revisi Rektor',
-            'ditolak' => 'Ditolak',
+            'ditolak_dosen' => 'Ditolak Dosen Pembina',
+            'ditolak_dekan' => 'Ditolak Dekan',
+            'ditolak_bauak' => 'Ditolak BAUAK',
+            'ditolak_warek3' => 'Ditolak Wakil Rektor III',
+            'ditolak_rektor' => 'Ditolak Rektor',
+            'ditolak_pp' => 'Ditolak Kepala/Wakil PP',
             'selesai' => 'Selesai',
         ];
 
@@ -261,7 +292,7 @@ class PengajuanKegiatan extends Model
                 'revisi_bauak',
                 'revisi_warek3',
                 'revisi_rektor',
-                'ditolak'
+                ...self::REJECTED_STATUSES
             ]) && $this->ormawa->user_id === $user->id;
         }
 
@@ -290,7 +321,7 @@ class PengajuanKegiatan extends Model
 
     public function isRejected(): bool
     {
-        return $this->status === 'ditolak';
+        return in_array($this->status, self::REJECTED_STATUSES, true);
     }
 
     public function isPending(): bool
@@ -300,7 +331,8 @@ class PengajuanKegiatan extends Model
             'menunggu_dekan',
             'menunggu_bauak',
             'menunggu_warek3',
-            'menunggu_rektor'
+            'menunggu_rektor',
+            'menunggu_pp',
         ]);
     }
 

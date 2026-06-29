@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
 use function Pest\Laravel\actingAs;
 
-it('processes a pengajuan from ormawa to rektor approval', function () {
+it('processes a pengajuan from ormawa to pp final approval', function () {
     $publicDiskRoot = sys_get_temp_dir() . '/kegiatan_public_disk';
     if (!is_dir($publicDiskRoot)) {
         mkdir($publicDiskRoot, 0777, true);
@@ -40,6 +40,7 @@ it('processes a pengajuan from ormawa to rektor approval', function () {
     $bauak = User::factory()->create(['role' => 'bauak', 'email' => 'bauak@example.com', 'username' => 'bauakuser']);
     $warek3 = User::factory()->create(['role' => 'warek3', 'email' => 'warek3@example.com', 'username' => 'warek3user']);
     $rektor = User::factory()->create(['role' => 'rektor', 'email' => 'rektor@example.com', 'username' => 'rektoruser']);
+    $pp = User::factory()->create(['role' => 'pp', 'email' => 'pp@example.com', 'username' => 'ppuser']);
 
     $response = $this->actingAs($ormawaUser)
         ->post(route('pengajuan.store'), [
@@ -120,6 +121,16 @@ it('processes a pengajuan from ormawa to rektor approval', function () {
     $this->actingAs($rektor)
         ->post(route('rektor.persetujuan.approve', $pengajuan), [
             'catatan' => 'Final approved',
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertStatus(302);
+
+    $pengajuan->refresh();
+    $this->assertEquals('menunggu_pp', $pengajuan->status);
+
+    $this->actingAs($pp)
+        ->post(route('pp.persetujuan.approve', $pengajuan), [
+            'catatan' => 'Persetujuan akhir Kepala PP',
         ])
         ->assertSessionHasNoErrors()
         ->assertStatus(302);

@@ -73,6 +73,7 @@
                             <option value="menunggu_bauak" {{ request('status') == 'menunggu_bauak' ? 'selected' : '' }}>Menunggu BAUAK</option>
                             <option value="menunggu_warek3" {{ request('status') == 'menunggu_warek3' ? 'selected' : '' }}>Menunggu Wakil Rektor III</option>
                             <option value="menunggu_rektor" {{ request('status') == 'menunggu_rektor' ? 'selected' : '' }}>Menunggu Rektor</option>
+                            <option value="menunggu_pp" {{ request('status') == 'menunggu_pp' ? 'selected' : '' }}>Menunggu Kepala/Wakil PP</option>
                             <option value="revisi_dosen" {{ request('status') == 'revisi_dosen' ? 'selected' : '' }}>Revisi Dosen Pembina</option>
                             <option value="revisi_dekan" {{ request('status') == 'revisi_dekan' ? 'selected' : '' }}>Revisi Dekan</option>
                             <option value="revisi_bauak" {{ request('status') == 'revisi_bauak' ? 'selected' : '' }}>Revisi BAUAK</option>
@@ -195,13 +196,19 @@
                                             'menunggu_bauak',
                                             'menunggu_warek3',
                                             'menunggu_rektor' => 'badge-warning',
+                                            'menunggu_pp' => 'badge-warning',
                                             'disetujui' => 'badge-success',
                                             'revisi_dosen',
                                             'revisi_dekan',
                                             'revisi_bauak',
                                             'revisi_warek3',
                                             'revisi_rektor' => 'badge-orange',
-                                            'ditolak' => 'badge-danger',
+                                            'ditolak_dosen',
+                                            'ditolak_dekan',
+                                            'ditolak_bauak',
+                                            'ditolak_warek3',
+                                            'ditolak_rektor' => 'badge-danger',
+                                            'ditolak_pp' => 'badge-danger',
                                             default => 'badge-gray'
                                         };
                                         $statusLabel = $item->status_label;
@@ -240,13 +247,19 @@
                                 'menunggu_bauak',
                                 'menunggu_warek3',
                                 'menunggu_rektor' => 'badge-warning',
+                                'menunggu_pp' => 'badge-warning',
                                 'disetujui' => 'badge-success',
                                 'revisi_dosen',
                                 'revisi_dekan',
                                 'revisi_bauak',
                                 'revisi_warek3',
                                 'revisi_rektor' => 'badge-orange',
-                                'ditolak' => 'badge-danger',
+                                'ditolak_dosen',
+                                'ditolak_dekan',
+                                'ditolak_bauak',
+                                'ditolak_warek3',
+                                'ditolak_rektor' => 'badge-danger',
+                                'ditolak_pp' => 'badge-danger',
                                 default => 'badge-gray'
                             };
                             $statusLabel = $item->status_label;

@@ -30,7 +30,10 @@ class PengajuanHelper
         $user = Auth::user();
 
         if ($user->role === 'ormawa') {
-            $query->where('ormawa_id', $user->ormawa->id);
+            $ormawaId = $user->ormawa?->id;
+            $ormawaId
+                ? $query->where('ormawa_id', $ormawaId)
+                : $query->whereRaw('1 = 0');
         }
 
         if ($user->role === 'mahasiswa') {
@@ -57,7 +60,9 @@ class PengajuanHelper
         }
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $request->status === 'ditolak'
+                ? $query->ditolak()
+                : $query->where('status', $request->status);
         }
 
         if ($request->filled('tanggal_dari')) {
@@ -82,7 +87,8 @@ class PengajuanHelper
             'menunggu_dekan',
             'menunggu_bauak',
             'menunggu_warek3',
-            'menunggu_rektor'
+            'menunggu_rektor',
+            'menunggu_pp'
         ];
 
         $revisi = [
@@ -98,7 +104,7 @@ class PengajuanHelper
             'draft'     => (clone $query)->where('status', 'draft')->count(),
             'pending'   => (clone $query)->whereIn('status', $pending)->count(),
             'approved'  => (clone $query)->where('status', 'disetujui')->count(),
-            'rejected'  => (clone $query)->where('status', 'ditolak')->count(),
+            'rejected'  => (clone $query)->ditolak()->count(),
             'revision'  => (clone $query)->whereIn('status', $revisi)->count(),
         ];
     }
@@ -108,7 +114,7 @@ class PengajuanHelper
         $user = Auth::user();
 
         if ($user->role === 'ormawa') {
-            return $pengajuan->ormawa_id == $user->ormawa->id;
+            return $pengajuan->ormawa_id == $user->ormawa?->id;
         }
 
         if ($user->role === 'mahasiswa') {

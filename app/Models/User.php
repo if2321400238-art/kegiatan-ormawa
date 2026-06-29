@@ -15,10 +15,14 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
+        'must_change_password',
         'role',
         'fakultas_id',
         'nama',
         'nim',
+        'nidn',
+        'program_studi',
+        'jabatan_fungsional',
         'no_hp',
         'telegram_id',
         'is_active',
@@ -34,6 +38,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
             'is_active' => 'boolean',
         ];
     }
@@ -67,6 +72,11 @@ class User extends Authenticatable
         return $this->hasMany(PersetujuanWarek3::class, 'user_warek3_id');
     }
 
+    public function persetujuanPp()
+    {
+        return $this->hasMany(PersetujuanPp::class, 'user_pp_id');
+    }
+
     public function ormawas()
     {
         return $this->belongsToMany(
@@ -94,13 +104,21 @@ class User extends Authenticatable
     }
 
     public const ROLE_ORMAWA = 'ormawa';
+
     public const ROLE_MAHASISWA = 'mahasiswa';
+
     public const ROLE_BAUAK = 'bauak';
+
     public const ROLE_WAREK3 = 'warek3';
+
     public const ROLE_ADMIN = 'admin';
+
     public const ROLE_DOSEN = 'dosen';
+
     public const ROLE_DEKAN = 'dekan';
+
     public const ROLE_REKTOR = 'rektor';
+
     public const ROLE_PP = 'pp';
 
     public static function allowedRoles(): array
@@ -179,7 +197,7 @@ class User extends Authenticatable
 
     public function hasTelegram(): bool
     {
-        return !empty($this->telegram_id);
+        return ! empty($this->telegram_id);
     }
 
     // ==========================================
@@ -208,7 +226,7 @@ class User extends Authenticatable
         // Generate avatar from name initials
         $name = $this->nama ?? $this->username;
         $initials = collect(explode(' ', $name))
-            ->map(fn($word) => strtoupper(substr($word, 0, 1)))
+            ->map(fn ($word) => strtoupper(substr($word, 0, 1)))
             ->take(2)
             ->join('');
 
@@ -228,5 +246,4 @@ class User extends Authenticatable
     {
         return $query->where('role', $role);
     }
-
 }

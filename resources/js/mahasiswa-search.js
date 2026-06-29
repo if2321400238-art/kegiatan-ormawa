@@ -40,7 +40,8 @@ export default function mahasiswaSearch(initialId = '', initialName = '', initia
                 try {
                     const response = await fetch(`${this.endpoint}?q=${encodeURIComponent(query)}`);
                     if (!response.ok) {
-                        throw new Error(`Error: ${response.status}`);
+                        const payload = await response.json().catch(() => ({}));
+                        throw new Error(payload.message || `HTTP ${response.status}`);
                     }
                     
                     const data = await response.json();
@@ -49,14 +50,14 @@ export default function mahasiswaSearch(initialId = '', initialName = '', initia
                     this.errorMessage = '';
                 } catch (error) {
                     console.error('Error fetching mahasiswa:', error);
-                    this.errorMessage = 'Gagal mengambil data mahasiswa.';
+                    this.errorMessage = error.message || 'Gagal mengambil data mahasiswa.';
                 }
             }, 300);
         },
 
         selectMahasiswa(mahasiswa) {
             this.selectedMahasiswa = mahasiswa;
-            this.selectedId = mahasiswa.id;
+            this.selectedId = mahasiswa.id || '';
             this.searchInput = mahasiswa.nama;
             this.showResults = false;
             this.results = [];

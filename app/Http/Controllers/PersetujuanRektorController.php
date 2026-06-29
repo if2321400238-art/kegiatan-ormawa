@@ -36,7 +36,7 @@ class PersetujuanRektorController extends Controller
 
     public function show(PengajuanKegiatan $pengajuan)
     {
-        $pengajuan->load(['ormawa.user', 'proposal', 'rab', 'suratRekomendasi']);
+        $pengajuan->load(['ormawa.user', 'proposal', 'rab']);
 
         return view('rektor.persetujuan.show', compact('pengajuan'));
     }
@@ -62,16 +62,17 @@ class PersetujuanRektorController extends Controller
             ]);
 
             $pengajuan->update([
-                'status' => 'disetujui',
+                'status' => 'menunggu_pp',
                 'catatan' => $validated['catatan'] ?? null,
                 'updated_by_user_id' => auth()->id(),
             ]);
 
             $this->notifyOrmawa($pengajuan, 'disetujui', $validated['catatan'] ?? null);
+            $this->notifyPp($pengajuan);
 
             DB::commit();
 
-            return redirect()->route('rektor.persetujuan.index')->with('success', 'Pengajuan berhasil disetujui Rektor.');
+            return redirect()->route('rektor.persetujuan.index')->with('success', 'Pengajuan disetujui Rektor dan diteruskan ke Kepala/Wakil PP.');
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
@@ -99,7 +100,7 @@ class PersetujuanRektorController extends Controller
             ]);
 
             $pengajuan->update([
-                'status' => 'ditolak',
+                'status' => 'ditolak_rektor',
                 'catatan' => $validated['catatan'],
                 'updated_by_user_id' => auth()->id(),
             ]);
@@ -120,7 +121,7 @@ class PersetujuanRektorController extends Controller
             : '❌ Pengajuan Ditolak Rektor';
 
         $pesan = $status === 'disetujui'
-            ? "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' telah disetujui oleh Rektor."
+            ? "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' telah disetujui Rektor dan diteruskan kepada Kepala/Wakil PP untuk persetujuan akhir."
             : "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' ditolak oleh Rektor. Alasan: {$catatan}";
 
         sendNotification(
@@ -131,5 +132,19 @@ class PersetujuanRektorController extends Controller
             route('pengajuan.show', $pengajuan),
             ['telegram', 'email', 'in_app']
         );
+    }
+
+    private function notifyPp(PengajuanKegiatan $pengajuan): void
+    {
+        foreach (\App\Models\User::where('role', 'pp')->where('is_active', true)->get() as $user) {
+            sendNotification(
+                $user,
+                'Pengajuan Menunggu Persetujuan Akhir',
+                "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' telah disetujui Rektor dan menunggu keputusan Kepala/Wakil PP.",
+                'info',
+                route('pp.persetujuan.show', $pengajuan),
+                ['telegram', 'email', 'in_app']
+            );
+        }
     }
 }

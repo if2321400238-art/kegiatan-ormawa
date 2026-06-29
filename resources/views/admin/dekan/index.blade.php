@@ -9,13 +9,15 @@
                 <p class="text-[12px] text-gray-500">Kelola informasi akun pengguna dengan peran Dekan</p>
             </div>
 
-            <a href="{{ route('admin.dekan.create') }}" class="w-full sm:w-auto px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-active transition text-[13px] font-medium flex items-center justify-center gap-2 shadow-sm">
-                <i class="ti ti-plus"></i> Tambah Akun Dekan
-            </a>
+            <div class="page-header-actions">
+                <a href="{{ route('admin.dekan.create') }}" class="w-full sm:w-auto px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-active transition text-[13px] font-medium flex items-center justify-center gap-2 shadow-sm">
+                    <i class="ti ti-plus"></i> Tambah Akun Dekan
+                </a>
+            </div>
         </div>
 
         <div class="summary-stats">
-            <div class="summary-stat">
+            <div class="summary-stat-card" style="--accent: #3B82F6">
                 <div class="text-[20px] font-bold text-gray-900">{{ $dekanList->total() ?? $dekanList->count() }}</div>
                 <div class="text-[11px] text-gray-500 font-medium">Total Akun</div>
             </div>

@@ -50,7 +50,7 @@
                     $isStep2Done = in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']);
                     $isStep2Active = $pengajuan->status == 'menunggu_bauak';
                     $isStep2Revisi = $pengajuan->status == 'revisi_bauak';
-                    $isStep2Tolak = $pengajuan->status == 'ditolak';
+                    $isStep2Tolak = $pengajuan->status == 'ditolak_bauak';
                 @endphp
                 <div
                     class="w-10 h-10 mx-auto rounded-full flex items-center justify-center border-4 border-white shadow-sm
@@ -112,12 +112,12 @@
             <div class="flex items-start gap-3">
                 <div
                     class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
-                    {{ in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']) ? 'bg-success text-white' : ($pengajuan->status == 'menunggu_dosen' ? 'bg-warning text-white' : ($pengajuan->status == 'revisi_bauak' ? 'bg-orange text-white' : ($pengajuan->status == 'ditolak' ? 'bg-danger text-white' : 'bg-gray-100 text-gray-400'))) }}">
+                    {{ in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']) ? 'bg-success text-white' : ($pengajuan->status == 'menunggu_dosen' ? 'bg-warning text-white' : ($pengajuan->status == 'revisi_bauak' ? 'bg-orange text-white' : ($pengajuan->status == 'ditolak_bauak' ? 'bg-danger text-white' : 'bg-gray-100 text-gray-400'))) }}">
                     @if (in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']))
                         <i class="ti ti-check"></i>
                     @elseif($pengajuan->status == 'revisi_bauak')
                         <i class="ti ti-refresh"></i>
-                    @elseif($pengajuan->status == 'ditolak')
+                    @elseif($pengajuan->status == 'ditolak_bauak')
                         <i class="ti ti-x"></i>
                     @else
                         <span class="text-[12px] font-bold">2</span>
@@ -154,9 +154,15 @@
                     'menunggu_bauak' => 'badge-warning',
                     'menunggu_warek3' => 'badge-warning',
                     'menunggu_rektor' => 'badge-warning',
+                    'menunggu_pp' => 'badge-warning',
                     'disetujui' => 'badge-success',
                     'revisi_bauak' => 'badge-orange',
-                    'ditolak' => 'badge-danger',
+                    'ditolak_dosen',
+                    'ditolak_dekan',
+                    'ditolak_bauak',
+                    'ditolak_warek3',
+                    'ditolak_rektor' => 'badge-danger',
+                    'ditolak_pp' => 'badge-danger',
                     default => 'badge-gray',
                 };
             @endphp
@@ -296,27 +302,6 @@
                             </div>
                         @endif
 
-                        @if ($pengajuan->suratRekomendasi && $pengajuan->suratRekomendasi->hasFinalFile())
-                            <div
-                                class="flex items-center justify-between p-3 bg-brand-light/30 rounded-lg border border-brand/20 mt-4">
-                                <div class="flex items-center gap-3">
-                                    <div
-                                        class="w-10 h-10 rounded-lg bg-brand text-white flex items-center justify-center text-xl shadow-sm">
-                                        <i class="ti ti-certificate"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-[13px] font-bold text-gray-900 leading-tight">Surat Rekomendasi
-                                            (Disetujui)</p>
-                                        <p class="text-[11px] text-brand font-medium">
-                                            {{ $pengajuan->suratRekomendasi->nomor_surat }}</p>
-                                    </div>
-                                </div>
-                                <a href="{{ $pengajuan->suratRekomendasi->final_url }}" target="_blank"
-                                    class="px-3 py-1.5 bg-brand text-white rounded-lg text-[12px] font-medium hover:bg-brand-active transition shadow-sm flex items-center gap-2">
-                                    <i class="ti ti-download"></i> Unduh
-                                </a>
-                            </div>
-                        @endif
                     </div>
                 </div>
             </div>

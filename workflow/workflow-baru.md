@@ -64,12 +64,31 @@ BAUAK bertugas:
 
 Warek III bertugas:
 
-* Memberikan persetujuan akhir
-* Menghasilkan surat rekomendasi kegiatan
+* Memeriksa dan memberikan persetujuan tingkat Wakil Rektor III
+* Meneruskan pengajuan ke Rektor
 
 ---
 
-## 6. Administrator
+## 6. Rektor
+
+Rektor bertugas:
+
+* Memberikan persetujuan tingkat Rektor
+* Meneruskan pengajuan ke Kepala/Wakil PP
+
+---
+
+## 7. Kepala/Wakil PP
+
+Kepala/Wakil Pimpinan Pondok bertugas:
+
+* Melakukan monitoring seluruh pengajuan
+* Memberikan persetujuan akhir setelah persetujuan Rektor
+* Menyetujui atau menolak pengajuan dengan catatan keputusan
+
+---
+
+## 8. Administrator
 
 Administrator bertugas:
 
@@ -206,6 +225,14 @@ Contoh:
 
 Mahasiswa memilih salah satu Ormawa lalu membuat pengajuan kegiatan.
 
+Sebelum membuka form pengajuan, sistem memeriksa Ormawa pengguna:
+
+* Akun dengan role Ormawa menggunakan relasi `users.id` ke `ormawa.user_id`.
+* Akun mahasiswa menggunakan keanggotaan aktif pada tabel `anggota_ormawa`.
+* Jika mahasiswa mengikuti lebih dari satu Ormawa, mahasiswa harus memilih Ormawa aktif.
+* Sistem menyimpan pilihan pada sesi `active_ormawa_id` dan memvalidasi ulang keanggotaannya pada setiap akses pengajuan.
+* Pengguna tanpa Ormawa yang valid tidak dapat membuka atau menyimpan form pengajuan.
+
 Status:
 
 MENUNGGU_DOSEN
@@ -316,7 +343,6 @@ DISETUJUI
 
 Sistem:
 
-* Menghasilkan surat rekomendasi
 * Mengirim notifikasi ke pemohon
 
 ### Revisi
@@ -420,6 +446,18 @@ Dapat mengakses seluruh pengajuan yang sudah lolos tahap sebelumnya.
 ## Warek III
 
 Dapat mengakses seluruh pengajuan yang telah diverifikasi BAUAK.
+
+---
+
+## Rektor
+
+Dapat mengakses pengajuan yang telah disetujui Warek III.
+
+---
+
+## Kepala/Wakil PP
+
+Dapat mengakses pengajuan yang telah disetujui Rektor dan memberikan keputusan akhir.
 
 ---
 

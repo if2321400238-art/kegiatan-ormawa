@@ -2,7 +2,7 @@
     <x-slot name="title">Tambah Anggota</x-slot>
 
     @php
-        $routePrefix = request()->routeIs('admin.*') ? 'admin.' : '';
+        $routePrefix = request()->routeIs('admin.*') ? 'admin.' : (request()->routeIs('bauak.*') ? 'bauak.' : '');
     @endphp
 
     {{-- Top Header Section --}}
@@ -26,7 +26,7 @@
 
             {{-- User Selection --}}
             @php
-                $selectedUser = old('user_id') ? App\Models\User::find(old('user_id')) : null;
+                $selectedUser = old('nim') ? App\Models\User::where('nim', old('nim'))->first() : null;
             @endphp
             <div x-data="anggotaSearch('{{ route($routePrefix . 'ormawa.anggota.search', $ormawa) }}', {{ $selectedUser ? json_encode($selectedUser->only(['id', 'nama', 'nim', 'email'])) : 'null' }})"
                 x-init="init()"
@@ -39,19 +39,21 @@
                         <i class="ti ti-search text-gray-400"></i>
                     </div>
                     <input type="text" x-model="query"
+                        @input="selectedUser = null"
                         @input.debounce.300ms="fetchResults()"
                         placeholder="Cari NIM atau Nama"
                         class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors"
                         autocomplete="off">
                 </div>
 
-                <input type="hidden" name="user_id" :value="selectedUser ? selectedUser.id : ''" required>
+                <input type="hidden" name="nim" :value="selectedUser ? selectedUser.nim : ''">
 
                 <template x-if="selectedUser">
                     <div class="p-3 rounded-lg bg-green-50 border border-green-200 text-[13px] text-green-700">
                         <div class="font-semibold">Anggota dipilih:</div>
                         <div x-text="selectedUser.nama"></div>
-                        <div class="text-xs text-gray-500" x-text="selectedUser.nim ? 'NIM: ' + selectedUser.nim : selectedUser.email"></div>
+                        <div class="text-xs text-gray-500" x-text="'NIM: ' + selectedUser.nim"></div>
+                        <div class="text-xs text-gray-500" x-show="selectedUser.program_studi" x-text="selectedUser.program_studi"></div>
                     </div>
                 </template>
                 <template x-if="!selectedUser">
@@ -60,15 +62,17 @@
 
                 <template x-if="results.length">
                     <div class="max-h-72 overflow-y-auto border border-gray-200 rounded-lg bg-white shadow-sm">
-                        <template x-for="user in results" :key="user.id">
+                        <template x-for="user in results" :key="user.nim">
                             <button type="button"
-                                @click="select(user)"
-                                class="w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-gray-50">
+                                @click="!user.already_member && select(user)"
+                                :disabled="user.already_member"
+                                :class="user.already_member ? 'cursor-not-allowed opacity-50 bg-gray-50' : 'hover:bg-gray-50'"
+                                class="w-full text-left px-4 py-3 border-b border-gray-100">
                                 <div class="flex items-center justify-between gap-3">
                                     <span class="font-medium text-gray-900" x-text="user.nama"></span>
-                                    <span class="text-[11px] text-gray-500" x-text="user.nim"></span>
+                                    <span class="text-[11px] text-gray-500" x-text="user.already_member ? 'Sudah menjadi anggota' : user.nim"></span>
                                 </div>
-                                <div class="text-[12px] text-gray-500" x-text="user.email"></div>
+                                <div class="text-[12px] text-gray-500" x-text="[user.program_studi, user.fakultas].filter(Boolean).join(' · ')"></div>
                             </button>
                         </template>
                     </div>
@@ -82,7 +86,11 @@
                     <div class="text-[12px] text-gray-500">Mencari mahasiswa...</div>
                 </template>
 
-                @error('user_id')
+                <template x-if="errorMessage">
+                    <div class="text-[12px] text-red-600" x-text="errorMessage"></div>
+                </template>
+
+                @error('nim')
                     <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                 @enderror
             </div>
@@ -127,7 +135,7 @@
 
             {{-- Action Buttons --}}
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-50">
-                <a href="{{ route('ormawa.anggota.index', $ormawa) }}"
+                <a href="{{ route($routePrefix . 'ormawa.anggota.index', $ormawa) }}"
                     class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-[13px] font-medium hover:bg-gray-200 transition text-center">
                     Batal
                 </a>
@@ -148,6 +156,7 @@
                 loading: false,
                 results: [],
                 selectedUser: initialSelected,
+                errorMessage: '',
 
                 init() {
                     if (this.selectedUser) {
@@ -158,10 +167,12 @@
                 async fetchResults() {
                     if (this.query.length < 2) {
                         this.results = [];
+                        this.errorMessage = '';
                         return;
                     }
 
                     this.loading = true;
+                    this.errorMessage = '';
                     try {
                         const url = new URL(searchUrl, window.location.origin);
                         url.searchParams.set('search', this.query);
@@ -174,6 +185,8 @@
 
                         if (!response.ok) {
                             this.results = [];
+                            const payload = await response.json().catch(() => ({}));
+                            this.errorMessage = payload.message || 'API mahasiswa sedang tidak dapat diakses.';
                             return;
                         }
 
@@ -182,6 +195,7 @@
                     } catch (error) {
                         console.error(error);
                         this.results = [];
+                        this.errorMessage = 'API mahasiswa sedang tidak dapat diakses.';
                     } finally {
                         this.loading = false;
                     }

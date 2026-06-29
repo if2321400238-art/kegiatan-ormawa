@@ -135,24 +135,6 @@
                                     </a>
                                 @endif
 
-                                @if($pengajuan->suratRekomendasi)
-                                    <a href="{{ $pengajuan->suratRekomendasi->file_url }}"
-                                       target="_blank"
-                                       class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100">
-
-                                        <div class="flex items-center gap-3">
-                                            <i class="ti ti-file-description text-blue-500 text-2xl"></i>
-                                            <span class="font-medium">
-                                                Surat Rekomendasi
-                                            </span>
-                                        </div>
-
-                                        <span class="text-blue-600">
-                                            Lihat →
-                                        </span>
-                                    </a>
-                                @endif
-
                             </div>
                         </div>
                     </div>

@@ -30,7 +30,10 @@ class EnsureActiveOrmawa
         }
 
         // Verify that the active ormawa is still valid (user is still a member)
-        if ($user && !$user->ormawas()->where('ormawa_id', session('active_ormawa_id'))->exists()) {
+        if ($user && !$user->ormawas()
+            ->where('ormawa_id', session('active_ormawa_id'))
+            ->wherePivot('status', true)
+            ->exists()) {
             session()->forget('active_ormawa_id');
             return redirect()
                 ->route('mahasiswa.dashboard')

@@ -7,6 +7,7 @@ use App\Http\Controllers\{
     VerifikasiDosenController,
     PersetujuanDekanController,
     PersetujuanRektorController,
+    PersetujuanPpController,
     PersetujuanWarek3Controller,
     NotifikasiController,
     ProfileController,
@@ -32,7 +33,7 @@ Route::get('/', function () {
 require __DIR__ . '/auth.php';
 
 // Protected routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'password.changed'])->group(function () {
 
     // Dashboard - Different for each role
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -91,7 +92,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [PengajuanKegiatanController::class, 'index'])->name('index');
 
         // CREATE harus di atas route dinamis
-        Route::middleware(['role:ormawa|mahasiswa', 'ormawa.complete'])->group(function () {
+        Route::middleware(['role:ormawa|mahasiswa', 'ormawa.complete', 'active.ormawa'])->group(function () {
             Route::get('/create', [PengajuanKegiatanController::class, 'create'])->name('create');
             Route::post('/', [PengajuanKegiatanController::class, 'store'])->name('store');
         });
@@ -99,7 +100,7 @@ Route::middleware(['auth'])->group(function () {
         // ROUTE DINAMIS TARUH PALING BAWAH
         Route::get('/{pengajuan}', [PengajuanKegiatanController::class, 'show'])->name('show');
 
-        Route::middleware(['role:ormawa|mahasiswa', 'ormawa.complete'])->group(function () {
+        Route::middleware(['role:ormawa|mahasiswa', 'ormawa.complete', 'active.ormawa'])->group(function () {
             Route::get('/{pengajuan}/edit', [PengajuanKegiatanController::class, 'edit'])->name('edit');
             Route::patch('/{pengajuan}', [PengajuanKegiatanController::class, 'update'])->name('update');
         });
@@ -153,6 +154,15 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{pengajuan}', [PersetujuanRektorController::class, 'show'])->name('show');
             Route::post('/{pengajuan}/approve', [PersetujuanRektorController::class, 'approve'])->name('approve');
             Route::post('/{pengajuan}/reject', [PersetujuanRektorController::class, 'reject'])->name('reject');
+        });
+    });
+
+    Route::middleware(['role:pp'])->prefix('pp')->name('pp.')->group(function () {
+        Route::prefix('persetujuan')->name('persetujuan.')->group(function () {
+            Route::get('/', [PersetujuanPpController::class, 'index'])->name('index');
+            Route::get('/{pengajuan}', [PersetujuanPpController::class, 'show'])->name('show');
+            Route::post('/{pengajuan}/approve', [PersetujuanPpController::class, 'approve'])->name('approve');
+            Route::post('/{pengajuan}/reject', [PersetujuanPpController::class, 'reject'])->name('reject');
         });
     });
 
@@ -241,6 +251,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/laporan', [LaporanController::class, 'admin'])->name('laporan');
 
         Route::prefix('ormawa')->name('ormawa.')->group(function () {
+            Route::get('/search/mahasiswa', [OrmawaController::class, 'searchMahasiswa'])->name('search-mahasiswa');
             Route::get('/', [OrmawaController::class, 'index'])->name('index');
             Route::get('/create', [OrmawaController::class, 'create'])->name('create');
             Route::post('/', [OrmawaController::class, 'store'])->name('store');
@@ -259,7 +270,9 @@ Route::middleware(['auth'])->group(function () {
 
         Route::resource('fakultas', FakultasController::class)->except(['show']);
         Route::resource('dekan', DekanController::class)->except(['show']);
-        Route::resource('mahasiswa', MahasiswaController::class)->except(['show']);
+        Route::get('mahasiswa', [MahasiswaController::class, 'index'])->name('mahasiswa.index');
+        Route::post('mahasiswa/{mahasiswa}/reset-password', [MahasiswaController::class, 'resetPassword'])
+            ->name('mahasiswa.reset-password');
 
         // Untuk admin juga bisa akses semua resource
         Route::resource('pengajuan', PengajuanKegiatanController::class);

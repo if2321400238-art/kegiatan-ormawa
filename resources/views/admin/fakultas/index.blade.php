@@ -9,13 +9,15 @@
                 <p class="text-[12px] text-gray-500">Kelola informasi fakultas dan penugasan Dekan</p>
             </div>
 
-            <a href="{{ route('admin.fakultas.create') }}" class="w-full sm:w-auto px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-active transition text-[13px] font-medium flex items-center justify-center gap-2 shadow-sm">
-                <i class="ti ti-plus"></i> Tambah Fakultas
-            </a>
+            <div class="page-header-actions">
+                <a href="{{ route('admin.fakultas.create') }}" class="w-full sm:w-auto px-4 py-2 bg-brand text-white rounded-lg hover:bg-brand-active transition text-[13px] font-medium flex items-center justify-center gap-2 shadow-sm">
+                    <i class="ti ti-plus"></i> Tambah Fakultas
+                </a>
+            </div>
         </div>
 
         <div class="summary-stats">
-            <div class="summary-stat">
+            <div class="summary-stat-card" style="--accent: #3B82F6">
                 <div class="text-[20px] font-bold text-gray-900">{{ $fakultas->total() ?? $fakultas->count() }}</div>
                 <div class="text-[11px] text-gray-500 font-medium">Total Fakultas</div>
             </div>

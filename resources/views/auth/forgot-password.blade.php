@@ -1,6 +1,6 @@
 <x-guest-layout>
     <div class="mb-4 text-sm text-gray-600">
-        {{ __('Forgot your password? No problem. Just let us know your email address and we will email you a password reset link that will allow you to choose a new one.') }}
+        Masukkan email atau NIM. Tautan untuk membuat password baru akan dikirim ke email resmi yang tersimpan pada akun Anda.
     </div>
 
     <!-- Session Status -->
@@ -9,16 +9,15 @@
     <form method="POST" action="{{ route('password.email') }}">
         @csrf
 
-        <!-- Email Address -->
         <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <x-input-label for="login" value="Email atau NIM" />
+            <x-text-input id="login" class="block mt-1 w-full" type="text" name="login" :value="old('login')" required autofocus />
+            <x-input-error :messages="$errors->get('login')" class="mt-2" />
         </div>
 
         <div class="flex items-center justify-end mt-4">
             <x-primary-button>
-                {{ __('Email Password Reset Link') }}
+                Kirim Tautan Reset Password
             </x-primary-button>
         </div>
     </form>

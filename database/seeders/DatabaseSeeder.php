@@ -205,9 +205,7 @@ class DatabaseSeeder extends Seeder
         // ==========================================
         // CALL ADDITIONAL SEEDERS
         // ==========================================
-        $this->call(FakultasSeeder::class);
         $this->call(OrmawaUserSeeder::class);
-        $this->call(MahasiswaSeeder::class);
         $this->call(DosenPembinaSeeder::class);
 
         // Assign fakultas_id to Ormawa yang bertingkat fakultas berdasarkan keyword sederhana

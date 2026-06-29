@@ -23,7 +23,7 @@ class MahasiswaDashboardController extends Controller
         $ormawaDipimpin = $user->ormawaDipimpin()->get();
 
         // Get organizations where user is member
-        $ormawas = $user->ormawas()->get();
+        $ormawas = $user->ormawas()->wherePivot('status', true)->get();
 
         // Get current member organizations (via anggota_ormawa)
         $memberOrganizations = collect();
@@ -39,7 +39,10 @@ class MahasiswaDashboardController extends Controller
 
         $activeOrmawa = self::getActiveOrmawa();
 
-        if ($activeOrmawa && !$user->ormawas()->where('ormawa_id', $activeOrmawa->id)->exists()) {
+        if ($activeOrmawa && !$user->ormawas()
+            ->where('ormawa_id', $activeOrmawa->id)
+            ->wherePivot('status', true)
+            ->exists()) {
             session()->forget('active_ormawa_id');
             $activeOrmawa = null;
         }
@@ -67,7 +70,10 @@ class MahasiswaDashboardController extends Controller
 
         $user = Auth::user();
 
-        if (!$user->ormawas()->where('ormawa_id', $validated['ormawa_id'])->exists()) {
+        if (!$user->ormawas()
+            ->where('ormawa_id', $validated['ormawa_id'])
+            ->wherePivot('status', true)
+            ->exists()) {
             abort(403, 'Anda tidak memiliki akses ke organisasi ini.');
         }
 
@@ -91,6 +97,15 @@ class MahasiswaDashboardController extends Controller
             return null;
         }
 
-        return \App\Models\Ormawa::find($activeOrmawaId);
+        $user = Auth::user();
+
+        if (!$user || !$user->isMahasiswa()) {
+            return null;
+        }
+
+        return $user->ormawas()
+            ->where('ormawa_id', $activeOrmawaId)
+            ->wherePivot('status', true)
+            ->first();
     }
 }

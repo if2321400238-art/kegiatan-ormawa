@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DosenPembinaSeeder extends Seeder
 {
@@ -14,122 +15,54 @@ class DosenPembinaSeeder extends Seeder
     public function run(): void
     {
         // ==========================================
-        // DOSEN PEMBINA (Advisor for ORMAWA)
+        // DOSEN UNUJA (snapshot katalog publik LP3M)
         // ==========================================
-        $dosenPembinaData = [
-            [
-                'username' => 'dr_ahmad_dahlan',
-                'email' => 'ahmad.dahlan@unuja.ac.id',
-                'nama' => 'Dr. Ahmad Dahlan, M.Pd',
-                'no_hp' => '081334567890',
-                'bidang' => 'Pendidikan',
-            ],
-            [
-                'username' => 'prof_siti_nurjanah',
-                'email' => 'siti.nurjanah@unuja.ac.id',
-                'nama' => 'Prof. Dr. Siti Nurjanah, M.Si',
-                'no_hp' => '081334567891',
-                'bidang' => 'Ilmu Sosial',
-            ],
-            [
-                'username' => 'dr_abdullah_hasan',
-                'email' => 'abdullah.hasan@unuja.ac.id',
-                'nama' => 'Dr. Abdullah Hasan, M.Ag',
-                'no_hp' => '081334567892',
-                'bidang' => 'Agama Islam',
-            ],
-            [
-                'username' => 'ir_bambang_suryanto',
-                'email' => 'bambang.suryanto@unuja.ac.id',
-                'nama' => 'Ir. Bambang Suryanto, M.Kom',
-                'no_hp' => '081334567893',
-                'bidang' => 'Teknik Informatika',
-            ],
-            [
-                'username' => 'dr_slamet_riyadi',
-                'email' => 'slamet.riyadi@unuja.ac.id',
-                'nama' => 'Dr. Ir. Slamet Riyadi, M.T',
-                'no_hp' => '081334567894',
-                'bidang' => 'Sistem Informasi',
-            ],
-            [
-                'username' => 'dr_eka_prasetya',
-                'email' => 'eka.prasetya@unuja.ac.id',
-                'nama' => 'Dr. Eka Prasetya, S.E., M.M',
-                'no_hp' => '081334567895',
-                'bidang' => 'Manajemen',
-            ],
-            [
-                'username' => 'drs_puji_lestari',
-                'email' => 'puji.lestari@unuja.ac.id',
-                'nama' => 'Drs. Puji Lestari, M.Pd',
-                'no_hp' => '081334567896',
-                'bidang' => 'Sastra Indonesia',
-            ],
-            [
-                'username' => 'dr_rino_rahmat',
-                'email' => 'rino.rahmat@unuja.ac.id',
-                'nama' => 'Dr. Rino Rahmat, M.Si',
-                'no_hp' => '081334567897',
-                'bidang' => 'Hukum',
-            ],
-        ];
+        $snapshotPath = database_path('seeders/data/dosen_lp3m.json');
+        $dosenPembinaData = json_decode(file_get_contents($snapshotPath), true, flags: JSON_THROW_ON_ERROR);
 
         foreach ($dosenPembinaData as $data) {
-            User::firstOrCreate(
-                ['email' => $data['email']],
-                [
-                    'username' => $data['username'],
-                    'email' => $data['email'],
-                    'password' => Hash::make('password'),
-                    'role' => 'dosen',
-                    'nama' => $data['nama'],
-                    'no_hp' => $data['no_hp'],
-                    'is_active' => true,
-                ]
-            );
-        }
+            $email = $data['email'] ?: $data['nidn'].'@dosen.unuja.local';
+            $dosen = User::withTrashed()->where('nidn', $data['nidn'])->first();
 
-        // ==========================================
-        // ADDITIONAL DEKAN (Deans) PER FACULTY
-        // ==========================================
-        $dekanData = [
-            [
-                'username' => 'dekan_ftik',
-                'email' => 'dekan.ftik@unuja.ac.id',
-                'nama' => 'Dr. Ir. Sutrisno, M.T',
-                'no_hp' => '081334567900',
-                'fakultas' => 'Fakultas Teknik dan Ilmu Komputer',
-            ],
-            [
-                'username' => 'dekan_feb',
-                'email' => 'dekan.feb@unuja.ac.id',
-                'nama' => 'Dr. Hendra Wijaya, S.E., M.M',
-                'no_hp' => '081334567901',
-                'fakultas' => 'Fakultas Ekonomi dan Bisnis',
-            ],
-            [
-                'username' => 'dekan_fh',
-                'email' => 'dekan.fh@unuja.ac.id',
-                'nama' => 'Dr. Bambang Sutioso, S.H., M.H',
-                'no_hp' => '081334567902',
-                'fakultas' => 'Fakultas Hukum',
-            ],
-        ];
+            if (! $dosen && $data['email']) {
+                $existingByEmail = User::withTrashed()->where('email', $email)->first();
+                if ($existingByEmail?->role === User::ROLE_DOSEN) {
+                    $dosen = $existingByEmail;
+                } elseif ($existingByEmail) {
+                    $email = $data['nidn'].'@dosen.unuja.local';
+                }
+            }
 
-        foreach ($dekanData as $data) {
-            User::firstOrCreate(
-                ['email' => $data['email']],
-                [
-                    'username' => $data['username'],
-                    'email' => $data['email'],
-                    'password' => Hash::make('password'),
-                    'role' => 'dekan',
+            if ($dosen) {
+                $dosen->restore();
+                $dosen->update([
+                    'nidn' => $data['nidn'],
                     'nama' => $data['nama'],
-                    'no_hp' => $data['no_hp'],
+                    'email' => $email,
+                    'program_studi' => $data['program_studi'],
+                    'jabatan_fungsional' => $data['jabatan_fungsional'],
                     'is_active' => true,
-                ]
-            );
+                ]);
+
+                continue;
+            }
+
+            $username = 'dosen_'.$data['nidn'];
+            if (User::withTrashed()->where('username', $username)->exists()) {
+                $username .= '_lp3m';
+            }
+
+            User::create([
+                'username' => $username,
+                'nidn' => $data['nidn'],
+                'email' => $email,
+                'password' => Hash::make(Str::random(40)),
+                'role' => User::ROLE_DOSEN,
+                'nama' => $data['nama'],
+                'program_studi' => $data['program_studi'],
+                'jabatan_fungsional' => $data['jabatan_fungsional'],
+                'is_active' => true,
+            ]);
         }
 
         // ==========================================
@@ -259,14 +192,14 @@ class DosenPembinaSeeder extends Seeder
         echo "✅ Dosen Pembina & Additional Roles Seeder berhasil dijalankan!\n";
         echo "\n";
         echo "📋 Data yang dibuat:\n";
-        echo "   - 8 Dosen Pembina\n";
+        echo '   - '.count($dosenPembinaData)." Dosen UNUJA (snapshot LP3M)\n";
         echo "   - 3 Dekan (per fakultas)\n";
         echo "   - 2 Staff BAUAK tambahan\n";
         echo "   - 1 Asisten Warek3\n";
         echo "   - 1 Asisten Rektor\n";
         echo "   - 2 Staff PP\n";
         echo "\n";
-        echo "🔑 Semua password: password\n";
+        echo "🔑 Akun dosen snapshot memakai password acak dan tidak dapat dipakai login langsung.\n";
         echo "\n";
     }
 }

@@ -197,7 +197,11 @@
                                                         'revisi_bauak' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi BAUAK'],
                                                         'revisi_warek3' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi Wakil Rektor III'],
                                                         'revisi_rektor' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi Rektor'],
-                                                        'ditolak' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak'],
+                                                        'ditolak_dosen' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Dosen Pembina'],
+                                                        'ditolak_dekan' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Dekan'],
+                                                        'ditolak_bauak' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak BAUAK'],
+                                                        'ditolak_warek3' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Wakil Rektor III'],
+                                                        'ditolak_rektor' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Rektor'],
                                                     ];
                                                     $color = $statusColors[$pengajuan->status] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-800', 'label' => $pengajuan->status];
                                                 @endphp
@@ -233,7 +237,11 @@
                                         'revisi_bauak' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi BAUAK'],
                                         'revisi_warek3' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi Wakil Rektor III'],
                                         'revisi_rektor' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi Rektor'],
-                                        'ditolak' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak'],
+                                        'ditolak_dosen' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Dosen Pembina'],
+                                        'ditolak_dekan' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Dekan'],
+                                        'ditolak_bauak' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak BAUAK'],
+                                        'ditolak_warek3' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Wakil Rektor III'],
+                                        'ditolak_rektor' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Rektor'],
                                     ];
                                     $color = $statusColors[$pengajuan->status] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-800', 'label' => $pengajuan->status];
                                 @endphp

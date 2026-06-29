@@ -15,7 +15,7 @@ test('reset password link can be requested', function () {
 
     $user = User::factory()->create();
 
-    $this->post('/forgot-password', ['email' => $user->email]);
+    $this->post('/forgot-password', ['login' => $user->email]);
 
     Notification::assertSentTo($user, ResetPassword::class);
 });
@@ -25,7 +25,7 @@ test('reset password screen can be rendered', function () {
 
     $user = User::factory()->create();
 
-    $this->post('/forgot-password', ['email' => $user->email]);
+    $this->post('/forgot-password', ['login' => $user->email]);
 
     Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
         $response = $this->get('/reset-password/'.$notification->token);
@@ -36,12 +36,25 @@ test('reset password screen can be rendered', function () {
     });
 });
 
+test('student can request a reset link using NIM', function () {
+    Notification::fake();
+
+    $user = User::factory()->create([
+        'role' => User::ROLE_MAHASISWA,
+        'nim' => '2321400238',
+    ]);
+
+    $this->post('/forgot-password', ['login' => $user->nim]);
+
+    Notification::assertSentTo($user, ResetPassword::class);
+});
+
 test('password can be reset with valid token', function () {
     Notification::fake();
 
-    $user = User::factory()->create();
+    $user = User::factory()->create(['must_change_password' => true]);
 
-    $this->post('/forgot-password', ['email' => $user->email]);
+    $this->post('/forgot-password', ['login' => $user->email]);
 
     Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
         $response = $this->post('/reset-password', [
@@ -54,6 +67,8 @@ test('password can be reset with valid token', function () {
         $response
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('login'));
+
+        expect($user->fresh()->must_change_password)->toBeFalse();
 
         return true;
     });
