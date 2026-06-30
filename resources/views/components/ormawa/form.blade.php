@@ -11,12 +11,12 @@
     $isEdit = !is_null($ormawa) && $ormawa->exists;
     $kategori = old('kategori_organisasi', $ormawa?->kategori_organisasi ?? '');
     $tingkat = old('tingkat_organisasi', $ormawa?->tingkat_organisasi ?? '');
-    
+
     // Prepare initial data for search component
     $initialKetuaId = old('user_id', $ormawa?->user_id ?? '');
     $initialKetuaName = old('nama_ketua_text', $ormawa?->user?->nama ?? '');
     $initialKetuaNim = $ormawa?->user?->nim ?? '';
-    $initialKetuaEmail = $ormawa?->user?->email ?? '';
+    $initialKetuaProgram = $ormawa?->user?->program_studi ?? '';
 @endphp
 
 <form action="{{ $submitRoute }}" method="POST" class="p-6 space-y-4">
@@ -34,7 +34,7 @@
             </div>
             <input type="text" name="nama_ormawa"
                 class="w-full !pl-11 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors"
-                placeholder="Misal: Badan Eksekutif Mahasiswa" 
+                placeholder="Misal: Badan Eksekutif Mahasiswa"
                 value="{{ old('nama_ormawa', $ormawa?->nama_ormawa ?? '') }}" required>
         </div>
         @error('nama_ormawa')
@@ -44,12 +44,12 @@
 
     {{-- Ketua Ormawa - Interactive Search via Extracted AlpineJS Component --}}
     <div x-data="mahasiswaSearch(
-            '{{ $initialKetuaId }}', 
-            '{{ $initialKetuaName }}',
-            '{{ $initialKetuaNim }}',
-            '{{ $initialKetuaEmail }}',
-            '{{ $searchMahasiswaRoute }}'
-        )" 
+            @js((string) $initialKetuaId),
+            @js($initialKetuaName),
+            @js($initialKetuaNim),
+            @js($initialKetuaProgram),
+            @js($searchMahasiswaRoute)
+        )"
         @click.outside="showResults = false"
     >
         <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Pilih Ketua Organisasi</label>
@@ -57,35 +57,60 @@
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
                 <i class="ti ti-user text-gray-400"></i>
             </div>
-            <input type="text" x-model="searchInput" @input="search()" @focus="onFocus()"
-                placeholder="Cari nama atau NIM ketua..."
-                class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors"
+            <input type="text" x-model="searchInput" @input="onInput()" @focus="onFocus()" @keydown.escape="showResults = false"
+                placeholder="Ketik minimal 2 karakter nama atau NIM..."
+                class="w-full pl-10 pr-12 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors"
                 autocomplete="off">
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                <i x-show="loading" class="ti ti-loader-2 animate-spin text-brand"></i>
+                <button x-show="selectedMahasiswa && !loading" type="button" @click="clearSelection()"
+                    class="text-gray-400 hover:text-gray-700" title="Hapus pilihan">
+                    <i class="ti ti-x"></i>
+                </button>
+            </div>
             <input type="hidden" name="ketua_nim" :value="selectedMahasiswa?.nim || ''">
             <input type="hidden" name="user_id" :value="selectedId">
-            
+
             {{-- Search Results Dropdown --}}
-            <div x-show="showResults && results.length > 0"
-                class="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-30 max-h-64 overflow-y-auto"
+            <div x-show="showResults && !selectedMahasiswa"
+                class="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-40 overflow-hidden"
                 style="display: none;"
-                x-transition
+                x-transition.opacity
             >
-                <template x-for="mahasiswa in results" :key="mahasiswa.nim">
-                    <button type="button" @click="selectMahasiswa(mahasiswa)"
-                        class="w-full text-left px-4 py-2.5 hover:bg-gray-50 border-b border-gray-100 last:border-0 transition text-[13px] block">
-                        <div class="font-medium text-gray-900" x-text="mahasiswa.nama"></div>
-                        <div class="text-xs text-gray-500"
-                            x-text="[
-                                'NIM: ' + (mahasiswa.nim || '-'),
-                                mahasiswa.program_studi,
-                            ].filter(Boolean).join(' | ')"></div>
-                    </button>
-                </template>
+                <div x-show="loading" class="px-4 py-5 text-center text-[12px] text-gray-500">
+                    <i class="ti ti-loader-2 animate-spin text-brand mr-1"></i> Mencari data mahasiswa...
+                </div>
+
+                <div x-show="!loading && results.length" class="max-h-72 overflow-y-auto divide-y divide-gray-100">
+                    <template x-for="mahasiswa in results" :key="mahasiswa.nim">
+                        <button type="button" @click="selectMahasiswa(mahasiswa)"
+                            class="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50/60 transition-colors text-left">
+                            <div class="w-9 h-9 rounded-full bg-brand/10 text-brand flex items-center justify-center shrink-0">
+                                <i class="ti ti-user"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="font-medium text-[13px] text-gray-900 truncate" x-text="mahasiswa.nama"></div>
+                                <div class="text-[11px] text-gray-500 truncate"
+                                    x-text="['NIM: ' + (mahasiswa.nim || '-'), mahasiswa.program_studi].filter(Boolean).join(' | ')"></div>
+                            </div>
+                            <i class="ti ti-chevron-right text-gray-300"></i>
+                        </button>
+                    </template>
+                </div>
+
+                <div x-show="!loading && searched && !results.length && !errorMessage" class="px-4 py-6 text-center">
+                    <i class="ti ti-user-search text-2xl text-gray-300"></i>
+                    <div class="mt-1 text-[12px] font-medium text-gray-700">Mahasiswa tidak ditemukan</div>
+                    <div class="text-[11px] text-gray-500">Periksa kembali nama atau NIM yang dicari.</div>
+                </div>
+
+                <div x-show="!loading && errorMessage" class="px-4 py-4 bg-red-50 text-red-700 text-[12px]">
+                    <i class="ti ti-alert-circle mr-1"></i><span x-text="errorMessage"></span>
+                </div>
             </div>
         </div>
 
         {{-- Error Backend & Frontend Display --}}
-        <p x-show="errorMessage" x-text="errorMessage" class="text-red-500 text-xs mt-1" style="display: none;"></p>
         @error('user_id')
             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
         @enderror
@@ -94,18 +119,22 @@
         @enderror
 
         {{-- Selected Item Display --}}
-        <div x-show="selectedMahasiswa" class="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-[13px]" style="display: none;">
-            <div class="flex justify-between items-start">
-                <div>
-                    <div class="font-medium text-blue-900" x-text="selectedMahasiswa?.nama"></div>
-                    <div class="text-xs text-blue-700"
+        <div x-show="selectedMahasiswa" x-transition class="mt-3 p-4 bg-blue-50 border border-blue-200 rounded-xl" style="display: none;">
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
+                    <i class="ti ti-user-check"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-[10px] font-semibold uppercase tracking-wider text-blue-600">Ketua dipilih</div>
+                    <div class="font-semibold text-[14px] text-blue-950" x-text="selectedMahasiswa?.nama"></div>
+                    <div class="text-[12px] text-blue-700"
                         x-text="[
                             'NIM: ' + (selectedMahasiswa?.nim || '-'),
                             selectedMahasiswa?.program_studi,
                         ].filter(Boolean).join(' | ')"></div>
                 </div>
-                <button type="button" @click="clearSelection()" class="text-blue-500 hover:text-blue-700">
-                    <i class="ti ti-x text-sm"></i>
+                <button type="button" @click="clearSelection()" class="p-1 text-blue-500 hover:text-blue-800" title="Ganti ketua">
+                    <i class="ti ti-x"></i>
                 </button>
             </div>
         </div>
@@ -120,7 +149,7 @@
             </div>
             <input type="text" name="periode"
                 class="w-full pl-11 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors"
-                placeholder="Misal: 2024-2025" 
+                placeholder="Misal: 2024-2025"
                 value="{{ old('periode', $ormawa?->periode ?? '') }}">
         </div>
         <p class="text-[11px] text-gray-500 mt-1">Kosongkan jika tidak ada batasan periode.</p>

@@ -50,7 +50,7 @@ class PasswordResetLinkController extends Controller
             ]);
         }
 
-        if (str_ends_with($user->email, '@mahasiswa.unuja.local')) {
+        if (str_ends_with($user->email, '@unuja.ac.id')) {
             return back()->withInput()->withErrors([
                 'login' => 'API UNUJA tidak menyediakan email untuk NIM ini. Hubungi admin untuk pemulihan akun.',
             ]);

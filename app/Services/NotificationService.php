@@ -2,12 +2,11 @@
 
 namespace App\Services;
 
-use App\Models\User;
 use App\Models\Notifikasi;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
-
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class NotificationService
 {
@@ -19,13 +18,8 @@ class NotificationService
     /**
      * Kirim notifikasi dengan smart channel selection.
      *
-     * @param User $user
-     * @param string $judul
-     * @param string $pesan
-     * @param string $tipe (info, success, warning, error)
-     * @param string|null $link
-     * @param array $channels (optional: specify channels, otherwise auto-select)
-     * @return Notifikasi
+     * @param  string  $tipe  (info, success, warning, error)
+     * @param  array  $channels  (optional: specify channels, otherwise auto-select)
      */
     public function send(
         User $user,
@@ -54,7 +48,7 @@ class NotificationService
 
         // Kirim ke setiap channel sesuai prioritas
         foreach (self::DELIVERY_PRIORITY as $channel) {
-            if (!in_array($channel, $channels)) {
+            if (! in_array($channel, $channels)) {
                 continue;
             }
 
@@ -73,7 +67,7 @@ class NotificationService
 
                 Log::info("Notifikasi {$notifikasi->id} sent via {$channel}");
             } catch (\Exception $e) {
-                Log::error("Notifikasi {$notifikasi->id} failed on {$channel}: " . $e->getMessage());
+                Log::error("Notifikasi {$notifikasi->id} failed on {$channel}: ".$e->getMessage());
 
                 // Mark channel as failed but continue to next
                 $current = $notifikasi->delivery_channels ?? [];
@@ -105,12 +99,12 @@ class NotificationService
         $channels[] = 'in_app';
 
         // Jika user memiliki telegram_id, prioritaskan Telegram
-        if (!empty($user->telegram_id)) {
+        if (! empty($user->telegram_id)) {
             array_unshift($channels, 'telegram');
         }
 
         // Fallback ke email jika ada email
-        if (!empty($user->email)) {
+        if (! empty($user->email)) {
             $channels[] = 'email';
         }
 
@@ -138,38 +132,68 @@ class NotificationService
             throw new \Exception('Telegram bot token not configured');
         }
 
-        $message = sprintf(
-            "<b>%s</b>\n\n%s\n\n<i>Waktu: %s</i>",
-            $notifikasi->judul,
-            $notifikasi->pesan,
-            now()->format('d M Y H:i')
-        );
-
-        $url = "https://api.telegram.org/bot{$botToken}/sendMessage";
+        $message = $this->telegramMessage($notifikasi);
+        $apiUrl = rtrim((string) config('services.telegram.api_url', 'https://api.telegram.org'), '/');
+        $url = "{$apiUrl}/bot{$botToken}/sendMessage";
         $data = [
             'chat_id' => $chatId,
             'text' => $message,
             'parse_mode' => 'HTML',
+            'disable_web_page_preview' => true,
         ];
 
         $options = [];
 
         // Prefer project-level CA bundle if configured in .env
         $caFile = env('CURL_CAFILE') ?: config('services.curl.cafile');
-        if (!empty($caFile) && file_exists($caFile)) {
+        if (! empty($caFile) && file_exists($caFile)) {
             $options['verify'] = $caFile;
         } elseif (config('app.env') === 'local' || env('APP_ENV') === 'local') {
             // Fallback for local dev on Windows if no CA bundle installed
             $options['verify'] = false;
         }
 
-        $response = empty($options)
-            ? Http::post($url, $data)
-            : Http::withOptions($options)->post($url, $data);
+        $request = Http::acceptJson()
+            ->connectTimeout((int) config('services.telegram.connect_timeout', 5))
+            ->timeout((int) config('services.telegram.timeout', 10));
 
-        if (!$response->successful()) {
-            throw new \Exception('Failed to send Telegram message: ' . $response->body());
+        if (! empty($options)) {
+            $request = $request->withOptions($options);
         }
+
+        $response = $request->post($url, $data);
+
+        if (! $response->successful() || $response->json('ok') !== true) {
+            $description = $response->json('description') ?: $response->body();
+
+            throw new \RuntimeException('Failed to send Telegram message: '.$description);
+        }
+    }
+
+    /**
+     * Susun pesan HTML yang aman dan sertakan tautan tujuan bila tersedia.
+     */
+    private function telegramMessage(Notifikasi $notifikasi): string
+    {
+        $escape = static fn (?string $value): string => htmlspecialchars(
+            (string) $value,
+            ENT_QUOTES | ENT_SUBSTITUTE,
+            'UTF-8'
+        );
+
+        $parts = [
+            '<b>'.$escape($notifikasi->judul).'</b>',
+            $escape($notifikasi->pesan),
+        ];
+
+        if (! empty($notifikasi->link)) {
+            $link = $escape($notifikasi->link);
+            $parts[] = '<a href="'.$link.'">Buka pengajuan</a>';
+        }
+
+        $parts[] = '<i>Waktu: '.$escape(now()->format('d M Y H:i')).' WIB</i>';
+
+        return implode("\n\n", $parts);
     }
 
     /**
@@ -191,7 +215,7 @@ class NotificationService
                     ->subject($notifikasi->judul);
             });
         } catch (\Exception $e) {
-            throw new \Exception('Failed to send email: ' . $e->getMessage());
+            throw new \Exception('Failed to send email: '.$e->getMessage());
         }
     }
 

@@ -71,11 +71,12 @@ class UnujaMahasiswaService
 
             $user->update([
                 'nama' => $student['nama'],
+                'program_studi' => $student['program_studi'],
                 'is_active' => true,
             ]);
 
             if ($student['email']
-                && str_ends_with($user->email, '@mahasiswa.unuja.local')
+                && str_ends_with($user->email, '@unuja.ac.id')
                 && ! User::withTrashed()->where('email', $student['email'])->whereKeyNot($user->id)->exists()) {
                 $user->update(['email' => $student['email']]);
             }
@@ -85,7 +86,7 @@ class UnujaMahasiswaService
 
         $email = $student['email'];
         if (! $email || User::withTrashed()->where('email', $email)->exists()) {
-            $email = $student['nim'].'@mahasiswa.unuja.local';
+            $email = $student['nim'].'@unuja.ac.id';
         }
 
         $username = $student['nim'];
@@ -101,6 +102,7 @@ class UnujaMahasiswaService
             'must_change_password' => true,
             'role' => User::ROLE_MAHASISWA,
             'nama' => $student['nama'],
+            'program_studi' => $student['program_studi'],
             'is_active' => true,
         ]);
     }

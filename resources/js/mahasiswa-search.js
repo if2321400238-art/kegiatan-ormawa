@@ -1,11 +1,14 @@
-export default function mahasiswaSearch(initialId = '', initialName = '', initialNim = '', initialEmail = '', endpoint = '') {
+export default function mahasiswaSearch(initialId = '', initialName = '', initialNim = '', initialProgram = '', endpoint = '') {
     return {
         searchInput: initialName,
         selectedId: initialId,
         selectedMahasiswa: null,
         results: [],
         showResults: false,
+        loading: false,
+        searched: false,
         debounceTimer: null,
+        requestId: 0,
         errorMessage: '',
         endpoint: endpoint,
 
@@ -15,15 +18,21 @@ export default function mahasiswaSearch(initialId = '', initialName = '', initia
                     id: this.selectedId,
                     nama: this.searchInput,
                     nim: initialNim,
-                    email: initialEmail
+                    program_studi: initialProgram
                 };
             }
         },
 
         onFocus() {
-            if (this.searchInput.length > 0) {
+            if (this.searchInput.trim().length >= 2 && !this.selectedMahasiswa) {
                 this.search();
             }
+        },
+
+        onInput() {
+            this.selectedMahasiswa = null;
+            this.selectedId = '';
+            this.search();
         },
 
         search() {
@@ -31,12 +40,19 @@ export default function mahasiswaSearch(initialId = '', initialName = '', initia
             this.debounceTimer = setTimeout(async () => {
                 const query = this.searchInput.toLowerCase().trim();
                 
-                if (query.length < 1) {
+                if (query.length < 2) {
                     this.results = [];
                     this.showResults = false;
+                    this.loading = false;
+                    this.searched = false;
+                    this.errorMessage = '';
                     return;
                 }
 
+                const currentRequest = ++this.requestId;
+                this.loading = true;
+                this.searched = false;
+                this.showResults = true;
                 try {
                     const response = await fetch(`${this.endpoint}?q=${encodeURIComponent(query)}`);
                     if (!response.ok) {
@@ -45,12 +61,21 @@ export default function mahasiswaSearch(initialId = '', initialName = '', initia
                     }
                     
                     const data = await response.json();
-                    this.results = Array.isArray(data) ? data : [];
-                    this.showResults = this.results.length > 0;
-                    this.errorMessage = '';
+                    if (currentRequest === this.requestId) {
+                        this.results = Array.isArray(data) ? data : [];
+                        this.searched = true;
+                        this.errorMessage = '';
+                    }
                 } catch (error) {
-                    console.error('Error fetching mahasiswa:', error);
-                    this.errorMessage = error.message || 'Gagal mengambil data mahasiswa.';
+                    if (currentRequest === this.requestId) {
+                        this.results = [];
+                        this.searched = true;
+                        this.errorMessage = error.message || 'Gagal mengambil data mahasiswa.';
+                    }
+                } finally {
+                    if (currentRequest === this.requestId) {
+                        this.loading = false;
+                    }
                 }
             }, 300);
         },
@@ -69,6 +94,8 @@ export default function mahasiswaSearch(initialId = '', initialName = '', initia
             this.searchInput = '';
             this.results = [];
             this.showResults = false;
+            this.searched = false;
+            this.errorMessage = '';
         }
     }
 }

@@ -8,7 +8,7 @@
     </div>
 
     {{-- Form Container Card --}}
-    <div class="max-w-2xl bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="max-w-2xl bg-white rounded-xl border border-gray-100 shadow-sm overflow-visible">
         <x-ormawa.form 
             :ormawa="$ormawa"
             :submitRoute="$submitRoute" 
