@@ -45,4 +45,6 @@ fi
 
 echo "Entrypoint completed, starting PHP-FPM..."
 
+chown -R www-data:www-data storage bootstrap/cache
+
 exec "$@"
