@@ -16,6 +16,12 @@ services:
       DB_DATABASE: ${DB_DATABASE:-ormawa_db}
       DB_USERNAME: ${DB_USERNAME:-root}
       DB_PASSWORD: ${DB_PASSWORD:-}
+      UNUJA_API_BASE_URL: ${UNUJA_API_BASE_URL:-https://v2-api.unuja.ac.id}
+      UNUJA_API_LOGIN_URL: ${UNUJA_API_LOGIN_URL:-https://v2-api.unuja.ac.id/log/masuk}
+      UNUJA_API_USERNAME: ${UNUJA_API_USERNAME:-}
+      UNUJA_API_PASSWORD: ${UNUJA_API_PASSWORD:-}
+      UNUJA_API_KEY_HEADER: ${UNUJA_API_KEY_HEADER:-unujasimptapikey}
+      UNUJA_API_TIMEOUT: ${UNUJA_API_TIMEOUT:-10}
       RUN_MIGRATIONS: "true"
     # Port 5173 dicopot total. Volume lokal dicopot agar container mandiri & secure.
     volumes:
