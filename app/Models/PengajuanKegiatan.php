@@ -11,7 +11,7 @@ class PengajuanKegiatan extends Model
     use HasFactory, SoftDeletes;
 
     public const REJECTED_STATUSES = [
-        'ditolak_dosen',
+        'ditolak_kaprodi',
         'ditolak_dekan',
         'ditolak_bauak',
         'ditolak_warek3',
@@ -71,6 +71,11 @@ class PengajuanKegiatan extends Model
         return $this->hasOne(Rab::class, 'pengajuan_id');
     }
 
+    public function lpj()
+    {
+        return $this->hasOne(LaporanPertanggungjawaban::class, 'pengajuan_id');
+    }
+
     public function verifikasiBauak()
     {
         return $this->hasMany(VerifikasiBauak::class, 'pengajuan_id');
@@ -81,14 +86,14 @@ class PengajuanKegiatan extends Model
         return $this->hasOne(VerifikasiBauak::class, 'pengajuan_id')->latest();
     }
 
-    public function verifikasiDosen()
+    public function persetujuanKaprodi()
     {
-        return $this->hasMany(VerifikasiDosen::class, 'pengajuan_id');
+        return $this->hasMany(PersetujuanKaprodi::class, 'pengajuan_id');
     }
 
-    public function latestVerifikasiDosen()
+    public function latestPersetujuanKaprodi()
     {
-        return $this->hasOne(VerifikasiDosen::class, 'pengajuan_id')->latest();
+        return $this->hasOne(PersetujuanKaprodi::class, 'pengajuan_id')->latest();
     }
 
     public function persetujuanDekan()
@@ -137,17 +142,17 @@ class PengajuanKegiatan extends Model
 
     public function scopeDiajukan($query)
     {
-        return $query->where('status', 'menunggu_dosen');
+        return $query->where('status', 'menunggu_kaprodi');
     }
 
-    public function scopeMenungguDosen($query)
+    public function scopeMenungguKaprodi($query)
     {
-        return $query->where('status', 'menunggu_dosen');
+        return $query->where('status', 'menunggu_kaprodi');
     }
 
-    public function scopeRevisiDosen($query)
+    public function scopeRevisiKaprodi($query)
     {
-        return $query->where('status', 'revisi_dosen');
+        return $query->where('status', 'revisi_kaprodi');
     }
 
     public function scopeMenungguDekan($query)
@@ -220,19 +225,19 @@ class PengajuanKegiatan extends Model
     {
         $badges = [
             'draft' => 'secondary',
-            'menunggu_dosen' => 'warning',
+            'menunggu_kaprodi' => 'warning',
             'menunggu_dekan' => 'warning',
             'menunggu_bauak' => 'warning',
             'menunggu_warek3' => 'warning',
             'menunggu_rektor' => 'warning',
             'menunggu_pp' => 'warning',
             'disetujui' => 'success',
-            'revisi_dosen' => 'warning',
+            'revisi_kaprodi' => 'warning',
             'revisi_dekan' => 'warning',
             'revisi_bauak' => 'warning',
             'revisi_warek3' => 'warning',
             'revisi_rektor' => 'warning',
-            'ditolak_dosen' => 'danger',
+            'ditolak_kaprodi' => 'danger',
             'ditolak_dekan' => 'danger',
             'ditolak_bauak' => 'danger',
             'ditolak_warek3' => 'danger',
@@ -248,19 +253,19 @@ class PengajuanKegiatan extends Model
     {
         $labels = [
             'draft' => 'Draft',
-            'menunggu_dosen' => 'Menunggu Dosen Pembina',
+            'menunggu_kaprodi' => 'Menunggu Kepala Program Studi',
             'menunggu_dekan' => 'Menunggu Dekan',
             'menunggu_bauak' => 'Menunggu BAUAK',
             'menunggu_warek3' => 'Menunggu Wakil Rektor III',
             'menunggu_rektor' => 'Menunggu Rektor',
             'menunggu_pp' => 'Menunggu Kepala/Wakil PP',
             'disetujui' => 'Disetujui',
-            'revisi_dosen' => 'Revisi Dosen Pembina',
+            'revisi_kaprodi' => 'Revisi Kepala Program Studi',
             'revisi_dekan' => 'Revisi Dekan',
             'revisi_bauak' => 'Revisi BAUAK',
             'revisi_warek3' => 'Revisi Wakil Rektor III',
             'revisi_rektor' => 'Revisi Rektor',
-            'ditolak_dosen' => 'Ditolak Dosen Pembina',
+            'ditolak_kaprodi' => 'Ditolak Kepala Program Studi',
             'ditolak_dekan' => 'Ditolak Dekan',
             'ditolak_bauak' => 'Ditolak BAUAK',
             'ditolak_warek3' => 'Ditolak Wakil Rektor III',
@@ -286,8 +291,8 @@ class PengajuanKegiatan extends Model
         if ($user->isOrmawa()) {
             return in_array($this->status, [
                 'draft',
-                'menunggu_dosen',
-                'revisi_dosen',
+                'menunggu_kaprodi',
+                'revisi_kaprodi',
                 'revisi_dekan',
                 'revisi_bauak',
                 'revisi_warek3',
@@ -327,7 +332,7 @@ class PengajuanKegiatan extends Model
     public function isPending(): bool
     {
         return in_array($this->status, [
-            'menunggu_dosen',
+            'menunggu_kaprodi',
             'menunggu_dekan',
             'menunggu_bauak',
             'menunggu_warek3',

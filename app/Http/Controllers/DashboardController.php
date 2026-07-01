@@ -6,7 +6,7 @@ use App\Models\PengajuanKegiatan;
 use App\Models\VerifikasiBauak;
 use App\Models\PersetujuanWarek3;
 use App\Models\PersetujuanDekan;
-use App\Models\VerifikasiDosen;
+use App\Models\PersetujuanKaprodi;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -21,8 +21,8 @@ class DashboardController extends Controller
                 return redirect()->route('mahasiswa.dashboard');
             case 'ormawa':
                 return $this->dashboardOrmawa();
-            case 'dosen':
-                return $this->dashboardDosen();
+            case 'kaprodi':
+                return $this->dashboardKaprodi();
             case 'dekan':
                 return $this->dashboardDekan();
             case 'bauak':
@@ -62,13 +62,13 @@ class DashboardController extends Controller
             'total_pengajuan' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->count(),
             'draft' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->where('status', 'draft')->count(),
             'menunggu_verifikasi' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)
-                ->whereIn('status', ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'menunggu_pp'])
+                ->whereIn('status', ['menunggu_kaprodi', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'menunggu_pp'])
                 ->count(),
             'disetujui' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)
                 ->where('status', 'disetujui')
                 ->count(),
             'ditolak' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->ditolak()->count(),
-            'revisi' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->whereIn('status', ['revisi_dosen','revisi_dekan','revisi_bauak','revisi_warek3','revisi_rektor'])->count(),
+            'revisi' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->whereIn('status', ['revisi_kaprodi','revisi_dekan','revisi_bauak','revisi_warek3','revisi_rektor'])->count(),
 
         ];
 
@@ -145,42 +145,6 @@ class DashboardController extends Controller
         return view('dashboard.warek3', compact('stats', 'pengajuanMenunggu', 'riwayatPersetujuan', 'statistikBulanan'));
     }
 
-    private function dashboardDosen()
-    {
-        // Dosen pembina melihat pengajuan Ormawa yang dia bina
-        $stats = [
-            'menunggu_persetujuan' => PengajuanKegiatan::whereIn('status', ['menunggu_dosen', 'revisi_dosen'])
-                ->whereHas('ormawa', function ($query) {
-                    $query->where('pembina', Auth::user()->nama)
-                          ->orWhere('pembina_user_id', Auth::id());
-                })
-                ->count(),
-            'disetujui' => VerifikasiDosen::where('status', 'disetujui')
-                ->where('user_dosen_id', Auth::id())
-                ->count(),
-            'ditolak' => VerifikasiDosen::where('status', 'ditolak')
-                ->where('user_dosen_id', Auth::id())
-                ->count(),
-            'revisi' => PengajuanKegiatan::where('status', 'revisi_dosen')
-                ->whereHas('ormawa', function ($query) {
-                    $query->where('pembina', Auth::user()->nama)
-                          ->orWhere('pembina_user_id', Auth::id());
-                })
-                ->count(),
-        ];
-
-        $pengajuanMenunggu = PengajuanKegiatan::with('ormawa')
-            ->whereIn('status', ['menunggu_dosen', 'revisi_dosen'])
-            ->whereHas('ormawa', function ($query) {
-                $query->where('pembina', Auth::user()->nama)
-                      ->orWhere('pembina_user_id', Auth::id());
-            })
-            ->latest()
-            ->paginate(10);
-
-        return view('dashboard.dosen', compact('stats', 'pengajuanMenunggu'));
-    }
-
     private function dashboardDekan()
     {
         $fakultasId = Auth::user()->fakultas_id;
@@ -216,6 +180,28 @@ class DashboardController extends Controller
         return view('dashboard.dekan', compact('stats', 'pengajuanMenunggu'));
     }
 
+    private function dashboardKaprodi()
+    {
+        $user = Auth::user();
+        $prodiId = $user->programStudiKaprodi?->kaprodi_user_id === $user->id ? $user->prodi_id : 0;
+        $owned = fn ($query) => $query->whereHas('ormawa', fn ($q) => $q->where('prodi_id', $prodiId));
+
+        $stats = [
+            'menunggu_persetujuan' => PengajuanKegiatan::whereIn('status', ['menunggu_kaprodi', 'revisi_kaprodi'])->where($owned)->count(),
+            'disetujui_hari_ini' => PersetujuanKaprodi::where('user_kaprodi_id', $user->id)->where('status', 'disetujui')->whereDate('tanggal_acc', today())->count(),
+            'total_disetujui' => PersetujuanKaprodi::where('user_kaprodi_id', $user->id)->where('status', 'disetujui')->count(),
+            'total_ormawa' => \App\Models\Ormawa::where('prodi_id', $prodiId)->count(),
+        ];
+
+        $pengajuanMenunggu = PengajuanKegiatan::with('ormawa')
+            ->whereIn('status', ['menunggu_kaprodi', 'revisi_kaprodi'])
+            ->where($owned)->latest()->paginate(5, ['*'], 'antrean_page');
+        $riwayatPersetujuan = PersetujuanKaprodi::with('pengajuanKegiatan.ormawa')
+            ->where('user_kaprodi_id', $user->id)->latest('tanggal_acc')->paginate(5, ['*'], 'riwayat_page');
+
+        return view('dashboard.kaprodi', compact('stats', 'pengajuanMenunggu', 'riwayatPersetujuan'));
+    }
+
     private function dashboardRektor()
     {
         // Rektor melihat semua pengajuan yang menunggu persetujuan akhir
@@ -244,7 +230,7 @@ class DashboardController extends Controller
             'menunggu_persetujuan' => PengajuanKegiatan::where('status', 'menunggu_pp')->count(),
             'disetujui' => PengajuanKegiatan::where('status', 'disetujui')->count(),
             'ditolak' => PengajuanKegiatan::ditolak()->count(),
-            'perlu_revisi' => PengajuanKegiatan::whereIn('status', ['revisi_dosen', 'revisi_dekan', 'revisi_bauak', 'revisi_warek3', 'revisi_rektor'])->count(),
+            'perlu_revisi' => PengajuanKegiatan::whereIn('status', ['revisi_kaprodi', 'revisi_dekan', 'revisi_bauak', 'revisi_warek3', 'revisi_rektor'])->count(),
         ];
 
         $pengajuanTerbaru = PengajuanKegiatan::with('ormawa')
@@ -265,9 +251,9 @@ class DashboardController extends Controller
             'total_ormawa' => \App\Models\Ormawa::count(),
             'total_pengajuan' => PengajuanKegiatan::count(),
 
-            'pengajuan_pending' => PengajuanKegiatan::whereIn('status', ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'menunggu_pp'])->count(),
+            'pengajuan_pending' => PengajuanKegiatan::whereIn('status', ['menunggu_kaprodi', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'menunggu_pp'])->count(),
             'pengajuan_disetujui' => PengajuanKegiatan::where('status', 'disetujui')->count(),
-            'pengajuan_revisi' => PengajuanKegiatan::whereIn('status', ['revisi_dosen', 'revisi_dekan', 'revisi_bauak', 'revisi_warek3', 'revisi_rektor'])->count(),
+            'pengajuan_revisi' => PengajuanKegiatan::whereIn('status', ['revisi_kaprodi', 'revisi_dekan', 'revisi_bauak', 'revisi_warek3', 'revisi_rektor'])->count(),
             'pengajuan_ditolak' => PengajuanKegiatan::ditolak()->count(),
 
         ];

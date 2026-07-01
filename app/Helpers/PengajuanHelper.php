@@ -83,7 +83,7 @@ class PengajuanHelper
         self::applyRoleFilter($query);
 
         $pending = [
-            'menunggu_dosen',
+            'menunggu_kaprodi',
             'menunggu_dekan',
             'menunggu_bauak',
             'menunggu_warek3',
@@ -92,7 +92,7 @@ class PengajuanHelper
         ];
 
         $revisi = [
-            'revisi_dosen',
+            'revisi_kaprodi',
             'revisi_dekan',
             'revisi_bauak',
             'revisi_warek3',
@@ -133,11 +133,9 @@ class PengajuanHelper
     ) {
         $query = User::where('role', $role)->where('is_active', true);
 
-        if ($role === 'dosen') {
-            $query->where(function($q) use ($pengajuan) {
-                $q->where('id', $pengajuan->ormawa->pembina_user_id)
-                  ->orWhere('nama', $pengajuan->ormawa->pembina);
-            });
+        if ($role === 'kaprodi') {
+            $query->where('prodi_id', $pengajuan->ormawa->prodi_id)
+                ->where('id', $pengajuan->ormawa->programStudi?->kaprodi_user_id);
         } elseif ($role === 'dekan') {
             if ($pengajuan->ormawa->fakultas_id) {
                 $query->where('fakultas_id', $pengajuan->ormawa->fakultas_id);

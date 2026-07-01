@@ -2,16 +2,17 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
         Schema::table('ormawa', function (Blueprint $table) {
-            if (!Schema::hasColumn('ormawa', 'jenis_ormawa')) {
-                $table->enum('jenis_ormawa', ['fakultas', 'universitas'])->default('fakultas')->after('pembina');
+            if (! Schema::hasColumn('ormawa', 'jenis_ormawa')) {
+                $column = $table->enum('jenis_ormawa', ['fakultas', 'universitas'])->default('fakultas');
+                $column->after(Schema::hasColumn('ormawa', 'pembina') ? 'pembina' : 'ketua');
             }
         });
 

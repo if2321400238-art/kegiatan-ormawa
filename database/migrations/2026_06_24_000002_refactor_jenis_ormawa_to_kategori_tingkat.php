@@ -2,23 +2,24 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
         Schema::table('ormawa', function (Blueprint $table) {
-            if (!Schema::hasColumn('ormawa', 'kategori_organisasi')) {
-                $table->enum('kategori_organisasi', ['internal', 'eksternal'])->default('internal')->after('pembina');
+            if (! Schema::hasColumn('ormawa', 'kategori_organisasi')) {
+                $column = $table->enum('kategori_organisasi', ['internal', 'eksternal'])->default('internal');
+                $column->after(Schema::hasColumn('ormawa', 'pembina') ? 'pembina' : 'ketua');
             }
 
-            if (!Schema::hasColumn('ormawa', 'tingkat_organisasi')) {
-                $table->enum('tingkat_organisasi', ['universitas', 'fakultas'])->nullable()->after('kategori_organisasi');
+            if (! Schema::hasColumn('ormawa', 'tingkat_organisasi')) {
+                $table->enum('tingkat_organisasi', ['universitas', 'fakultas', 'prodi'])->nullable()->after('kategori_organisasi');
             }
 
-            if (!Schema::hasColumn('ormawa', 'fakultas_id')) {
+            if (! Schema::hasColumn('ormawa', 'fakultas_id')) {
                 $table->unsignedBigInteger('fakultas_id')->nullable()->after('tingkat_organisasi');
                 $table->index('fakultas_id');
             }
@@ -46,7 +47,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('ormawa', function (Blueprint $table) {
-            if (!Schema::hasColumn('ormawa', 'jenis_ormawa')) {
+            if (! Schema::hasColumn('ormawa', 'jenis_ormawa')) {
                 $table->enum('jenis_ormawa', ['fakultas', 'universitas', 'eksternal'])->default('fakultas')->after('pembina');
             }
         });

@@ -18,6 +18,7 @@ class User extends Authenticatable
         'must_change_password',
         'role',
         'fakultas_id',
+        'prodi_id',
         'nama',
         'nim',
         'nidn',
@@ -55,6 +56,11 @@ class User extends Authenticatable
     public function notifikasi()
     {
         return $this->hasMany(Notifikasi::class);
+    }
+
+    public function telegramConnectionCode()
+    {
+        return $this->hasOne(TelegramConnectionCode::class);
     }
 
     public function logAktivitas()
@@ -113,7 +119,7 @@ class User extends Authenticatable
 
     public const ROLE_ADMIN = 'admin';
 
-    public const ROLE_DOSEN = 'dosen';
+    public const ROLE_KAPRODI = 'kaprodi';
 
     public const ROLE_DEKAN = 'dekan';
 
@@ -129,7 +135,7 @@ class User extends Authenticatable
             self::ROLE_BAUAK,
             self::ROLE_WAREK3,
             self::ROLE_ADMIN,
-            self::ROLE_DOSEN,
+            self::ROLE_KAPRODI,
             self::ROLE_DEKAN,
             self::ROLE_REKTOR,
             self::ROLE_PP,
@@ -160,9 +166,9 @@ class User extends Authenticatable
         return $this->role === self::ROLE_WAREK3;
     }
 
-    public function isDosen(): bool
+    public function isKaprodi(): bool
     {
-        return $this->role === self::ROLE_DOSEN;
+        return $this->role === self::ROLE_KAPRODI;
     }
 
     public function isDekan(): bool
@@ -190,6 +196,11 @@ class User extends Authenticatable
         return $this->belongsTo(\App\Models\Fakultas::class);
     }
 
+    public function programStudiKaprodi()
+    {
+        return $this->belongsTo(ProgramStudi::class, 'prodi_id');
+    }
+
     public function hasRole(string $role): bool
     {
         return $this->role === $role;
@@ -212,7 +223,7 @@ class User extends Authenticatable
             self::ROLE_BAUAK => 'BAUAK',
             self::ROLE_WAREK3 => 'Wakil Rektor III',
             self::ROLE_ADMIN => 'Administrator',
-            self::ROLE_DOSEN => 'Dosen Pembina',
+            self::ROLE_KAPRODI => 'Kepala Program Studi',
             self::ROLE_DEKAN => 'Dekan',
             self::ROLE_REKTOR => 'Rektor',
             self::ROLE_PP => 'Kepala/Wakil PP',

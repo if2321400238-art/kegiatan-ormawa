@@ -68,13 +68,13 @@
                         <select name="status" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:bg-white transition-colors appearance-none">
                             <option value="">Semua Status</option>
                             <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
-                            <option value="menunggu_dosen" {{ request('status') == 'menunggu_dosen' ? 'selected' : '' }}>Menunggu Dosen Pembina</option>
+                            <option value="menunggu_kaprodi" {{ request('status') == 'menunggu_kaprodi' ? 'selected' : '' }}>Menunggu Kaprodi</option>
                             <option value="menunggu_dekan" {{ request('status') == 'menunggu_dekan' ? 'selected' : '' }}>Menunggu Dekan</option>
                             <option value="menunggu_bauak" {{ request('status') == 'menunggu_bauak' ? 'selected' : '' }}>Menunggu BAUAK</option>
                             <option value="menunggu_warek3" {{ request('status') == 'menunggu_warek3' ? 'selected' : '' }}>Menunggu Wakil Rektor III</option>
                             <option value="menunggu_rektor" {{ request('status') == 'menunggu_rektor' ? 'selected' : '' }}>Menunggu Rektor</option>
                             <option value="menunggu_pp" {{ request('status') == 'menunggu_pp' ? 'selected' : '' }}>Menunggu Kepala/Wakil PP</option>
-                            <option value="revisi_dosen" {{ request('status') == 'revisi_dosen' ? 'selected' : '' }}>Revisi Dosen Pembina</option>
+                            <option value="revisi_kaprodi" {{ request('status') == 'revisi_kaprodi' ? 'selected' : '' }}>Revisi Kaprodi</option>
                             <option value="revisi_dekan" {{ request('status') == 'revisi_dekan' ? 'selected' : '' }}>Revisi Dekan</option>
                             <option value="revisi_bauak" {{ request('status') == 'revisi_bauak' ? 'selected' : '' }}>Revisi BAUAK</option>
                             <option value="revisi_warek3" {{ request('status') == 'revisi_warek3' ? 'selected' : '' }}>Revisi Wakil Rektor III</option>
@@ -191,19 +191,19 @@
                                     @php
                                                     $statusClass = match($item->status) {
                                             'draft' => 'badge-gray',
-                                            'menunggu_dosen',
+                                            'menunggu_kaprodi',
                                             'menunggu_dekan',
                                             'menunggu_bauak',
                                             'menunggu_warek3',
                                             'menunggu_rektor' => 'badge-warning',
                                             'menunggu_pp' => 'badge-warning',
                                             'disetujui' => 'badge-success',
-                                            'revisi_dosen',
+                                            'revisi_kaprodi',
                                             'revisi_dekan',
                                             'revisi_bauak',
                                             'revisi_warek3',
                                             'revisi_rektor' => 'badge-orange',
-                                            'ditolak_dosen',
+                                            'ditolak_kaprodi',
                                             'ditolak_dekan',
                                             'ditolak_bauak',
                                             'ditolak_warek3',
@@ -242,19 +242,19 @@
                         @php
                             $statusClass = match($item->status) {
                                 'draft' => 'badge-gray',
-                                'menunggu_dosen',
+                                'menunggu_kaprodi',
                                 'menunggu_dekan',
                                 'menunggu_bauak',
                                 'menunggu_warek3',
                                 'menunggu_rektor' => 'badge-warning',
                                 'menunggu_pp' => 'badge-warning',
                                 'disetujui' => 'badge-success',
-                                'revisi_dosen',
+                                'revisi_kaprodi',
                                 'revisi_dekan',
                                 'revisi_bauak',
                                 'revisi_warek3',
                                 'revisi_rektor' => 'badge-orange',
-                                'ditolak_dosen',
+                                'ditolak_kaprodi',
                                 'ditolak_dekan',
                                 'ditolak_bauak',
                                 'ditolak_warek3',

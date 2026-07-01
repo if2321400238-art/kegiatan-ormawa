@@ -24,8 +24,8 @@ return new class extends Migration
             $table->string('nama_pemohon');
             $table->enum('status', [
                 'draft',
-                'menunggu_dosen',
-                'revisi_dosen',
+                'menunggu_kaprodi',
+                'revisi_kaprodi',
                 'menunggu_dekan',
                 'revisi_dekan',
                 'menunggu_bauak',
@@ -36,6 +36,7 @@ return new class extends Migration
                 'revisi_rektor',
                 'disetujui',
                 'ditolak',
+                'ditolak_kaprodi',
                 'selesai'
             ])->default('draft');
             $table->text('catatan')->nullable();

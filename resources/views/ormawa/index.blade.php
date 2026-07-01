@@ -44,7 +44,7 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="ti ti-search text-gray-400"></i>
                         </div>
-                        <input type="text" name="search" placeholder="Cari nama ormawa, ketua, atau pembina..."
+                        <input type="text" name="search" placeholder="Cari nama ormawa atau ketua..."
                             value="{{ request('search') }}"
                             class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors">
                     </div>
@@ -71,7 +71,6 @@
                             <th style="width: 60px;">No</th>
                             <th>Nama Ormawa</th>
                             <th>Ketua</th>
-                            <th>Pembina</th>
                             <th>Kontak</th>
                             <th style="width: 120px;">Aksi</th>
                         </tr>
@@ -88,11 +87,6 @@
                                 <td>
                                     <div class="text-[13px] text-gray-700 flex items-center gap-1.5">
                                         <i class="ti ti-user text-gray-400"></i> {{ $item->ketua }}
-                                    </div>
-                                </td>
-                                <td>
-                                    <div class="text-[13px] text-gray-700 flex items-center gap-1.5">
-                                        <i class="ti ti-shield-check text-gray-400"></i> {{ $item->pembina }}
                                     </div>
                                 </td>
                                 <td>
@@ -144,10 +138,6 @@
                                 <div class="flex items-center gap-2 text-gray-700">
                                     <i class="ti ti-user text-gray-400 w-4"></i>
                                     <span><span class="text-gray-400">Ketua:</span> {{ $item->ketua }}</span>
-                                </div>
-                                <div class="flex items-center gap-2 text-gray-700">
-                                    <i class="ti ti-shield-check text-gray-400 w-4"></i>
-                                    <span><span class="text-gray-400">Pembina:</span> {{ $item->pembina }}</span>
                                 </div>
                                 <div class="flex items-center gap-2 text-gray-700">
                                     <i class="ti ti-phone text-gray-400 w-4"></i>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Fakultas;
 use App\Models\Ormawa;
+use App\Models\ProgramStudi;
 use App\Models\User;
 use App\Services\UnujaMahasiswaService;
 use Illuminate\Http\Request;
@@ -22,15 +23,15 @@ class OrmawaController extends Controller
 
     public function create()
     {
-        $dosenList = User::where('role', 'dosen')->get();
         $fakultas = Fakultas::all();
+        $programStudi = ProgramStudi::with('fakultas')->orderBy('is_lainnya')->orderBy('nama')->get();
 
         $routePrefix = auth()->user()->role === 'bauak' ? 'bauak.' : 'admin.';
         $submitRoute = route($routePrefix.'ormawa.store');
         $backRoute = route($routePrefix.'ormawa.index');
         $searchMahasiswaRoute = route($routePrefix.'ormawa.search-mahasiswa');
 
-        return view('ormawa.create', compact('dosenList', 'fakultas', 'submitRoute', 'backRoute', 'searchMahasiswaRoute'));
+        return view('ormawa.create', compact('fakultas', 'programStudi', 'submitRoute', 'backRoute', 'searchMahasiswaRoute'));
     }
 
     public function store(Request $request, UnujaMahasiswaService $mahasiswaService)
@@ -39,10 +40,11 @@ class OrmawaController extends Controller
             'nama_ormawa' => 'required|string|max:255',
             'ketua_nim' => 'nullable|string|max:30|required_without:user_id',
             'user_id' => 'nullable|exists:users,id|required_without:ketua_nim',
-            'pembina_user_id' => 'nullable|exists:users,id',
             'kategori_organisasi' => 'required|in:internal,eksternal',
-            'tingkat_organisasi' => 'nullable|in:universitas,fakultas',
+            'tingkat_organisasi' => 'nullable|in:universitas,fakultas,prodi',
             'fakultas_id' => 'nullable|exists:fakultas,id',
+            'prodi_id' => 'nullable|required_if:tingkat_organisasi,prodi|exists:program_studi,id',
+            'program_studi_lainnya' => 'nullable|string|max:255',
             'kontak' => 'nullable|string|max:20',
             'periode' => 'nullable|string|max:50',
         ]);
@@ -57,21 +59,26 @@ class OrmawaController extends Controller
             return back()->withErrors(['tingkat_organisasi' => 'Tingkat Organisasi harus diisi untuk organisasi internal.'])->withInput();
         }
 
-        if ($request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' && ! $request->filled('fakultas_id')) {
-            return back()->withErrors(['fakultas_id' => 'Fakultas harus dipilih untuk organisasi tingkat fakultas.'])->withInput();
+        if ($request->kategori_organisasi === 'internal' && in_array($request->tingkat_organisasi, ['fakultas', 'prodi']) && ! $request->filled('fakultas_id')) {
+            return back()->withErrors(['fakultas_id' => 'Fakultas harus dipilih untuk organisasi tingkat fakultas atau prodi.'])->withInput();
         }
-
-        $pembinaUser = $request->pembina_user_id ? User::find($request->pembina_user_id) : null;
+        $selectedProdi = $request->filled('prodi_id') ? ProgramStudi::find($request->prodi_id) : null;
+        if ($selectedProdi?->is_lainnya && ! $request->filled('program_studi_lainnya')) {
+            return back()->withErrors(['program_studi_lainnya' => 'Nama prodi lainnya harus diisi.'])->withInput();
+        }
+        if ($selectedProdi && ! $selectedProdi->is_lainnya && (int) $selectedProdi->fakultas_id !== (int) $request->fakultas_id) {
+            return back()->withErrors(['fakultas_id' => 'Fakultas harus sesuai dengan program studi yang dipilih.'])->withInput();
+        }
 
         $ormawa = Ormawa::create([
             'user_id' => $ketuaUserId,
             'nama_ormawa' => $request->nama_ormawa,
             'ketua' => $ketuaUser->nama,
-            'pembina' => $pembinaUser?->nama,
-            'pembina_user_id' => $pembinaUser?->id,
             'kategori_organisasi' => $request->kategori_organisasi,
             'tingkat_organisasi' => $request->kategori_organisasi === 'internal' ? $request->tingkat_organisasi : null,
-            'fakultas_id' => $request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' ? $request->fakultas_id : null,
+            'fakultas_id' => $request->kategori_organisasi === 'internal' && in_array($request->tingkat_organisasi, ['fakultas', 'prodi']) ? $request->fakultas_id : null,
+            'prodi_id' => $request->tingkat_organisasi === 'prodi' ? $selectedProdi?->id : null,
+            'program_studi' => $request->tingkat_organisasi === 'prodi' ? ($selectedProdi?->is_lainnya ? $request->program_studi_lainnya : $selectedProdi?->nama) : null,
             'kontak' => $request->kontak,
             'periode' => $request->periode,
         ]);
@@ -103,8 +110,8 @@ class OrmawaController extends Controller
     {
         // Using $pengajuan as parameter name but it's actually Ormawa
         $ormawa = $pengajuan;
-        $dosenList = User::where('role', 'dosen')->get();
         $fakultas = Fakultas::all();
+        $programStudi = ProgramStudi::with('fakultas')->orderBy('is_lainnya')->orderBy('nama')->get();
 
         $role = auth()->user()->role;
         $submitRoute = $role === 'bauak'
@@ -118,7 +125,7 @@ class OrmawaController extends Controller
             ? route('bauak.ormawa.search-mahasiswa')
             : route('admin.ormawa.search-mahasiswa');
 
-        return view('ormawa.edit', compact('ormawa', 'dosenList', 'fakultas', 'submitRoute', 'backRoute', 'searchMahasiswaRoute'));
+        return view('ormawa.edit', compact('ormawa', 'fakultas', 'programStudi', 'submitRoute', 'backRoute', 'searchMahasiswaRoute'));
     }
 
     public function update(Request $request, Ormawa $pengajuan, UnujaMahasiswaService $mahasiswaService)
@@ -128,10 +135,11 @@ class OrmawaController extends Controller
             'nama_ormawa' => 'required|string|max:255',
             'ketua_nim' => 'nullable|string|max:30|required_without:user_id',
             'user_id' => 'nullable|exists:users,id|required_without:ketua_nim',
-            'pembina_user_id' => 'nullable|exists:users,id',
             'kategori_organisasi' => 'required|in:internal,eksternal',
-            'tingkat_organisasi' => 'nullable|in:universitas,fakultas',
+            'tingkat_organisasi' => 'nullable|in:universitas,fakultas,prodi',
             'fakultas_id' => 'nullable|exists:fakultas,id',
+            'prodi_id' => 'nullable|required_if:tingkat_organisasi,prodi|exists:program_studi,id',
+            'program_studi_lainnya' => 'nullable|string|max:255',
             'kontak' => 'nullable|string|max:20',
             'periode' => 'nullable|string|max:50',
             'deskripsi' => 'nullable|string',
@@ -147,22 +155,27 @@ class OrmawaController extends Controller
             return back()->withErrors(['tingkat_organisasi' => 'Tingkat Organisasi harus diisi untuk organisasi internal.'])->withInput();
         }
 
-        if ($request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' && ! $request->filled('fakultas_id')) {
-            return back()->withErrors(['fakultas_id' => 'Fakultas harus dipilih untuk organisasi tingkat fakultas.'])->withInput();
+        if ($request->kategori_organisasi === 'internal' && in_array($request->tingkat_organisasi, ['fakultas', 'prodi']) && ! $request->filled('fakultas_id')) {
+            return back()->withErrors(['fakultas_id' => 'Fakultas harus dipilih untuk organisasi tingkat fakultas atau prodi.'])->withInput();
+        }
+        $selectedProdi = $request->filled('prodi_id') ? ProgramStudi::find($request->prodi_id) : null;
+        if ($selectedProdi?->is_lainnya && ! $request->filled('program_studi_lainnya')) {
+            return back()->withErrors(['program_studi_lainnya' => 'Nama prodi lainnya harus diisi.'])->withInput();
+        }
+        if ($selectedProdi && ! $selectedProdi->is_lainnya && (int) $selectedProdi->fakultas_id !== (int) $request->fakultas_id) {
+            return back()->withErrors(['fakultas_id' => 'Fakultas harus sesuai dengan program studi yang dipilih.'])->withInput();
         }
 
-        $pembinaUser = $request->pembina_user_id ? User::find($request->pembina_user_id) : null;
-
-        DB::transaction(function () use ($ormawa, $request, $ketuaUser, $ketuaUserId, $pembinaUser) {
+        DB::transaction(function () use ($ormawa, $request, $ketuaUser, $ketuaUserId, $selectedProdi) {
             $ormawa->update([
                 'user_id' => $ketuaUserId,
                 'nama_ormawa' => $request->nama_ormawa,
                 'ketua' => $ketuaUser->nama,
-                'pembina' => $pembinaUser?->nama,
-                'pembina_user_id' => $pembinaUser?->id,
                 'kategori_organisasi' => $request->kategori_organisasi,
                 'tingkat_organisasi' => $request->kategori_organisasi === 'internal' ? $request->tingkat_organisasi : null,
-                'fakultas_id' => $request->kategori_organisasi === 'internal' && $request->tingkat_organisasi === 'fakultas' ? $request->fakultas_id : null,
+                'fakultas_id' => $request->kategori_organisasi === 'internal' && in_array($request->tingkat_organisasi, ['fakultas', 'prodi']) ? $request->fakultas_id : null,
+                'prodi_id' => $request->tingkat_organisasi === 'prodi' ? $selectedProdi?->id : null,
+                'program_studi' => $request->tingkat_organisasi === 'prodi' ? ($selectedProdi?->is_lainnya ? $request->program_studi_lainnya : $selectedProdi?->nama) : null,
                 'kontak' => $request->kontak,
                 'periode' => $request->periode,
                 'deskripsi' => $request->deskripsi,

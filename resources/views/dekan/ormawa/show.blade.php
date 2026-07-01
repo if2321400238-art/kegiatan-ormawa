@@ -29,12 +29,6 @@
 
                 <div class="space-y-4 text-[13px]">
                     <div class="flex flex-col gap-1 border-b border-gray-50 pb-3">
-                        <span class="text-gray-500 font-medium">Pembina</span>
-                        <span class="text-gray-900 font-semibold flex items-center gap-2">
-                            <i class="ti ti-star text-gray-400"></i> {{ $ormawa->pembina ?? '-' }}
-                        </span>
-                    </div>
-                    <div class="flex flex-col gap-1 border-b border-gray-50 pb-3">
                         <span class="text-gray-500 font-medium">Ketua</span>
                         <span class="text-gray-900 font-semibold flex items-center gap-2">
                             <i class="ti ti-user text-gray-400"></i> {{ $ormawa->ketua }}

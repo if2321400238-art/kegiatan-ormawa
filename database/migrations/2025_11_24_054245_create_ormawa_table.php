@@ -16,7 +16,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('nama_ormawa');
             $table->string('ketua');
-            $table->string('pembina')->nullable();
             $table->string('kop_surat')->nullable(); // path to file
             $table->string('kontak')->nullable();
             $table->text('deskripsi')->nullable();

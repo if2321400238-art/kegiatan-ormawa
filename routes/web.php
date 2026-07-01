@@ -4,7 +4,7 @@ use App\Http\Controllers\{
     DashboardController,
     PengajuanKegiatanController,
     VerifikasiBauakController,
-    VerifikasiDosenController,
+    PersetujuanKaprodiController,
     PersetujuanDekanController,
     PersetujuanRektorController,
     PersetujuanPpController,
@@ -16,10 +16,15 @@ use App\Http\Controllers\{
     FakultasController,
     DekanController,
     MahasiswaController,
+    AkademikController,
+    ProgramStudiController,
+    KaprodiController,
     MahasiswaDashboardController,
+    LpjController,
+    VerifikasiLpjController,
+    TelegramConnectionController,
     LaporanController,
     Proposal\ProposalController,
-    Dosen\OrmawaBinaanController,
     Dekan\OrmawaFakultasController
 };
 use Illuminate\Support\Facades\Route;
@@ -28,6 +33,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::post('/telegram/webhook', [TelegramConnectionController::class, 'webhook'])
+    ->name('telegram.webhook');
 
 // Auth routes (handled by Laravel Breeze)
 require __DIR__ . '/auth.php';
@@ -43,6 +51,8 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('update');
         Route::delete('/', [ProfileController::class, 'destroy'])->name('destroy');
+        Route::post('/telegram/otp', [TelegramConnectionController::class, 'generate'])->name('telegram.generate');
+        Route::delete('/telegram', [TelegramConnectionController::class, 'disconnect'])->name('telegram.disconnect');
     });
 
     // Notifications
@@ -54,6 +64,21 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
     });
 
 
+
+    // ==========================================
+    // LAPORAN PERTANGGUNGJAWABAN
+    Route::middleware('role:ormawa|mahasiswa|bauak|kaprodi|dekan|warek3|rektor|pp|admin')
+        ->prefix('lpj')->name('lpj.')->group(function () {
+            Route::get('/', [LpjController::class, 'index'])->name('index');
+            Route::middleware(['role:ormawa|mahasiswa', 'active.ormawa'])->group(function () {
+                Route::get('/kegiatan/{pengajuan}/create', [LpjController::class, 'create'])->name('create');
+                Route::post('/kegiatan/{pengajuan}', [LpjController::class, 'store'])->name('store');
+                Route::get('/{lpj}/edit', [LpjController::class, 'edit'])->name('edit');
+                Route::patch('/{lpj}', [LpjController::class, 'update'])->name('update');
+                Route::delete('/{lpj}/lampiran/{lampiran}', [LpjController::class, 'destroyAttachment'])->name('lampiran.destroy');
+            });
+            Route::get('/{lpj}', [LpjController::class, 'show'])->name('show');
+        });
 
     // ==========================================
     // PROPOSAL KEGIATAN MODULE ROUTES
@@ -83,7 +108,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
     //     Route::get('/print/view', [PengajuanKegiatanController::class, 'printView'])->name('printView');
     // });
 
-    Route::middleware(['auth', 'role:ormawa|bauak|dosen|dekan|warek3|rektor|admin|pp|mahasiswa'])
+    Route::middleware(['auth', 'role:ormawa|bauak|kaprodi|dekan|warek3|rektor|admin|pp|mahasiswa'])
     ->prefix('pengajuan')
     ->name('pengajuan.')
     ->group(function () {
@@ -116,17 +141,14 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
 
 
     // ==========================================
-    // DOSEN ROUTES
-    Route::middleware(['role:dosen'])->prefix('dosen')->name('dosen.')->group(function () {
-        Route::prefix('ormawa-binaan')->name('ormawa.')->group(function () {
-            Route::get('/', [OrmawaBinaanController::class, 'index'])->name('index');
-            Route::get('/{ormawa}', [OrmawaBinaanController::class, 'show'])->name('show');
-        });
-
-        Route::prefix('verifikasi')->name('verifikasi.')->group(function () {
-            Route::get('/', [VerifikasiDosenController::class, 'index'])->name('index');
-            Route::get('/{pengajuan}', [VerifikasiDosenController::class, 'show'])->name('show');
-            Route::post('/{pengajuan}/verify', [VerifikasiDosenController::class, 'verify'])->name('verify');
+    // KAPRODI ROUTES
+    Route::middleware(['role:kaprodi'])->prefix('kaprodi')->name('kaprodi.')->group(function () {
+        Route::get('/ormawa', [PersetujuanKaprodiController::class, 'ormawaIndex'])->name('ormawa.index');
+        Route::get('/ormawa/{ormawa}', [PersetujuanKaprodiController::class, 'ormawaShow'])->name('ormawa.show');
+        Route::prefix('persetujuan')->name('persetujuan.')->group(function () {
+            Route::get('/', [PersetujuanKaprodiController::class, 'index'])->name('index');
+            Route::get('/{pengajuan}', [PersetujuanKaprodiController::class, 'show'])->name('show');
+            Route::post('/{pengajuan}', [PersetujuanKaprodiController::class, 'decide'])->name('decide');
         });
     });
 
@@ -171,6 +193,11 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
     // ==========================================
     Route::middleware(['role:bauak'])->prefix('bauak')->name('bauak.')->group(function () {
 
+        Route::prefix('lpj')->name('lpj.')->group(function () {
+            Route::get('/', [VerifikasiLpjController::class, 'index'])->name('index');
+            Route::post('/{lpj}/keputusan', [VerifikasiLpjController::class, 'decide'])->name('decide');
+        });
+
         // Verifikasi Pengajuan
         Route::prefix('verifikasi')->name('verifikasi.')->group(function () {
             Route::get('/', [VerifikasiBauakController::class, 'index'])->name('index');
@@ -179,7 +206,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
             Route::post('/bulk-verify', [VerifikasiBauakController::class, 'bulkVerify'])->name('bulk-verify');
         });
 
-        // Kelola Dosen Pembina Ormawa
+        // Kelola Ormawa
         Route::prefix('ormawa')->name('ormawa.')->group(function () {
             // Search route HARUS sebelum route dinamis
             Route::get('/search/mahasiswa', [OrmawaController::class, 'searchMahasiswa'])->name('search-mahasiswa');
@@ -270,6 +297,9 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
 
         Route::resource('fakultas', FakultasController::class)->except(['show']);
         Route::resource('dekan', DekanController::class)->except(['show']);
+        Route::get('akademik', [AkademikController::class, 'index'])->name('akademik.index');
+        Route::resource('prodi', ProgramStudiController::class)->except(['show']);
+        Route::resource('kaprodi', KaprodiController::class)->except(['show']);
         Route::get('mahasiswa', [MahasiswaController::class, 'index'])->name('mahasiswa.index');
         Route::post('mahasiswa/{mahasiswa}/reset-password', [MahasiswaController::class, 'resetPassword'])
             ->name('mahasiswa.reset-password');

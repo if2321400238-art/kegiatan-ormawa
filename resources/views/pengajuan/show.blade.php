@@ -6,10 +6,17 @@
             <h2 class="text-lg font-semibold text-gray-900">Detail Pengajuan Kegiatan</h2>
             <p class="text-[12px] text-gray-500">Lihat detail dan pantau status pengajuan</p>
         </div>
+        <div class="flex gap-2 w-full sm:w-auto">
+        @if(in_array(auth()->user()->role, ['ormawa','mahasiswa']) && $pengajuan->status === 'disetujui' && !$pengajuan->lpj)
+            <a href="{{ route('lpj.create',$pengajuan) }}" class="px-4 py-2 bg-brand text-white rounded-lg text-[13px] font-medium">Buat LPJ</a>
+        @elseif($pengajuan->lpj)
+            <a href="{{ route('lpj.show',$pengajuan->lpj) }}" class="px-4 py-2 bg-brand text-white rounded-lg text-[13px] font-medium">Lihat LPJ</a>
+        @endif
         <a href="{{ route('pengajuan.index') }}"
             class="w-full sm:w-auto px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-[13px] font-medium flex items-center justify-center gap-2">
             <i class="ti ti-arrow-left"></i> Kembali
         </a>
+        </div>
     </div>
 
     {{-- Status Timeline --}}
@@ -19,11 +26,11 @@
         </h3>
 
         <div class="hidden md:flex items-center justify-between mb-2">
-            {{-- Step 1: Menunggu Dosen Pembina --}}
+            {{-- Step 1: Menunggu Kaprodi (khusus Ormawa Prodi) --}}
             <div class="flex-1 text-center relative z-10">
                 @php
                     $isStep1Active = in_array($pengajuan->status, [
-                        'menunggu_dosen',
+                        'menunggu_kaprodi',
                         'menunggu_dekan',
                         'menunggu_bauak',
                         'menunggu_warek3',
@@ -36,7 +43,7 @@
                     <i class="ti {{ $isStep1Active ? 'ti-check' : 'ti-send' }} text-xl"></i>
                 </div>
                 <div class="mt-2 text-[12px] font-bold {{ $isStep1Active ? 'text-gray-900' : 'text-gray-400' }}">
-                    Menunggu Dosen Pembina</div>
+                    Menunggu Kaprodi</div>
             </div>
 
             {{-- Connector --}}
@@ -100,11 +107,11 @@
         <div class="md:hidden space-y-4">
             <div class="flex items-start gap-3">
                 <div
-                    class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 {{ in_array($pengajuan->status, ['menunggu_dosen', 'menunggu_warek3', 'menunggu_rektor', 'disetujui']) ? 'bg-success text-white' : 'bg-gray-100 text-gray-400' }}">
+                    class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 {{ in_array($pengajuan->status, ['menunggu_kaprodi', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'disetujui']) ? 'bg-success text-white' : 'bg-gray-100 text-gray-400' }}">
                     <i class="ti ti-check"></i>
                 </div>
                 <div>
-                    <p class="text-[13px] font-bold text-gray-900">Menunggu Dosen Pembina</p>
+                    <p class="text-[13px] font-bold text-gray-900">Persetujuan Kaprodi</p>
                     <p class="text-[11px] text-gray-500">Pengajuan telah dikirim</p>
                 </div>
             </div>
@@ -112,7 +119,7 @@
             <div class="flex items-start gap-3">
                 <div
                     class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
-                    {{ in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']) ? 'bg-success text-white' : ($pengajuan->status == 'menunggu_dosen' ? 'bg-warning text-white' : ($pengajuan->status == 'revisi_bauak' ? 'bg-orange text-white' : ($pengajuan->status == 'ditolak_bauak' ? 'bg-danger text-white' : 'bg-gray-100 text-gray-400'))) }}">
+                    {{ in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']) ? 'bg-success text-white' : ($pengajuan->status == 'menunggu_kaprodi' ? 'bg-warning text-white' : ($pengajuan->status == 'revisi_bauak' ? 'bg-orange text-white' : ($pengajuan->status == 'ditolak_bauak' ? 'bg-danger text-white' : 'bg-gray-100 text-gray-400'))) }}">
                     @if (in_array($pengajuan->status, ['menunggu_warek3', 'menunggu_rektor', 'disetujui']))
                         <i class="ti ti-check"></i>
                     @elseif($pengajuan->status == 'revisi_bauak')
@@ -150,14 +157,14 @@
             @php
                 $statusClass = match ($pengajuan->status) {
                     'draft' => 'badge-gray',
-                    'menunggu_dosen' => 'badge-warning',
+                    'menunggu_kaprodi' => 'badge-warning',
                     'menunggu_bauak' => 'badge-warning',
                     'menunggu_warek3' => 'badge-warning',
                     'menunggu_rektor' => 'badge-warning',
                     'menunggu_pp' => 'badge-warning',
                     'disetujui' => 'badge-success',
                     'revisi_bauak' => 'badge-orange',
-                    'ditolak_dosen',
+                    'ditolak_kaprodi',
                     'ditolak_dekan',
                     'ditolak_bauak',
                     'ditolak_warek3',
@@ -328,7 +335,7 @@
             {{-- Riwayat Verifikasi Gabungan Premium Timeline Layout --}}
             @php
                 // 1. Ambil semua koleksi riwayat verifikasi
-                $dosenLog = $pengajuan->verifikasiDosen ?? collect();
+                $kaprodiLog = $pengajuan->persetujuanKaprodi ?? collect();
                 $bauakLog = $pengajuan->verifikasiBauak ?? collect();
                 $warek3Log = $pengajuan->persetujuanWarek3 ?? collect();
                 $rektorLog = $pengajuan->persetujuanRektor ?? collect();
@@ -336,7 +343,7 @@
                 // 2. Gabungkan dan urutkan maju dari tahapan TERAWAL ke TERAKHIR
                 // Gunakan 'created_at' jika 'tanggal_verifikasi' pada beberapa log bernilai null
                 $semuaRiwayat = collect()
-                    ->merge($dosenLog)
+                    ->merge($kaprodiLog)
                     ->merge($bauakLog)
                     ->merge($warek3Log)
                     ->merge($rektorLog)
@@ -393,7 +400,7 @@
 
                                     // Label Cantik Jabatan
                                     $roleLabel = match ($roleClean) {
-                                        'dosen' => 'Dosen Pembina',
+                                        'kaprodi' => 'Kepala Program Studi',
                                         'bauak' => 'Staff BAUAK',
                                         'warek3' => 'Wakil Rektor III',
                                         'rektor' => 'Rektor',

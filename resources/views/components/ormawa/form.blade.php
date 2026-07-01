@@ -3,14 +3,16 @@
     'backRoute',
     'searchMahasiswaRoute',
     'ormawa' => null,
-    'dosenList' => [],
-    'fakultas' => []
+    'fakultas' => [],
+    'programStudi' => []
 ])
 
 @php
     $isEdit = !is_null($ormawa) && $ormawa->exists;
     $kategori = old('kategori_organisasi', $ormawa?->kategori_organisasi ?? '');
     $tingkat = old('tingkat_organisasi', $ormawa?->tingkat_organisasi ?? '');
+    $selectedProdiId = old('prodi_id', $ormawa?->prodi_id ?? '');
+    $selectedProdi = collect($programStudi)->firstWhere('id', (int) $selectedProdiId);
 
     // Prepare initial data for search component
     $initialKetuaId = old('user_id', $ormawa?->user_id ?? '');
@@ -158,43 +160,6 @@
         @enderror
     </div>
 
-    {{-- Dosen Pembina --}}
-    <div>
-        <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
-            <i class="ti ti-shield-check text-gray-400"></i> Dosen Pembina
-        </label>
-        <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
-                <i class="ti ti-shield-check text-gray-400"></i>
-            </div>
-            <select name="pembina_user_id"
-                class="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors appearance-none"
-                required>
-                <option value="">-- Pilih Dosen Pembina --</option>
-                @forelse($dosenList as $dosen)
-                    <option value="{{ $dosen->id }}"
-                        {{ old('pembina_user_id', $ormawa?->pembina_user_id ?? '') == $dosen->id ? 'selected' : '' }}>
-                        {{ $dosen->nama }}
-                        @if($dosen->nidn)
-                            — NIDN {{ $dosen->nidn }}
-                        @endif
-                        @if($dosen->program_studi)
-                            — {{ $dosen->program_studi }}
-                        @endif
-                    </option>
-                @empty
-                    <option disabled>Tidak ada dosen pembina yang terdaftar</option>
-                @endforelse
-            </select>
-            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
-                <i class="ti ti-chevron-down"></i>
-            </div>
-        </div>
-        @error('pembina_user_id')
-            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-        @enderror
-    </div>
-
     {{-- Kategori & Tingkat & Fakultas --}}
     <div x-data="{
             kategori: '{{ $kategori }}',
@@ -237,6 +202,7 @@
                     <option value="">-- Pilih Tingkat Organisasi --</option>
                     <option value="universitas">Universitas</option>
                     <option value="fakultas">Fakultas</option>
+                    <option value="prodi">Program Studi</option>
                 </select>
                 <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
                     <i class="ti ti-chevron-down"></i>
@@ -248,7 +214,7 @@
         </div>
 
         {{-- Fakultas --}}
-        <div x-show="kategori === 'internal' && tingkat === 'fakultas'" style="display: none;" x-transition>
+        <div x-show="kategori === 'internal' && ['fakultas', 'prodi'].includes(tingkat)" style="display: none;" x-transition>
             <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Fakultas</label>
             <div class="relative">
                 <select name="fakultas_id"
@@ -267,6 +233,27 @@
             @error('fakultas_id')
                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
             @enderror
+        </div>
+        <div x-show="kategori === 'internal' && tingkat === 'prodi'" style="display: none;" x-transition
+            x-data="{ prodiId: @js((string) $selectedProdiId), lainnyaId: @js((string) (collect($programStudi)->firstWhere('is_lainnya', true)?->id ?? '')) }">
+            <label class="block text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Program Studi</label>
+            <select name="prodi_id" x-model="prodiId" class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand">
+                <option value="">-- Pilih Program Studi --</option>
+                @foreach($programStudi->groupBy(fn ($prodi) => $prodi->fakultas?->nama ?? 'Lainnya') as $namaFakultas => $daftarProdi)
+                    <optgroup label="{{ $namaFakultas }}">
+                        @foreach($daftarProdi as $prodi)
+                            <option value="{{ $prodi->id }}">{{ $prodi->nama }} ({{ $prodi->kode }})</option>
+                        @endforeach
+                    </optgroup>
+                @endforeach
+            </select>
+            @error('prodi_id')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+            <div x-show="prodiId === lainnyaId" class="mt-3">
+                <input type="text" name="program_studi_lainnya" value="{{ old('program_studi_lainnya', $selectedProdi?->is_lainnya ? $ormawa?->program_studi : '') }}"
+                    class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand"
+                    placeholder="Tuliskan nama program studi">
+                @error('program_studi_lainnya')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+            </div>
         </div>
     </div>
 

@@ -43,13 +43,9 @@
                         <div class="nav-icon"><i class="ti ti-building-community"></i></div>
                         <span>Kelola Ormawa</span>
                     </a>
-                    <a href="{{ route('admin.fakultas.index') }}" class="nav-item {{ request()->routeIs('admin.fakultas.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.akademik.index') }}" class="nav-item {{ request()->routeIs('admin.akademik.*','admin.fakultas.*','admin.dekan.*','admin.prodi.*','admin.kaprodi.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-school"></i></div>
-                        <span>Kelola Fakultas</span>
-                    </a>
-                    <a href="{{ route('admin.dekan.index') }}" class="nav-item {{ request()->routeIs('admin.dekan.*') ? 'active' : '' }}">
-                        <div class="nav-icon"><i class="ti ti-users"></i></div>
-                        <span>Kelola Dekan</span>
+                        <span>Kelola Akademik</span>
                     </a>
                     <a href="{{ route('admin.mahasiswa.index') }}" class="nav-item {{ request()->routeIs('admin.mahasiswa.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-id-badge-2"></i></div>
@@ -63,6 +59,9 @@
                         <div class="nav-icon"><i class="ti ti-file-description"></i></div>
                         <span>Pengajuan</span>
                     </a>
+                    <a href="{{ route('lpj.index') }}" class="nav-item {{ request()->routeIs('lpj.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-report"></i></div><span>LPJ Kegiatan</span>
+                    </a>
                 @endif
 
                 @if (auth()->user()->isMahasiswa())
@@ -74,6 +73,9 @@
                     <a href="{{ route('pengajuan.index') }}" class="nav-item {{ request()->routeIs('pengajuan.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-file-description"></i></div>
                         <span>Kelola Pengajuan</span>
+                    </a>
+                    <a href="{{ route('lpj.index') }}" class="nav-item {{ request()->routeIs('lpj.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-report"></i></div><span>LPJ Kegiatan</span>
                     </a>
                     
                     @if($activeOrmawaSidebar && in_array($jabatanSidebar, ['ketua', 'wakil_ketua']))
@@ -90,6 +92,9 @@
                         <div class="nav-icon"><i class="ti ti-clipboard-check"></i></div>
                         <span>Verifikasi BAUAK</span>
                     </a>
+                    <a href="{{ route('bauak.lpj.index') }}" class="nav-item {{ request()->routeIs('bauak.lpj.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-report-search"></i></div><span>Verifikasi LPJ</span>
+                    </a>
                     <a href="{{ route('pengajuan.index') }}" class="nav-item {{ request()->routeIs('pengajuan.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-file-description"></i></div>
                         <span>Semua Pengajuan</span>
@@ -99,15 +104,15 @@
                         <span>Data Ormawa</span>
                     </a>
                 @endif
-                @if (auth()->user()->isDosen())
+                @if (auth()->user()->isKaprodi())
                     <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Tugas Saya</div>
-                    <a href="{{ route('dosen.verifikasi.index') }}" class="nav-item {{ request()->routeIs('dosen.verifikasi.*') ? 'active' : '' }}">
+                    <a href="{{ route('kaprodi.persetujuan.index') }}" class="nav-item {{ request()->routeIs('kaprodi.persetujuan.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-clipboard-check"></i></div>
-                        <span>Verifikasi Dosen</span>
+                        <span>Persetujuan Kaprodi</span>
                     </a>
-                    <a href="{{ route('dosen.ormawa.index') }}" class="nav-item {{ request()->routeIs('dosen.ormawa.*') ? 'active' : '' }}">
+                    <a href="{{ route('kaprodi.ormawa.index') }}" class="nav-item {{ request()->routeIs('kaprodi.ormawa.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-users"></i></div>
-                        <span>Ormawa Binaan</span>
+                        <span>Ormawa Prodi</span>
                     </a>
                 @endif
 
@@ -148,6 +153,13 @@
                     <a href="{{ route('pengajuan.index') }}" class="nav-item {{ request()->routeIs('pengajuan.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-file-description"></i></div>
                         <span>Semua Pengajuan</span>
+                    </a>
+                @endif
+
+                @if (in_array(auth()->user()->role, ['kaprodi', 'dekan', 'warek3', 'rektor', 'pp', 'admin']))
+                    <a href="{{ route('lpj.index') }}" class="nav-item {{ request()->routeIs('lpj.*') ? 'active' : '' }}">
+                        <div class="nav-icon"><i class="ti ti-report-analytics"></i></div>
+                        <span>Monitoring LPJ</span>
                     </a>
                 @endif
 

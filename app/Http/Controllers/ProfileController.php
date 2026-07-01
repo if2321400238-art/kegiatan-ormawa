@@ -19,12 +19,10 @@ class ProfileController extends Controller
         // Load Ormawa if user is Ormawa
         if ($user->isOrmawa()) {
             $user->load('ormawa');
-            $dosen = \App\Models\User::where('role', 'dosen')->get();
         }
 
         return view('profile.edit', [
             'user' => $user,
-            'dosen' => $dosen ?? collect(),
         ]);
     }
 
@@ -67,7 +65,6 @@ class ProfileController extends Controller
         $validated = $request->validate([
             'nama_ormawa' => ['required', 'string', 'max:255'],
             'ketua' => ['required', 'string', 'max:255'],
-            'pembina' => ['nullable', 'string', 'max:255'],
             'kontak' => ['nullable', 'string', 'max:50'],
             'deskripsi' => ['nullable', 'string'],
             'kop_surat' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
@@ -94,15 +91,9 @@ class ProfileController extends Controller
         }
 
         // Update ormawa data
-        $pembinaUser = null;
-        if (!empty($validated['pembina']) && $user->isOrmawa()) {
-            $pembinaUser = \App\Models\User::where('role', 'dosen')->where('nama', $validated['pembina'])->first();
-        }
 
         $ormawa->nama_ormawa = $validated['nama_ormawa'];
         $ormawa->ketua = $validated['ketua'];
-        $ormawa->pembina = $pembinaUser?->nama ?? $validated['pembina'] ?? null;
-        $ormawa->pembina_user_id = $pembinaUser?->id;
         $ormawa->kontak = $validated['kontak'] ?? null;
         $ormawa->deskripsi = $validated['deskripsi'] ?? null;
 

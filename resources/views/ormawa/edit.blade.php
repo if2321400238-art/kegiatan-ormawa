@@ -4,7 +4,7 @@
     {{-- Top Header Section --}}
     <div class="mb-6">
         <h2 class="text-lg font-semibold text-gray-900">Edit Data Ormawa</h2>
-        <p class="text-[12px] text-gray-500">Perbarui informasi organisasi mahasiswa dan pilih dosen pembina</p>
+        <p class="text-[12px] text-gray-500">Perbarui informasi organisasi mahasiswa</p>
     </div>
 
     {{-- Form Container Card --}}
@@ -14,17 +14,9 @@
             :submitRoute="$submitRoute" 
             :backRoute="$backRoute" 
             :searchMahasiswaRoute="$searchMahasiswaRoute"
-            :dosenList="$dosenList" 
             :fakultas="$fakultas" 
+            :programStudi="$programStudi"
         />
     </div>
 
-    {{-- Info Card --}}
-    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p class="text-[13px] text-blue-900">
-            <i class="ti ti-info-circle mr-2"></i>
-            <strong>Catatan:</strong> Perubahan dosen pembina akan diterapkan untuk semua pengajuan kegiatan yang sedang
-            menunggu verifikasi dosen.
-        </p>
-    </div>
 </x-app-layout>

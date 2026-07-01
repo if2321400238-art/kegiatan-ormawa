@@ -180,7 +180,7 @@
                             <ul class="text-[12px] text-blue-800 list-disc list-inside space-y-0.5">
                                 <li>Pastikan semua data yang diinput sudah benar</li>
                                 <li>File proposal dan RAB harus dalam format PDF</li>
-                                <li>Setelah dikirim ke Dosen Pembina, pengajuan akan lanjut ke verifikasi BAUAK</li>
+                                <li>Alur persetujuan ditentukan oleh tingkat organisasi: Prodi melalui Kaprodi dan Dekan, Fakultas melalui Dekan, Universitas langsung ke BAUAK.</li>
                             </ul>
                         </div>
                     </div>

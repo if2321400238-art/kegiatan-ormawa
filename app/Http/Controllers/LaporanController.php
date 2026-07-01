@@ -24,7 +24,7 @@ class LaporanController extends Controller
 
         $statistik = [
             'total' => $pengajuan->count(),
-            'menunggu_dosen' => $pengajuan->where('status', 'menunggu_dosen')->count(),
+            'menunggu_kaprodi' => $pengajuan->where('status', 'menunggu_kaprodi')->count(),
             'disetujui' => $pengajuan->where('status', 'menunggu_warek3')->count(),
             'revisi' => $pengajuan->where('status', 'revisi_bauak')->count(),
             'ditolak' => $pengajuan->whereIn('status', PengajuanKegiatan::REJECTED_STATUSES)->count(),
@@ -55,8 +55,8 @@ class LaporanController extends Controller
         $tanggalMulai = $request->input('tanggal_mulai', now()->startOfMonth()->format('Y-m-d'));
         $tanggalSelesai = $request->input('tanggal_selesai', now()->endOfMonth()->format('Y-m-d'));
 
-        $pendingStatuses = ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'menunggu_pp'];
-        $revisionStatuses = ['revisi_dosen', 'revisi_dekan', 'revisi_bauak', 'revisi_warek3', 'revisi_rektor'];
+        $pendingStatuses = ['menunggu_kaprodi', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'menunggu_pp'];
+        $revisionStatuses = ['revisi_kaprodi', 'revisi_dekan', 'revisi_bauak', 'revisi_warek3', 'revisi_rektor'];
 
         // Statistik Pengajuan
         $pengajuan = PengajuanKegiatan::whereBetween('created_at', [$tanggalMulai, $tanggalSelesai])->get();

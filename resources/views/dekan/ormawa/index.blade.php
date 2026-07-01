@@ -51,7 +51,6 @@
                         <tr>
                             <th style="width: 60px;">No</th>
                             <th>Nama Ormawa</th>
-                            <th>Pembina</th>
                             <th>Ketua</th>
                             <th>Total Pengajuan</th>
                             <th style="width: 120px;">Aksi</th>
@@ -66,9 +65,6 @@
                                 <td>
                                     <div class="font-semibold text-gray-900">{{ $item->nama_ormawa }}</div>
                                     <div class="text-[11px] text-gray-500 mt-0.5">Periode: {{ $item->periode ?? '-' }}</div>
-                                </td>
-                                <td>
-                                    <div class="text-[13px] text-gray-700">{{ $item->pembina ?? '-' }}</div>
                                 </td>
                                 <td>
                                     <div class="text-[13px] text-gray-700 flex items-center gap-1.5">

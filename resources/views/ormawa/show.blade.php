@@ -46,14 +46,6 @@
                     </p>
                 </div>
 
-                {{-- Pembina --}}
-                <div>
-                    <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Dosen Pembina</p>
-                    <p class="text-[13px] text-gray-900 flex items-center gap-2">
-                        <i class="ti ti-shield-check text-brand"></i> {{ $ormawa->pembina }}
-                    </p>
-                </div>
-
                 {{-- Kategori & Tingkat Organisasi --}}
                 <div>
                     <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">Kategori Organisasi</p>
@@ -117,7 +109,7 @@
                     <div>
                         <p class="text-[11px] text-gray-500 uppercase font-semibold">Menunggu Verifikasi</p>
                         <p class="text-lg font-bold text-gray-900">
-                            {{ $ormawa->pengajuanKegiatan->whereIn('status', ['menunggu_dosen', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'menunggu_pp'])->count() }}
+                            {{ $ormawa->pengajuanKegiatan->whereIn('status', ['menunggu_kaprodi', 'menunggu_dekan', 'menunggu_bauak', 'menunggu_warek3', 'menunggu_rektor', 'menunggu_pp'])->count() }}
                         </p>
                     </div>
                     <i class="ti ti-clock-down text-2xl text-yellow-500 opacity-20"></i>

@@ -40,7 +40,7 @@
                     </div>
                 </div>
 
-                {{-- Menunggu Dosen Pembina --}}
+                {{-- Menunggu Kaprodi --}}
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-l-4 border-yellow-500">
                     <div class="p-3 sm:p-6">
                         <div class="flex items-center">
@@ -50,7 +50,7 @@
                                 </svg>
                             </div>
                             <div class="ml-4">
-                                <dt class="text-xs sm:text-sm font-medium text-gray-500">Menunggu Dosen Pembina</dt>
+                                <dt class="text-xs sm:text-sm font-medium text-gray-500">Menunggu Kaprodi</dt>
                                 <dd class="text-2xl sm:text-3xl font-bold text-gray-900">{{ $stats['menunggu_verifikasi'] }}</dd>
                             </div>
                         </div>
@@ -186,18 +186,18 @@
                                                 @php
                                                     $statusColors = [
                                                         'draft' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-800', 'label' => 'Draft'],
-                                                        'menunggu_dosen' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'label' => 'Menunggu Dosen Pembina'],
+                                                        'menunggu_kaprodi' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'label' => 'Menunggu Kaprodi'],
                                                         'menunggu_dekan' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'label' => 'Menunggu Dekan'],
                                                         'menunggu_bauak' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'label' => 'Menunggu BAUAK'],
                                                         'menunggu_warek3' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'label' => 'Menunggu Wakil Rektor III'],
                                                         'menunggu_rektor' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'label' => 'Menunggu Rektor'],
                                                         'disetujui' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'label' => 'Disetujui'],
-                                                        'revisi_dosen' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi Dosen Pembina'],
+                                                        'revisi_kaprodi' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi Kaprodi'],
                                                         'revisi_dekan' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi Dekan'],
                                                         'revisi_bauak' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi BAUAK'],
                                                         'revisi_warek3' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi Wakil Rektor III'],
                                                         'revisi_rektor' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi Rektor'],
-                                                        'ditolak_dosen' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Dosen Pembina'],
+                                                        'ditolak_kaprodi' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Kaprodi'],
                                                         'ditolak_dekan' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Dekan'],
                                                         'ditolak_bauak' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak BAUAK'],
                                                         'ditolak_warek3' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Wakil Rektor III'],
@@ -226,18 +226,18 @@
                                 @php
                                     $statusColors = [
                                         'draft' => ['bg' => 'bg-gray-100', 'text' => 'text-gray-800', 'label' => 'Draft'],
-                                        'menunggu_dosen' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'label' => 'Menunggu Dosen Pembina'],
+                                        'menunggu_kaprodi' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'label' => 'Menunggu Kaprodi'],
                                         'menunggu_dekan' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'label' => 'Menunggu Dekan'],
                                         'menunggu_bauak' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'label' => 'Menunggu BAUAK'],
                                         'menunggu_warek3' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'label' => 'Menunggu Wakil Rektor III'],
                                         'menunggu_rektor' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'label' => 'Menunggu Rektor'],
                                         'disetujui' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'label' => 'Disetujui'],
-                                        'revisi_dosen' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi Dosen Pembina'],
+                                        'revisi_kaprodi' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi Kaprodi'],
                                         'revisi_dekan' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi Dekan'],
                                         'revisi_bauak' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi BAUAK'],
                                         'revisi_warek3' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi Wakil Rektor III'],
                                         'revisi_rektor' => ['bg' => 'bg-orange-100', 'text' => 'text-orange-800', 'label' => 'Revisi Rektor'],
-                                        'ditolak_dosen' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Dosen Pembina'],
+                                        'ditolak_kaprodi' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Kaprodi'],
                                         'ditolak_dekan' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Dekan'],
                                         'ditolak_bauak' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak BAUAK'],
                                         'ditolak_warek3' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Ditolak Wakil Rektor III'],

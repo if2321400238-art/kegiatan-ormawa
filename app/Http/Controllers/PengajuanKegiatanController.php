@@ -21,6 +21,7 @@ class PengajuanKegiatanController extends Controller
     {
         $query = PengajuanKegiatan::with([
             'proposal',
+            'lpj',
             'rab'
         ]);
 
@@ -61,6 +62,8 @@ class PengajuanKegiatanController extends Controller
             'ormawa',
             'proposal',
             'rab',
+            'lpj',
+            'persetujuanKaprodi.user',
             'verifikasiBauak.user',
             'persetujuanWarek3.user',
         ]);
@@ -101,6 +104,12 @@ class PengajuanKegiatanController extends Controller
                 );
             }
 
+            $initialStatus = match (true) {
+                $ormawa->isProdi() => 'menunggu_kaprodi',
+                $ormawa->isFakultas() => 'menunggu_dekan',
+                default => 'menunggu_bauak',
+            };
+
             $pengajuan = PengajuanKegiatan::create([
                 'ormawa_id' => $ormawa->id,
                 'judul_kegiatan' => $validated['judul_kegiatan'],
@@ -111,7 +120,7 @@ class PengajuanKegiatanController extends Controller
                 'tanggal_selesai' => $validated['tanggal_selesai'],
                 'ketua_pelaksana' => $validated['ketua_pelaksana'],
                 'nama_pemohon' => $validated['nama_pemohon'],
-                'status' => 'menunggu_dosen',
+                'status' => $initialStatus,
                 'created_by_user_id' => Auth::id(),
             ]);
 
@@ -127,13 +136,7 @@ class PengajuanKegiatanController extends Controller
                 $ormawa->id
             );
 
-            PengajuanHelper::notifyRole(
-                'dosen',
-                'Pengajuan Kegiatan Menunggu Verifikasi Dosen Pembina',
-                "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} menunggu verifikasi Anda.",
-                'dosen.verifikasi.show',
-                $pengajuan
-            );
+            $this->sendNotificationByStatus($initialStatus, $pengajuan);
 
             DB::commit();
 
@@ -190,16 +193,16 @@ class PengajuanKegiatanController extends Controller
             $this->updateRab($request, $pengajuan);
 
             $nextStatus = match ($pengajuan->status) {
-                'revisi_dosen',
+                'revisi_kaprodi',
                 'draft',
-                'ditolak_dosen',
+                'ditolak_kaprodi',
                 'ditolak_dekan',
                 'ditolak_bauak',
                 'ditolak_warek3',
                 'ditolak_rektor',
                 'ditolak_pp',
-                'menunggu_dosen'
-                => 'menunggu_dosen',
+                'menunggu_kaprodi'
+                => $this->initialStatusFor($pengajuan),
 
                 'revisi_dekan'
                 => 'menunggu_dekan',
@@ -214,7 +217,7 @@ class PengajuanKegiatanController extends Controller
                 => 'menunggu_rektor',
 
                 default
-                => 'menunggu_dosen',
+                => $this->initialStatusFor($pengajuan),
             };
 
             $pengajuan->update([
@@ -519,7 +522,7 @@ class PengajuanKegiatanController extends Controller
     private function sendNotificationByStatus(string $status, PengajuanKegiatan $pengajuan): void
     {
         $roleMap = [
-            'menunggu_dosen' => ['role' => 'dosen', 'title' => 'Pengajuan Kegiatan Menunggu Verifikasi Dosen Pembina'],
+            'menunggu_kaprodi' => ['role' => 'kaprodi', 'title' => 'Pengajuan Kegiatan Menunggu Persetujuan Kaprodi'],
             'menunggu_dekan' => ['role' => 'dekan', 'title' => 'Pengajuan Kegiatan Menunggu Persetujuan Dekan'],
             'menunggu_bauak' => ['role' => 'bauak', 'title' => 'Pengajuan Kegiatan Menunggu Verifikasi BAUAK'],
             'menunggu_warek3' => ['role' => 'warek3', 'title' => 'Pengajuan Kegiatan Menunggu Persetujuan Warek III'],
@@ -533,7 +536,7 @@ class PengajuanKegiatanController extends Controller
         $config = $roleMap[$status];
         $message = "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' dari {$pengajuan->ormawa->nama_ormawa} {$status}.";
         $routeName = match ($config['role']) {
-            'dosen' => 'dosen.verifikasi.show',
+            'kaprodi' => 'kaprodi.persetujuan.show',
             'dekan' => 'dekan.persetujuan.show',
             'bauak' => 'bauak.verifikasi.show',
             'warek3' => 'warek3.persetujuan.show',
@@ -547,5 +550,14 @@ class PengajuanKegiatanController extends Controller
             $routeName,
             $pengajuan
         );
+    }
+
+    private function initialStatusFor(PengajuanKegiatan $pengajuan): string
+    {
+        return match (true) {
+            $pengajuan->ormawa->isProdi() => 'menunggu_kaprodi',
+            $pengajuan->ormawa->isFakultas() => 'menunggu_dekan',
+            default => 'menunggu_bauak',
+        };
     }
 }

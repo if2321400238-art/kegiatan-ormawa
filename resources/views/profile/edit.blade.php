@@ -59,16 +59,6 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Pembina</label>
-                                    <select name="pembina" class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                                        <option value="">-- Pilih Dosen Pembina --</option>
-                                        @foreach($dosen as $item)
-                                            <option value="{{ $item->nama }}" {{ old('pembina', $user->ormawa->pembina ?? '') === $item->nama ? 'selected' : '' }}>{{ $item->nama }} ({{ $item->email }})</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-
-                                <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Kop Surat (PDF/Image)</label>
                                     @if($user->ormawa && $user->ormawa->kop_surat)
                                         <p class="text-sm text-green-600 mb-2">✓ Kop surat sudah diupload</p>
@@ -90,6 +80,52 @@
                             </div>
                         </div>
                     </form>
+                </div>
+            </div>
+
+            {{-- Telegram Connection --}}
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6">
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                        <div>
+                            <h3 class="text-lg font-semibold">Integrasi Telegram</h3>
+                            <p class="text-sm text-gray-500 mt-1">Hubungkan akun untuk menerima notifikasi pengajuan melalui bot Telegram.</p>
+                        </div>
+                        @if($user->hasTelegram())
+                            <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-100 text-green-700 text-sm font-medium"><span class="w-2 h-2 rounded-full bg-green-500"></span>Terhubung</span>
+                        @else
+                            <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 text-sm font-medium"><span class="w-2 h-2 rounded-full bg-gray-400"></span>Belum terhubung</span>
+                        @endif
+                    </div>
+
+                    @if(session('telegram_success'))<div class="mt-4 p-3 rounded-lg bg-green-50 text-green-700 text-sm">{{ session('telegram_success') }}</div>@endif
+                    @if(session('telegram_error'))<div class="mt-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{{ session('telegram_error') }}</div>@endif
+
+                    @if(session('telegram_otp'))
+                        <div class="mt-5 p-5 rounded-xl border border-blue-200 bg-blue-50 text-center">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-blue-600">Kode OTP Telegram</p>
+                            <div class="text-3xl font-bold tracking-[0.35em] text-gray-900 mt-2 ml-[0.35em]">{{ session('telegram_otp') }}</div>
+                            <p class="text-xs text-gray-500 mt-2">Berlaku 10 menit dan hanya dapat digunakan satu kali.</p>
+                        </div>
+                    @endif
+
+                    @php($telegramUsername = ltrim(config('services.telegram.bot_username'), '@'))
+                    <div class="mt-5 rounded-xl bg-gray-50 border border-gray-100 p-5">
+                        <h4 class="font-semibold text-sm mb-3">Cara menyambungkan akun</h4>
+                        <ol class="space-y-3 text-sm text-gray-700">
+                            <li class="flex gap-3"><span class="flex-none w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">1</span><span>Buka Telegram dan cari bot <a href="https://t.me/{{ $telegramUsername }}" target="_blank" rel="noopener" class="font-semibold text-blue-600">{{ '@'.$telegramUsername }}</a>.</span></li>
+                            <li class="flex gap-3"><span class="flex-none w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">2</span><span>Tekan <strong>Mulai</strong> pada chat bot.</span></li>
+                            <li class="flex gap-3"><span class="flex-none w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">3</span><span>Kirimkan kode OTP yang ditampilkan di atas kepada bot.</span></li>
+                        </ol>
+                    </div>
+
+                    <div class="mt-5 flex justify-end">
+                        @if($user->hasTelegram())
+                            <form method="POST" action="{{ route('profile.telegram.disconnect') }}" onsubmit="return confirm('Putuskan koneksi akun Telegram?')">@csrf @method('DELETE')<button class="px-4 py-2 rounded-lg bg-red-50 text-red-700 hover:bg-red-100 text-sm font-medium">Putuskan Telegram</button></form>
+                        @else
+                            <form method="POST" action="{{ route('profile.telegram.generate') }}">@csrf<button class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium"><i class="ti ti-brand-telegram mr-1"></i>{{ session('telegram_otp') ? 'Buat Ulang OTP' : 'Sambungkan dengan OTP' }}</button></form>
+                        @endif
+                    </div>
                 </div>
             </div>
 

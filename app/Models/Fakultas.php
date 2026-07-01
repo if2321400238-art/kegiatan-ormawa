@@ -25,4 +25,9 @@ class Fakultas extends Model
     {
         return $this->hasMany(Ormawa::class, 'fakultas_id');
     }
+
+    public function programStudi()
+    {
+        return $this->hasMany(ProgramStudi::class);
+    }
 }

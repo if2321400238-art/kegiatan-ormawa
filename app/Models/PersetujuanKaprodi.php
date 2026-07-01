@@ -1,0 +1,24 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class PersetujuanKaprodi extends Model
+{
+    protected $table = 'persetujuan_kaprodi';
+
+    protected $fillable = ['pengajuan_id', 'user_kaprodi_id', 'catatan', 'status', 'tanggal_acc'];
+
+    protected $casts = ['tanggal_acc' => 'datetime'];
+
+    public function pengajuanKegiatan()
+    {
+        return $this->belongsTo(PengajuanKegiatan::class, 'pengajuan_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_kaprodi_id');
+    }
+}

@@ -18,7 +18,7 @@ class MahasiswaOrmawaController extends Controller
                 $search = '%' . $request->search . '%';
                 $query->where('nama_ormawa', 'like', $search)
                     ->orWhere('ketua', 'like', $search)
-                    ->orWhere('pembina', 'like', $search);
+                    ->orWhere('program_studi', 'like', $search);
             })
             ->paginate(10)
             ->withQueryString();

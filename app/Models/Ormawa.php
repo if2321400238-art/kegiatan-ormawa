@@ -17,11 +17,11 @@ class Ormawa extends Model
         'nama_ormawa',
         'ketua',
         'periode',
-        'pembina',
-        'pembina_user_id',
         'kategori_organisasi',
         'tingkat_organisasi',
         'fakultas_id',
+        'prodi_id',
+        'program_studi',
         'kop_surat',
         'kontak',
         'deskripsi',
@@ -111,14 +111,19 @@ class Ormawa extends Model
         return $this->kategori_organisasi === 'internal' && $this->tingkat_organisasi === 'fakultas';
     }
 
+    public function isProdi(): bool
+    {
+        return $this->isInternal() && $this->tingkat_organisasi === 'prodi';
+    }
+
     public function fakultas()
     {
         return $this->belongsTo(\App\Models\Fakultas::class, 'fakultas_id');
     }
 
-    public function pembinaUser()
+    public function programStudi()
     {
-        return $this->belongsTo(\App\Models\User::class, 'pembina_user_id');
+        return $this->belongsTo(ProgramStudi::class, 'prodi_id');
     }
 
     public function isUniversitas(): bool

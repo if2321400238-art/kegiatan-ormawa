@@ -20,7 +20,7 @@
     <div class="mb-6 bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
         <form method="GET" action="{{ route('mahasiswa.ormawa.index') }}" class="grid gap-3 md:grid-cols-[1fr_auto]">
             <label class="sr-only" for="search">Cari organisasi</label>
-            <input id="search" name="search" type="text" placeholder="Cari nama ormawa, ketua, atau pembina..."
+            <input id="search" name="search" type="text" placeholder="Cari nama ormawa atau ketua..."
                 value="{{ request('search') }}"
                 class="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100" />
             <button type="submit" class="px-4 py-3 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition">Cari</button>
@@ -46,7 +46,6 @@
                         <tr>
                             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Nama Ormawa</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Ketua</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Pembina</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Status</th>
                             <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Aksi</th>
                         </tr>
@@ -56,7 +55,6 @@
                             <tr>
                                 <td class="px-4 py-4 text-sm text-gray-900">{{ $ormawa->nama_ormawa }}</td>
                                 <td class="px-4 py-4 text-sm text-gray-700">{{ $ormawa->ketua }}</td>
-                                <td class="px-4 py-4 text-sm text-gray-700">{{ $ormawa->pembina }}</td>
                                 <td class="px-4 py-4 text-sm">
                                     @if (in_array($ormawa->id, $memberOrmawaIds))
                                         <span class="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Sudah Anggota</span>

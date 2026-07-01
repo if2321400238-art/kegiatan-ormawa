@@ -13,8 +13,8 @@
             :submitRoute="$submitRoute" 
             :backRoute="$backRoute" 
             :searchMahasiswaRoute="$searchMahasiswaRoute"
-            :dosenList="$dosenList" 
             :fakultas="$fakultas" 
+            :programStudi="$programStudi"
         />
     </div>
 </x-app-layout>
