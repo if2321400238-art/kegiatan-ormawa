@@ -6,6 +6,17 @@ cd /var/www/html
 
 echo "Starting entrypoint script..."
 
+# Refresh hanya aset Vite di shared public volume. Direktori public lainnya
+# (termasuk file upload) tetap dipertahankan.
+if [ -d /opt/kegiatan-public-build ]; then
+
+    echo "Synchronizing frontend build assets..."
+    rm -rf public/build
+    mkdir -p public/build
+    cp -a /opt/kegiatan-public-build/. public/build/
+
+fi
+
 # Always ensure composer dependencies are installed
 echo "Installing/updating Composer dependencies..."
 

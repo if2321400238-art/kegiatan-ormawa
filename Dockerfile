@@ -27,6 +27,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pcntl \
     pdo_mysql \
     zip \
+ && { \
+    echo 'pm.max_children = 12'; \
+    echo 'pm.start_servers = 3'; \
+    echo 'pm.min_spare_servers = 2'; \
+    echo 'pm.max_spare_servers = 5'; \
+    echo 'pm.max_requests = 500'; \
+  } >> /usr/local/etc/php-fpm.d/zz-kegiatan-pm.conf \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -97,6 +104,10 @@ COPY --from=composer-deps /app/vendor ./vendor
 
 # 3. Copy aset hasil compile Tailwind/Vite (PENTING!)
 COPY --from=frontend-builder /app/public/build ./public/build
+
+# Simpan salinan build di luar /public. Pada runtime, /public dipasang sebagai
+# named volume sehingga isi build dari image dapat tertutup oleh volume lama.
+COPY --from=frontend-builder /app/public/build /opt/kegiatan-public-build
 
 COPY docker/entrypoint.sh /usr/local/bin/kegiatan-entrypoint
 

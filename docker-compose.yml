@@ -32,7 +32,7 @@ services:
     container_name: kegiatan-nginx
     restart: always
     ports:
-      - "${APP_PORT:-8000}:80"
+      - "127.0.0.1:${APP_PORT:-8000}:80"
     volumes:
       # Nginx mengambil aset statis (CSS/JS) langsung dari image app melalui volume bersama
       - assets_data:/var/www/html/public
