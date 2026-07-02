@@ -13,10 +13,22 @@
 </head>
 
 <body class="font-sans antialiased text-gray-900 bg-[var(--bg-page)]">
-    <div class="flex h-screen overflow-hidden bg-[var(--bg-page)]">
+    <div x-data="{ sidebarOpen: false }"
+        @keydown.escape.window="sidebarOpen = false"
+        class="flex h-screen overflow-hidden bg-[var(--bg-page)]">
+
+        <button type="button"
+            x-show="sidebarOpen"
+            x-transition.opacity
+            x-cloak
+            @click="sidebarOpen = false"
+            class="fixed inset-0 z-30 bg-gray-950/50 lg:hidden"
+            aria-label="Tutup menu"></button>
 
         <!-- SIDEBAR -->
-        <aside class="w-[260px] bg-brand flex flex-col flex-shrink-0 transition-all duration-300 z-20">
+        <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+            @click="if ($event.target.closest('a')) sidebarOpen = false"
+            class="fixed inset-y-0 left-0 z-40 flex w-[260px] flex-shrink-0 flex-col bg-brand transition-transform duration-300 lg:static lg:z-20 lg:translate-x-0">
             <!-- Logo -->
             <div class="px-6 py-6 border-b border-white/10 flex items-center gap-3">
                 <div class="w-10 h-10 bg-white/15 rounded-xl flex items-center justify-center text-white text-xl">
@@ -185,18 +197,25 @@
         <div class="flex-1 flex flex-col min-w-0 bg-[var(--bg-page)] relative z-10">
 
             <!-- TOPBAR -->
-            <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm z-20 flex-shrink-0">
-                <div class="flex items-center gap-4">
+            <header class="min-h-16 bg-white border-b border-gray-200 flex items-center justify-between gap-2 px-3 sm:px-6 py-2 shadow-sm z-20 flex-shrink-0">
+                <div class="flex min-w-0 items-center gap-2 sm:gap-4">
+                    <button type="button"
+                        @click="sidebarOpen = true"
+                        class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 lg:hidden"
+                        aria-label="Buka menu">
+                        <i class="ti ti-menu-2 text-xl"></i>
+                    </button>
+
                     {{-- Breadcrumb / Title Area --}}
-                    <div>
-                        <h1 class="text-base font-bold text-gray-900 m-0 leading-tight">
+                    <div class="min-w-0">
+                        <h1 class="truncate text-sm sm:text-base font-bold text-gray-900 m-0 leading-tight">
                             {{ $title ?? 'Dashboard' }}
                         </h1>
-                        <span class="text-[11px] text-gray-500 font-medium">Sistem Ormawa / {{ $title ?? 'Dashboard' }}</span>
+                        <span class="hidden truncate text-[11px] text-gray-500 font-medium sm:block">Sistem Ormawa / {{ $title ?? 'Dashboard' }}</span>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-3">
+                <div class="flex flex-shrink-0 items-center gap-1 sm:gap-3">
                     <!-- Notifications -->
                     @php
                         $notificationData = $notifikasi->map(function ($item) {
@@ -275,14 +294,13 @@
                             x-transition:leave-start="opacity-100 scale-100"
                             x-transition:leave-end="opacity-0 scale-95"
                             x-cloak
-                            class="absolute right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-50 origin-top-right overflow-hidden flex flex-col"
-                            style="display: none; width: 28rem; min-width: 28rem;">
+                            class="fixed left-3 right-3 top-16 z-50 mt-2 flex max-h-[calc(100vh-5rem)] flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:w-[28rem] sm:max-w-[calc(100vw-2rem)] sm:origin-top-right">
                             @include('partials.notifikasi-dropdown')
                         </div>
                     </div>
 
                     <!-- User Profile Dropdown -->
-                    <div class="relative ml-2">
+                    <div class="relative sm:ml-2">
                         <button type="button" class="flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand-accent/50 rounded-full" id="user-menu-button" onclick="toggleDropdown()">
                             <img class="w-9 h-9 rounded-full object-cover border border-gray-200 shadow-sm" src="{{ auth()->user()->avatar }}" alt="{{ auth()->user()->nama }}">
                             <div class="hidden md:block text-left mr-1">
@@ -313,7 +331,7 @@
             </header>
 
             <!-- MAIN SCROLLABLE CONTENT -->
-            <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+            <main class="flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-6 lg:p-8">
                 <div class="max-w-7xl mx-auto w-full">
 
                     {{-- Alert Messages --}}

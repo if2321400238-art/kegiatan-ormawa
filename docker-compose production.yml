@@ -3,11 +3,14 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile production
     container_name: kegiatan-app
-    restart: always
+    restart: unless-stopped
     working_dir: /var/www/html
+    env_file:
+      - .env
     environment:
+      APP_KEY: ${APP_KEY:?APP_KEY must be set in .env}
       APP_ENV: production
       APP_DEBUG: "false"
       DB_CONNECTION: mysql
@@ -22,6 +25,8 @@ services:
       UNUJA_API_PASSWORD: ${UNUJA_API_PASSWORD:-}
       UNUJA_API_KEY_HEADER: ${UNUJA_API_KEY_HEADER:-unujasimptapikey}
       UNUJA_API_TIMEOUT: ${UNUJA_API_TIMEOUT:-10}
+      CACHE_STORE: ${CACHE_STORE:-file}
+      SESSION_DRIVER: ${SESSION_DRIVER:-file}
       RUN_MIGRATIONS: "true"
     # Port 5173 dicopot total. Volume lokal dicopot agar container mandiri & secure.
     volumes:
@@ -31,23 +36,27 @@ services:
         condition: service_healthy
 
   nginx:
-    image: nginx:1.28-alpine
+    build:
+      context: .
+      dockerfile: Dockerfile production
+      target: nginx
     container_name: kegiatan-nginx
-    restart: always
+    restart: unless-stopped
     ports:
-      - "${APP_PORT:-8000}:80"
+      - "127.0.0.1:${APP_PORT:-8000}:80"
     volumes:
-      # Nginx mengambil aset statis (CSS/JS) langsung dari image app melalui volume bersama
-      - assets_data:/var/www/html/public
       # File konfigurasi nginx production kamu
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - /var/log/nginx/kegiatan-ormawa:/var/log/nginx
     depends_on:
       - app
 
   mysql:
     image: mysql:8.4
     container_name: kegiatan-mysql
-    restart: always
+    restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "127.0.0.1:${MYSQL_PORT:-3307}:3306" # Hanya bisa diakses dari localhost server demi keamanan
     environment:
@@ -65,4 +74,3 @@ services:
 volumes:
   mysql_data:
   storage_data:   # Untuk menyimpan file upload agar tidak hilang saat container update
-  assets_data:    # Menghubungkan public asset antara App dan Nginx

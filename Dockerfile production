@@ -30,8 +30,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
 
 # ==================================================
 # Composer dependency
@@ -40,6 +38,7 @@ FROM php-base AS composer-deps
 
 WORKDIR /app
 
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY composer.json composer.lock ./
 
 RUN composer install \
@@ -70,7 +69,17 @@ COPY postcss.config.js ./
 
 RUN npm run build
 
+# ==================================================
+# Nginx dengan aset statis immutable
+# ==================================================
+FROM nginx:1.28-alpine AS nginx
 
+WORKDIR /var/www/html
+
+COPY public ./public
+
+
+COPY --from=frontend-builder /app/public/build ./public/build
 # ==================================================
 # Application Final Stage
 # ==================================================
@@ -101,11 +110,12 @@ COPY docker/entrypoint.sh /usr/local/bin/kegiatan-entrypoint
 
 RUN chmod +x /usr/local/bin/kegiatan-entrypoint \
  && mkdir -p \
-    storage/framework/cache \
+    storage/framework/cache/data \
     storage/framework/sessions \
     storage/framework/views \
     storage/logs \
     bootstrap/cache \
+ && php artisan package:discover --ansi \
  && chown -R www-data:www-data storage bootstrap/cache
 
 # Production menggunakan port 9000 untuk PHP-FPM berkomunikasi dengan Nginx

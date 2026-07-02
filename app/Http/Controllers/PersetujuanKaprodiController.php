@@ -91,7 +91,38 @@ class PersetujuanKaprodiController extends Controller
             }
         });
 
+        $this->notifyPemohon($pengajuan->fresh(), $validated['status'], $validated['catatan'] ?? null);
+
         return redirect()->route('kaprodi.persetujuan.index')->with('success', 'Keputusan Kaprodi berhasil disimpan.');
+    }
+
+    private function notifyPemohon(PengajuanKegiatan $pengajuan, string $status, ?string $catatan): void
+    {
+        $judul = match ($status) {
+            'disetujui' => '✅ Pengajuan Disetujui Kaprodi',
+            'revisi' => '📝 Pengajuan Perlu Direvisi',
+            'ditolak' => '❌ Pengajuan Ditolak Kaprodi',
+        };
+
+        $pesan = match ($status) {
+            'disetujui' => "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' telah disetujui Kaprodi dan diteruskan ke Dekan.",
+            'revisi' => "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' perlu direvisi. Catatan Kaprodi: {$catatan}",
+            'ditolak' => "Pengajuan kegiatan '{$pengajuan->judul_kegiatan}' ditolak Kaprodi. Alasan: {$catatan}",
+        };
+
+        $user = $pengajuan->ormawa->user;
+        if (! $user) {
+            return;
+        }
+
+        sendNotification(
+            $user,
+            $judul,
+            $pesan,
+            $status === 'disetujui' ? 'success' : ($status === 'revisi' ? 'warning' : 'error'),
+            route('pengajuan.show', $pengajuan),
+            ['telegram', 'email', 'in_app']
+        );
     }
 
     private function authorizeProdi(PengajuanKegiatan $pengajuan): void
