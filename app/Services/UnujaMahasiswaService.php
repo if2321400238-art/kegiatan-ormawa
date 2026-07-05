@@ -6,6 +6,7 @@ use App\Models\User;
 use GuzzleHttp\Cookie\CookieJar;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
@@ -21,25 +22,29 @@ class UnujaMahasiswaService
             throw new RuntimeException('Jenis pencarian mahasiswa tidak valid.');
         }
 
-        [$client, $apiKey] = $this->authenticatedClient();
+        $cacheKey = 'unuja:mahasiswa:'.hash('sha256', $searchBy.'|'.mb_strtolower($query));
 
-        $response = $client
-            ->withHeader($this->apiKeyHeader(), $apiKey)
-            ->get($this->searchUrl($searchBy, $query));
+        return Cache::remember($cacheKey, now()->addMinutes(2), function () use ($query, $searchBy) {
+            [$client, $apiKey] = $this->authenticatedClient();
 
-        $response->throw();
+            $response = $client
+                ->withHeader($this->apiKeyHeader(), $apiKey)
+                ->get($this->searchUrl($searchBy, $query));
 
-        $data = $response->json('data', []);
-        if (Arr::isAssoc((array) $data)) {
-            $data = [$data];
-        }
+            $response->throw();
 
-        return collect($data)
-            ->map(fn ($item) => $this->normalize((array) $item))
-            ->filter(fn ($item) => filled($item['nim']) && filled($item['nama']))
-            ->unique('nim')
-            ->values()
-            ->all();
+            $data = $response->json('data', []);
+            if (Arr::isAssoc((array) $data)) {
+                $data = [$data];
+            }
+
+            return collect($data)
+                ->map(fn ($item) => $this->normalize((array) $item))
+                ->filter(fn ($item) => filled($item['nim']) && filled($item['nama']))
+                ->unique('nim')
+                ->values()
+                ->all();
+        });
     }
 
     public function findByNim(string $nim): array
@@ -136,6 +141,7 @@ class UnujaMahasiswaService
     private function client(): PendingRequest
     {
         return Http::acceptJson()
+            ->connectTimeout((int) config('services.unuja.connect_timeout', 3))
             ->timeout((int) config('services.unuja.timeout', 10))
             ->retry(2, 250);
     }

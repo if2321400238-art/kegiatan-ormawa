@@ -50,7 +50,8 @@ return [
         'username' => env('UNUJA_API_USERNAME'),
         'password' => env('UNUJA_API_PASSWORD'),
         'api_key_header' => env('UNUJA_API_KEY_HEADER', 'unujasimptapikey'),
-        'timeout' => env('UNUJA_API_TIMEOUT', 10),
+        'timeout' => (int) env('UNUJA_API_TIMEOUT', 10),
+        'connect_timeout' => (int) env('UNUJA_API_CONNECT_TIMEOUT', 3),
     ],
 
 ];

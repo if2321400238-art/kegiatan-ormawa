@@ -35,7 +35,7 @@ export default function anggotaSearch(endpoint, initialSelected = null) {
                 return;
             }
 
-            this.debounceTimer = setTimeout(() => this.fetchResults(query), 350);
+            this.debounceTimer = setTimeout(() => this.fetchResults(query), 500);
         },
 
         async fetchResults(query) {

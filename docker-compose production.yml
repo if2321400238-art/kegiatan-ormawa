@@ -25,12 +25,22 @@ services:
       UNUJA_API_PASSWORD: ${UNUJA_API_PASSWORD:-}
       UNUJA_API_KEY_HEADER: ${UNUJA_API_KEY_HEADER:-unujasimptapikey}
       UNUJA_API_TIMEOUT: ${UNUJA_API_TIMEOUT:-10}
+      UNUJA_API_CONNECT_TIMEOUT: ${UNUJA_API_CONNECT_TIMEOUT:-3}
       CACHE_STORE: ${CACHE_STORE:-file}
       SESSION_DRIVER: ${SESSION_DRIVER:-file}
       RUN_MIGRATIONS: "true"
     # Port 5173 dicopot total. Volume lokal dicopot agar container mandiri & secure.
     volumes:
       - storage_data:/var/www/html/storage
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+
     depends_on:
       mysql:
         condition: service_healthy
@@ -47,13 +57,24 @@ services:
     volumes:
       # File konfigurasi nginx production kamu
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - /var/log/nginx/kegiatan-ormawa:/var/log/nginx
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
     depends_on:
       - app
+
 
   mysql:
     image: mysql:8.4
     container_name: kegiatan-mysql
+    command:
+      - --max-connections=50
+      - --innodb-buffer-pool-size=64M
+      - --performance-schema=OFF
+      - --table-open-cache=400
+      - --skip-name-resolve
     restart: unless-stopped
     env_file:
       - .env
@@ -64,12 +85,18 @@ services:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     volumes:
       - mysql_data:/var/lib/mysql
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot --silent"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 30s
+
 
 volumes:
   mysql_data:

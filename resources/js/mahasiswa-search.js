@@ -77,7 +77,7 @@ export default function mahasiswaSearch(initialId = '', initialName = '', initia
                         this.loading = false;
                     }
                 }
-            }, 300);
+            }, 500);
         },
 
         selectMahasiswa(mahasiswa) {
