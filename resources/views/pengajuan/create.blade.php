@@ -73,17 +73,6 @@
                                     placeholder="Contoh: Aula Kampus">
                             </div>
 
-                            {{-- Tempat Pesantren --}}
-                            <div>
-                                <label for="tempat_pesantren" class="block text-[13px] font-medium text-gray-700 mb-1">
-                                    Tempat Pesantren/Mitra <span class="text-gray-400 font-normal">(Opsional)</span>
-                                </label>
-                                <input type="text" name="tempat_pesantren" id="tempat_pesantren"
-                                    value="{{ old('tempat_pesantren') }}"
-                                    class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors"
-                                    placeholder="Contoh: Pesantren Al-Hikmah">
-                            </div>
-
                             {{-- Tanggal --}}
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>

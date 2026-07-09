@@ -168,7 +168,7 @@
                     </a>
                 @endif
 
-                @if (in_array(auth()->user()->role, ['kaprodi', 'dekan', 'warek3', 'rektor', 'pp', 'admin']))
+                @if (auth()->user()->isAdmin())
                     <a href="{{ route('lpj.index') }}" class="nav-item {{ request()->routeIs('lpj.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-report-analytics"></i></div>
                         <span>Monitoring LPJ</span>

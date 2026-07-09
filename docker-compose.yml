@@ -12,6 +12,7 @@ services:
       APP_URL: https://fordev11.tech
       SESSION_SECURE_COOKIE: "true"
       APP_DEBUG: "false"
+      APP_KEY: ${APP_KEY}
       DB_CONNECTION: mysql
       DB_HOST: mysql
       DB_PORT: 3306
