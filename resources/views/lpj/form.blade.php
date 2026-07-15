@@ -184,7 +184,7 @@
                 <div class="lg:col-span-2">
                     <label class="{{ $labelClass }}">Dokumen LPJ <span class="font-medium text-gray-400">PDF/DOC/DOCX, maks. 10 MB</span></label>
                     <div id="file-upload-alert" class="mt-2 hidden rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"></div>
-                    <label data-drop-zone="file_laporan" class="mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
+                    <label data-drop-zone="file_laporan" class="relative mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
                         <span class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white text-brand shadow-sm">
                             <i class="ti ti-file-text text-xl"></i>
                         </span>
@@ -193,43 +193,43 @@
                             <span data-file-label="file_laporan" class="block truncate text-xs text-gray-500">Belum ada file dipilih</span>
                         </span>
                         <span class="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white">Pilih File</span>
-                        <input type="file" name="file_laporan" @required(!$editing) accept=".pdf,.doc,.docx" class="sr-only" data-file-input="file_laporan" data-default-label="Belum ada file dipilih" data-max-mb="10">
+                        <input type="file" name="file_laporan" @required(!$editing) accept=".pdf,.doc,.docx" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" data-file-input="file_laporan" data-default-label="Belum ada file dipilih" data-max-mb="10">
                     </label>
                 </div>
 
                 <div>
                     <label class="{{ $labelClass }}">Dokumentasi</label>
-                    <label data-drop-zone="dokumentasi" class="mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
+                    <label data-drop-zone="dokumentasi" class="relative mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
                         <i class="ti ti-photo text-2xl text-brand"></i>
                         <span class="min-w-0 flex-1">
                             <span class="block font-semibold text-gray-900">Unggah dokumentasi</span>
                             <span data-file-label="dokumentasi" class="block truncate text-xs text-gray-500">JPG, PNG, atau PDF</span>
                         </span>
-                        <input type="file" multiple name="dokumentasi[]" accept=".jpg,.jpeg,.png,.pdf" class="sr-only" data-file-input="dokumentasi" data-default-label="JPG, PNG, atau PDF" data-max-mb="5">
+                        <input type="file" multiple name="dokumentasi[]" accept=".jpg,.jpeg,.png,.pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" data-file-input="dokumentasi" data-default-label="JPG, PNG, atau PDF" data-max-mb="5">
                     </label>
                 </div>
 
                 <div>
                     <label class="{{ $labelClass }}">Bukti transaksi</label>
-                    <label data-drop-zone="bukti_transaksi" class="mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
+                    <label data-drop-zone="bukti_transaksi" class="relative mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
                         <i class="ti ti-receipt text-2xl text-brand"></i>
                         <span class="min-w-0 flex-1">
                             <span class="block font-semibold text-gray-900">Unggah bukti transaksi</span>
                             <span data-file-label="bukti_transaksi" class="block truncate text-xs text-gray-500">JPG, PNG, atau PDF</span>
                         </span>
-                        <input type="file" multiple name="bukti_transaksi[]" accept=".jpg,.jpeg,.png,.pdf" class="sr-only" data-file-input="bukti_transaksi" data-default-label="JPG, PNG, atau PDF" data-max-mb="5">
+                        <input type="file" multiple name="bukti_transaksi[]" accept=".jpg,.jpeg,.png,.pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" data-file-input="bukti_transaksi" data-default-label="JPG, PNG, atau PDF" data-max-mb="5">
                     </label>
                 </div>
 
                 <div class="lg:col-span-2">
                     <label class="{{ $labelClass }}">Lampiran lainnya</label>
-                    <label data-drop-zone="lampiran_lainnya" class="mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
+                    <label data-drop-zone="lampiran_lainnya" class="relative mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
                         <i class="ti ti-paperclip text-2xl text-brand"></i>
                         <span class="min-w-0 flex-1">
                             <span class="block font-semibold text-gray-900">Unggah lampiran tambahan</span>
                             <span data-file-label="lampiran_lainnya" class="block truncate text-xs text-gray-500">PDF, gambar, DOC, atau DOCX</span>
                         </span>
-                        <input type="file" multiple name="lampiran_lainnya[]" class="sr-only" data-file-input="lampiran_lainnya" data-default-label="PDF, gambar, DOC, atau DOCX" data-max-mb="5">
+                        <input type="file" multiple name="lampiran_lainnya[]" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" data-file-input="lampiran_lainnya" data-default-label="PDF, gambar, DOC, atau DOCX" data-max-mb="5">
                     </label>
                 </div>
             </div>
