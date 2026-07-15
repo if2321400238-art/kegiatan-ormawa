@@ -34,6 +34,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     echo 'pm.max_spare_servers = 5'; \
     echo 'pm.max_requests = 500'; \
   } >> /usr/local/etc/php-fpm.d/zz-kegiatan-pm.conf \
+ && { \
+    echo 'upload_max_filesize = 16M'; \
+    echo 'post_max_size = 32M'; \
+    echo 'max_file_uploads = 20'; \
+    echo 'memory_limit = 256M'; \
+  } > /usr/local/etc/php/conf.d/kegiatan-uploads.ini \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
