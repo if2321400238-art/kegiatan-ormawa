@@ -26,4 +26,7 @@ if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
     php artisan migrate --force
 fi
 
+echo "Clearing compiled Blade views..."
+php artisan view:clear
+
 exec "$@"
