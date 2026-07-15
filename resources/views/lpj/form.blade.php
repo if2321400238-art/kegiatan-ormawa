@@ -183,7 +183,8 @@
             <div class="grid gap-4 lg:grid-cols-2">
                 <div class="lg:col-span-2">
                     <label class="{{ $labelClass }}">Dokumen LPJ <span class="font-medium text-gray-400">PDF/DOC/DOCX, maks. 10 MB</span></label>
-                    <label class="mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
+                    <div id="file-upload-alert" class="mt-2 hidden rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"></div>
+                    <label data-drop-zone="file_laporan" class="mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
                         <span class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white text-brand shadow-sm">
                             <i class="ti ti-file-text text-xl"></i>
                         </span>
@@ -192,43 +193,43 @@
                             <span data-file-label="file_laporan" class="block truncate text-xs text-gray-500">Belum ada file dipilih</span>
                         </span>
                         <span class="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white">Pilih File</span>
-                        <input type="file" name="file_laporan" @required(!$editing) accept=".pdf,.doc,.docx" class="sr-only" data-file-input="file_laporan">
+                        <input type="file" name="file_laporan" @required(!$editing) accept=".pdf,.doc,.docx" class="sr-only" data-file-input="file_laporan" data-default-label="Belum ada file dipilih" data-max-mb="10">
                     </label>
                 </div>
 
                 <div>
                     <label class="{{ $labelClass }}">Dokumentasi</label>
-                    <label class="mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
+                    <label data-drop-zone="dokumentasi" class="mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
                         <i class="ti ti-photo text-2xl text-brand"></i>
                         <span class="min-w-0 flex-1">
                             <span class="block font-semibold text-gray-900">Unggah dokumentasi</span>
                             <span data-file-label="dokumentasi" class="block truncate text-xs text-gray-500">JPG, PNG, atau PDF</span>
                         </span>
-                        <input type="file" multiple name="dokumentasi[]" accept=".jpg,.jpeg,.png,.pdf" class="sr-only" data-file-input="dokumentasi">
+                        <input type="file" multiple name="dokumentasi[]" accept=".jpg,.jpeg,.png,.pdf" class="sr-only" data-file-input="dokumentasi" data-default-label="JPG, PNG, atau PDF" data-max-mb="5">
                     </label>
                 </div>
 
                 <div>
                     <label class="{{ $labelClass }}">Bukti transaksi</label>
-                    <label class="mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
+                    <label data-drop-zone="bukti_transaksi" class="mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
                         <i class="ti ti-receipt text-2xl text-brand"></i>
                         <span class="min-w-0 flex-1">
                             <span class="block font-semibold text-gray-900">Unggah bukti transaksi</span>
                             <span data-file-label="bukti_transaksi" class="block truncate text-xs text-gray-500">JPG, PNG, atau PDF</span>
                         </span>
-                        <input type="file" multiple name="bukti_transaksi[]" accept=".jpg,.jpeg,.png,.pdf" class="sr-only" data-file-input="bukti_transaksi">
+                        <input type="file" multiple name="bukti_transaksi[]" accept=".jpg,.jpeg,.png,.pdf" class="sr-only" data-file-input="bukti_transaksi" data-default-label="JPG, PNG, atau PDF" data-max-mb="5">
                     </label>
                 </div>
 
                 <div class="lg:col-span-2">
                     <label class="{{ $labelClass }}">Lampiran lainnya</label>
-                    <label class="mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
+                    <label data-drop-zone="lampiran_lainnya" class="mt-1.5 flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-4 text-sm transition hover:border-brand-accent hover:bg-brand-surface/60">
                         <i class="ti ti-paperclip text-2xl text-brand"></i>
                         <span class="min-w-0 flex-1">
                             <span class="block font-semibold text-gray-900">Unggah lampiran tambahan</span>
                             <span data-file-label="lampiran_lainnya" class="block truncate text-xs text-gray-500">PDF, gambar, DOC, atau DOCX</span>
                         </span>
-                        <input type="file" multiple name="lampiran_lainnya[]" class="sr-only" data-file-input="lampiran_lainnya">
+                        <input type="file" multiple name="lampiran_lainnya[]" class="sr-only" data-file-input="lampiran_lainnya" data-default-label="PDF, gambar, DOC, atau DOCX" data-max-mb="5">
                     </label>
                 </div>
             </div>
@@ -339,15 +340,102 @@
             document.getElementById('submit-modal').classList.remove('flex');
         }
 
+        const uploadAlert = document.getElementById('file-upload-alert');
+        const maxTotalUploadBytes = 32 * 1024 * 1024;
+
+        function showUploadAlert(message) {
+            if (!uploadAlert) return;
+            uploadAlert.textContent = message;
+            uploadAlert.classList.remove('hidden');
+        }
+
+        function clearUploadAlert() {
+            if (!uploadAlert) return;
+            uploadAlert.textContent = '';
+            uploadAlert.classList.add('hidden');
+        }
+
+        function resetFileInput(input) {
+            input.value = '';
+            const label = document.querySelector(`[data-file-label="${input.dataset.fileInput}"]`);
+            if (label) label.textContent = input.dataset.defaultLabel || 'Belum ada file dipilih';
+        }
+
+        function selectedUploadBytes() {
+            return Array.from(document.querySelectorAll('[data-file-input]'))
+                .flatMap((input) => Array.from(input.files || []))
+                .reduce((total, file) => total + file.size, 0);
+        }
+
+        function updateFileLabel(input) {
+            const label = document.querySelector(`[data-file-label="${input.dataset.fileInput}"]`);
+            if (!label) return;
+            if (input.files.length === 0) {
+                label.textContent = input.dataset.defaultLabel || 'Belum ada file dipilih';
+                return;
+            }
+            label.textContent = input.files.length === 1 ? input.files[0].name : `${input.files.length} file dipilih`;
+        }
+
+        function validateFileInput(input) {
+            clearUploadAlert();
+            const files = Array.from(input.files || []);
+            const maxMb = Number(input.dataset.maxMb || 0);
+            const maxBytes = maxMb * 1024 * 1024;
+            const tooLarge = files.find((file) => maxBytes && file.size > maxBytes);
+
+            if (tooLarge) {
+                resetFileInput(input);
+                showUploadAlert(`File "${tooLarge.name}" terlalu besar. Maksimal ${maxMb} MB per file untuk bagian ini.`);
+                return false;
+            }
+
+            if (selectedUploadBytes() > maxTotalUploadBytes) {
+                resetFileInput(input);
+                showUploadAlert('Total file yang dipilih terlalu besar. Maksimal 32 MB dalam satu kali pengajuan. Kurangi jumlah atau ukuran file.');
+                return false;
+            }
+
+            updateFileLabel(input);
+            return true;
+        }
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
+            window.addEventListener(eventName, (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+            });
+        });
+
         document.querySelectorAll('[data-file-input]').forEach((input) => {
-            input.addEventListener('change', () => {
-                const label = document.querySelector(`[data-file-label="${input.dataset.fileInput}"]`);
-                if (!label) return;
-                if (input.files.length === 0) {
-                    label.textContent = 'Belum ada file dipilih';
-                    return;
-                }
-                label.textContent = input.files.length === 1 ? input.files[0].name : `${input.files.length} file dipilih`;
+            input.addEventListener('change', () => validateFileInput(input));
+        });
+
+        document.querySelectorAll('[data-drop-zone]').forEach((zone) => {
+            const input = document.querySelector(`[data-file-input="${zone.dataset.dropZone}"]`);
+            if (!input) return;
+
+            ['dragenter', 'dragover'].forEach((eventName) => {
+                zone.addEventListener(eventName, () => {
+                    zone.classList.add('border-brand-accent', 'bg-brand-surface');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach((eventName) => {
+                zone.addEventListener(eventName, () => {
+                    zone.classList.remove('border-brand-accent', 'bg-brand-surface');
+                });
+            });
+
+            zone.addEventListener('drop', (event) => {
+                const droppedFiles = Array.from(event.dataTransfer?.files || []);
+                if (droppedFiles.length === 0) return;
+
+                const transfer = new DataTransfer();
+                const files = input.multiple ? droppedFiles : [droppedFiles[0]];
+                files.forEach((file) => transfer.items.add(file));
+                input.files = transfer.files;
+                validateFileInput(input);
             });
         });
     </script>
