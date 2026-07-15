@@ -111,9 +111,10 @@ COPY --from=composer-deps /app/vendor ./vendor
 # 3. Copy aset hasil compile Tailwind/Vite (PENTING!)
 COPY --from=frontend-builder /app/public/build ./public/build
 
-# Simpan salinan build di luar /public. Pada runtime, /public dipasang sebagai
-# named volume sehingga isi build dari image dapat tertutup oleh volume lama.
+# Simpan salinan build dan error page di luar /public. Pada runtime, /public
+# dipasang sebagai named volume sehingga isi dari image dapat tertutup volume lama.
 COPY --from=frontend-builder /app/public/build /opt/kegiatan-public-build
+COPY public/errors /opt/kegiatan-public-errors
 
 COPY docker/entrypoint.sh /usr/local/bin/kegiatan-entrypoint
 

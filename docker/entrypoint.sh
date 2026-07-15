@@ -21,6 +21,13 @@ if [ -d /opt/kegiatan-public-build ]; then
     chown -R www-data:www-data public/build
 fi
 
+if [ -d /opt/kegiatan-public-errors ]; then
+    echo "Syncing public error pages..."
+    rm -rf public/errors
+    cp -R /opt/kegiatan-public-errors public/errors
+    chown -R www-data:www-data public/errors
+fi
+
 if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
     echo "Running migrations..."
     php artisan migrate --force
