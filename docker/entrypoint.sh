@@ -5,7 +5,6 @@ set -e
 cd /var/www/html
 
 echo "Preparing storage..."
-
 mkdir -p \
     storage/framework/cache/data \
     storage/framework/views \
@@ -14,18 +13,27 @@ mkdir -p \
 
 chown -R www-data:www-data storage bootstrap/cache
 
-if [ -d /opt/kegiatan-public-build ]; then
-    echo "Syncing public build assets..."
-    rm -rf public/build
-    cp -R /opt/kegiatan-public-build public/build
-    chown -R www-data:www-data public/build
-fi
+# HANYA JALAN DI PRODUCTION
+# Di environment local, kita lewati karena folder public akan dilink via Bind Mount Docker
+if [ "$APP_ENV" != "local" ]; then
+    if [ -d /opt/kegiatan-public-build ]; then
+        echo "Syncing public build assets..."
+        rm -rf public/build
+        cp -R /opt/kegiatan-public-build public/build
+        chown -R www-data:www-data public/build
+    fi
 
-if [ -d /opt/kegiatan-public-errors ]; then
-    echo "Syncing public error pages..."
-    rm -rf public/errors
-    cp -R /opt/kegiatan-public-errors public/errors
-    chown -R www-data:www-data public/errors
+    if [ -d /opt/kegiatan-public-errors ]; then
+        echo "Syncing public error pages..."
+        rm -rf public/errors
+        cp -R /opt/kegiatan-public-errors public/errors
+        chown -R www-data:www-data public/errors
+    fi
+else
+    echo "Local environment detected. Skipping asset copy from /opt."
+    # Membersihkan cache bawaan Laravel sangat disarankan untuk dev
+    echo "Clearing Laravel caches..."
+    php artisan optimize:clear
 fi
 
 echo "Creating storage symlink..."

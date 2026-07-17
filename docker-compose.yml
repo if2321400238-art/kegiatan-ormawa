@@ -1,17 +1,16 @@
 services:
-
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: kegiatan-app
-    restart: always
+    container_name: kegiatan-app-dev
+    restart: unless-stopped
     working_dir: /var/www/html
     environment:
-      APP_ENV: production
-      APP_URL: https://fordev11.tech
-      SESSION_SECURE_COOKIE: "true"
-      APP_DEBUG: "false"
+      APP_ENV: local
+      APP_URL: http://localhost:${APP_PORT:-8000}
+      SESSION_SECURE_COOKIE: "false"
+      APP_DEBUG: "true"
       APP_KEY: ${APP_KEY}
       DB_CONNECTION: mysql
       DB_HOST: mysql
@@ -25,21 +24,21 @@ services:
       UNUJA_API_PASSWORD: ${UNUJA_API_PASSWORD:-}
       UNUJA_API_KEY_HEADER: ${UNUJA_API_KEY_HEADER:-unujasimptapikey}
       UNUJA_API_TIMEOUT: ${UNUJA_API_TIMEOUT:-10}
-      RUN_MIGRATIONS: "true"
-    # Port 5173 dicopot total. Volume lokal dicopot agar container mandiri & secure.
+      # RUN_MIGRATIONS: "true" # Opsional di dev, biasanya developer run 'php artisan migrate' manual
+    ports:
+      - "5173:5173" # Dibuka kembali untuk Vite (Hot Module Replacement / Live Reload)
     volumes:
-      - storage_data:/var/www/html/storage
-      - assets_data:/var/www/html/public
+      - .:/var/www/html # Bind mount: Ubah kode di komputer, langsung berubah di container
     depends_on:
       mysql:
         condition: service_healthy
 
   nginx:
-    image: nginx:1.28-alpine
-    container_name: kegiatan-nginx
-    restart: always
+    image: nginx:alpine
+    container_name: kegiatan-nginx-dev
+    restart: unless-stopped
     ports:
-      - "127.0.0.1:${APP_PORT:-8000}:80"
+      - "${APP_PORT:-8000}:80" # Hapus 127.0.0.1 agar bisa diakses dari device lain di satu WiFi (misal HP)
     volumes:
       # Nginx mengambil aset statis (CSS/JS) langsung dari image app melalui volume bersama
       - assets_data:/var/www/html/public
@@ -52,23 +51,22 @@ services:
 
   mysql:
     image: mysql:8.4
-    container_name: kegiatan-mysql
-    restart: always
+    container_name: kegiatan-mysql-dev
+    restart: unless-stopped
     ports:
-      - "127.0.0.1:${MYSQL_PORT:-3307}:3306" # Hanya bisa diakses dari localhost server demi keamanan
+      - "${MYSQL_PORT:-3306}:3306" # Menggunakan port default 3306 agar mudah konek via DBeaver / Navicat
     environment:
       MYSQL_DATABASE: ${DB_DATABASE:-ormawa_db}
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot --silent"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 30s
+      retries: 5
+      start_period: 10s
 
 volumes:
   mysql_data:
-  storage_data:   # Untuk menyimpan file upload agar tidak hilang saat container update
-  assets_data:    # Menghubungkan public asset antara App dan Nginx
+  # storage_data dan assets_data dihapus karena di development kita menggunakan Bind Mount (volume lokal)
