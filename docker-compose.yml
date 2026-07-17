@@ -43,6 +43,8 @@ services:
     volumes:
       # Nginx mengambil aset statis (CSS/JS) langsung dari image app melalui volume bersama
       - assets_data:/var/www/html/public
+      # Nginx butuh mount storage agar file upload bisa diakses
+      - storage_data:/var/www/html/storage
       # File konfigurasi nginx production kamu
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:

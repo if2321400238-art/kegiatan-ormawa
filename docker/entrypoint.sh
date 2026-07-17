@@ -28,6 +28,9 @@ if [ -d /opt/kegiatan-public-errors ]; then
     chown -R www-data:www-data public/errors
 fi
 
+echo "Creating storage symlink..."
+php artisan storage:link --force
+
 if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
     echo "Running migrations..."
     php artisan migrate --force

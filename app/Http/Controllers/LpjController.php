@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Storage;
 
 class LpjController extends Controller
 {
+    private const NOTIFICATION_CHANNELS = ['telegram', 'email', 'in_app'];
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -222,9 +224,46 @@ class LpjController extends Controller
         if ($lpj->status !== 'diajukan') {
             return;
         }
-        foreach (User::where('role', 'bauak')->where('is_active', true)->get() as $user) {
-            sendNotification($user, 'LPJ Menunggu Verifikasi', "LPJ kegiatan '{$lpj->pengajuan->judul_kegiatan}' telah diajukan.", 'info', route('lpj.show', $lpj), ['in_app']);
+
+        $lpj->loadMissing('pengajuan.ormawa.user');
+        $link = route('lpj.show', $lpj);
+
+        foreach ($this->organizationRecipients($lpj) as $user) {
+            sendNotification(
+                $user,
+                'LPJ Diajukan',
+                "LPJ kegiatan '{$lpj->pengajuan->judul_kegiatan}' telah diajukan ke BAUAK dan berstatus Menunggu Verifikasi.",
+                'info',
+                $link,
+                self::NOTIFICATION_CHANNELS
+            );
         }
+
+        foreach (User::where('role', User::ROLE_BAUAK)->where('is_active', true)->get() as $user) {
+            sendNotification(
+                $user,
+                'LPJ Menunggu Verifikasi',
+                "LPJ kegiatan '{$lpj->pengajuan->judul_kegiatan}' telah diajukan.",
+                'info',
+                $link,
+                self::NOTIFICATION_CHANNELS
+            );
+        }
+    }
+
+    private function organizationRecipients(LaporanPertanggungjawaban $lpj)
+    {
+        $ormawa = $lpj->pengajuan->ormawa;
+
+        return collect([$ormawa->user])
+            ->merge($ormawa->users()
+                ->wherePivot('status', true)
+                ->where('users.role', User::ROLE_MAHASISWA)
+                ->where('users.is_active', true)
+                ->get())
+            ->filter(fn ($user) => $user && $user->is_active)
+            ->unique('id')
+            ->values();
     }
 
     private function ormawaId(Request $request): ?int
