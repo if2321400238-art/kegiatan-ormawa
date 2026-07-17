@@ -4,7 +4,7 @@
     {{-- Welcome Section --}}
     <div class="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-[22px] font-bold text-gray-900 mb-1">Halo, {{ auth()->user()->nama }}! 👋</h1>
+            <h1 class="text-[22px] font-bold text-gray-900 mb-1">Halo, {{ auth()->user()->nama }}! </h1>
             <p class="text-[13px] text-gray-500">Selamat datang di portal Sistem Ormawa Universitas Nurul Jadid</p>
         </div>
     </div>
@@ -15,14 +15,14 @@
             <div class="flex items-center gap-2 mb-4">
                 <h2 class="text-[16px] font-bold text-gray-900">Organisasi Aktif</h2>
             </div>
-            
+
             <div class="bg-white rounded-xl border border-[#6C63FF]/30 p-6 shadow-sm flex flex-col md:flex-row md:items-center gap-6 relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-[#EEF2FF] rounded-bl-full -z-10 opacity-50"></div>
-                
+
                 <div class="w-16 h-16 rounded-xl bg-[#1E3A6E] text-white flex items-center justify-center flex-shrink-0 text-3xl shadow-md">
                     <i class="ti ti-building-community"></i>
                 </div>
-                
+
                 <div class="flex-1">
                     <div class="flex items-center gap-3 mb-1">
                         <h3 class="text-xl font-bold text-gray-900">{{ $activeOrmawa->nama_ormawa }}</h3>
@@ -40,13 +40,13 @@
                         @endphp
                         <span class="badge {{ $badgeClass }} text-[12px] px-3 py-1">{{ ucwords(str_replace('_', ' ', $activeJabatan)) }}</span>
                     </div>
-                    
+
                     @if($activeOrmawa->periode)
                         <p class="text-[13px] text-gray-500 mb-3"><i class="ti ti-calendar-time mr-1"></i> Periode Kepengurusan: <span class="font-semibold text-gray-700">{{ $activeOrmawa->periode }}</span></p>
                     @else
                         <p class="text-[13px] text-gray-500 mb-3"><i class="ti ti-user mr-1"></i> Ketua: <span class="font-semibold text-gray-700">{{ $activeOrmawa->ketua }}</span></p>
                     @endif
-                    
+
                     <div class="flex flex-wrap gap-4 text-[13px]">
                         <div class="flex items-center gap-1.5 text-gray-600">
                             <div class="w-6 h-6 rounded bg-gray-100 flex items-center justify-center text-gray-500"><i class="ti ti-users text-sm"></i></div>
@@ -58,7 +58,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 @if($activeJabatan === 'ketua')
                     <div class="flex flex-col sm:flex-row gap-2 md:ml-auto w-full md:w-auto mt-4 md:mt-0">
                         <a href="{{ route('pengajuan.index') }}" class="px-5 py-2.5 bg-[#1E3A6E] text-white rounded-lg text-[13px] font-medium hover:bg-[#2D5196] transition-colors shadow-sm flex items-center justify-center gap-2">
