@@ -31,7 +31,7 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 });
 
 Route::post('/telegram/webhook', [TelegramConnectionController::class, 'webhook'])
