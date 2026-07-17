@@ -46,7 +46,7 @@ services:
       # Nginx butuh mount storage agar file upload bisa diakses
       - storage_data:/var/www/html/storage
       # File konfigurasi nginx production kamu
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./docker/nginx/prod.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - app
 
