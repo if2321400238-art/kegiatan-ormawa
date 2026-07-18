@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'permission' => \App\Http\Middleware\PermissionMiddleware::class,
             'ormawa.complete' => \App\Http\Middleware\CheckOrmawaComplete::class,
             'log.activity' => \App\Http\Middleware\LogActivity::class,
             'active.ormawa' => \App\Http\Middleware\EnsureActiveOrmawa::class,

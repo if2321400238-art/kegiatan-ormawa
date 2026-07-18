@@ -16,11 +16,17 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
 
-                    @if (auth()->user()->role === 'bauak')
+                    @can('pengajuan.view')
                         <x-nav-link :href="route('pengajuan.index')" :active="request()->routeIs('pengajuan.*')">
                             Daftar Pengajuan
                         </x-nav-link>
-                    @endif
+                    @endcan
+
+                    @can('rbac.manage')
+                        <x-nav-link :href="route('admin.rbac.index')" :active="request()->routeIs('admin.rbac.*')">
+                            RBAC
+                        </x-nav-link>
+                    @endcan
                 </div>
             </div>
 
@@ -176,11 +182,17 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
 
-            @if (auth()->user()->role === 'bauak')
+            @can('pengajuan.view')
                 <x-responsive-nav-link :href="route('pengajuan.index')" :active="request()->routeIs('pengajuan.*')">
                     Daftar Pengajuan
                 </x-responsive-nav-link>
-            @endif
+            @endcan
+
+            @can('rbac.manage')
+                <x-responsive-nav-link :href="route('admin.rbac.index')" :active="request()->routeIs('admin.rbac.*')">
+                    RBAC
+                </x-responsive-nav-link>
+            @endcan
         </div>
 
         <!-- Responsive Settings Options -->

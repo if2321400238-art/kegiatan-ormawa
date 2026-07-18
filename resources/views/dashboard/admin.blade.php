@@ -135,23 +135,38 @@
                     <h3 class="text-[15px] font-semibold text-gray-900">Aksi Cepat</h3>
                 </div>
                 <div class="p-4 grid grid-cols-2 gap-3">
-                    <a href="{{ route('admin.ormawa.index') }}" class="quick-action-card p-4 !border-gray-100 hover:!border-brand-accent/30 block">
-                        <div class="qa-icon bg-brand">
-                            <i class="ti ti-building-community"></i>
-                        </div>
-                        <div class="qa-arrow"><i class="ti ti-arrow-right"></i></div>
-                        <p class="qa-title text-[13px]">Ormawa</p>
-                        <p class="qa-desc text-[11px]">Kelola ormawa</p>
-                    </a>
+                    @can('ormawa.manage')
+                        <a href="{{ route('admin.ormawa.index') }}" class="quick-action-card p-4 !border-gray-100 hover:!border-brand-accent/30 block">
+                            <div class="qa-icon bg-brand">
+                                <i class="ti ti-building-community"></i>
+                            </div>
+                            <div class="qa-arrow"><i class="ti ti-arrow-right"></i></div>
+                            <p class="qa-title text-[13px]">Ormawa</p>
+                            <p class="qa-desc text-[11px]">Kelola ormawa</p>
+                        </a>
+                    @endcan
 
-                    <a href="{{ route('pengajuan.index') }}" class="quick-action-card p-4 !border-gray-100 hover:!border-brand-accent/30 block">
-                        <div class="qa-icon bg-success">
-                            <i class="ti ti-file-plus"></i>
-                        </div>
-                        <div class="qa-arrow bg-success-light text-success"><i class="ti ti-arrow-right"></i></div>
-                        <p class="qa-title text-[13px]">Pengajuan</p>
-                        <p class="qa-desc text-[11px]">Lihat daftar</p>
-                    </a>
+                    @can('pengajuan.view')
+                        <a href="{{ route('pengajuan.index') }}" class="quick-action-card p-4 !border-gray-100 hover:!border-brand-accent/30 block">
+                            <div class="qa-icon bg-success">
+                                <i class="ti ti-file-plus"></i>
+                            </div>
+                            <div class="qa-arrow bg-success-light text-success"><i class="ti ti-arrow-right"></i></div>
+                            <p class="qa-title text-[13px]">Pengajuan</p>
+                            <p class="qa-desc text-[11px]">Lihat daftar</p>
+                        </a>
+                    @endcan
+
+                    @can('rbac.manage')
+                        <a href="{{ route('admin.rbac.index') }}" class="quick-action-card p-4 !border-gray-100 hover:!border-brand-accent/30 block">
+                            <div class="qa-icon bg-warning">
+                                <i class="ti ti-shield-lock"></i>
+                            </div>
+                            <div class="qa-arrow bg-warning-light text-warning"><i class="ti ti-arrow-right"></i></div>
+                            <p class="qa-title text-[13px]">RBAC</p>
+                            <p class="qa-desc text-[11px]">Role & izin</p>
+                        </a>
+                    @endcan
                 </div>
             </div>
 

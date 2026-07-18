@@ -1,32 +1,31 @@
 <?php
 
-use App\Http\Controllers\{
-    DashboardController,
-    PengajuanKegiatanController,
-    VerifikasiBauakController,
-    PersetujuanKaprodiController,
-    PersetujuanDekanController,
-    PersetujuanRektorController,
-    PersetujuanPpController,
-    PersetujuanWarek3Controller,
-    NotifikasiController,
-    ProfileController,
-    OrmawaController,
-    OrmawaAnggotaController,
-    FakultasController,
-    DekanController,
-    MahasiswaController,
-    AkademikController,
-    ProgramStudiController,
-    KaprodiController,
-    MahasiswaDashboardController,
-    LpjController,
-    VerifikasiLpjController,
-    TelegramConnectionController,
-    LaporanController,
-    Proposal\ProposalController,
-    Dekan\OrmawaFakultasController
-};
+use App\Http\Controllers\AkademikController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Dekan\OrmawaFakultasController;
+use App\Http\Controllers\DekanController;
+use App\Http\Controllers\FakultasController;
+use App\Http\Controllers\KaprodiController;
+use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\LpjController;
+use App\Http\Controllers\MahasiswaController;
+use App\Http\Controllers\MahasiswaDashboardController;
+use App\Http\Controllers\NotifikasiController;
+use App\Http\Controllers\OrmawaAnggotaController;
+use App\Http\Controllers\OrmawaController;
+use App\Http\Controllers\PengajuanKegiatanController;
+use App\Http\Controllers\PersetujuanDekanController;
+use App\Http\Controllers\PersetujuanKaprodiController;
+use App\Http\Controllers\PersetujuanPpController;
+use App\Http\Controllers\PersetujuanRektorController;
+use App\Http\Controllers\PersetujuanWarek3Controller;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ProgramStudiController;
+use App\Http\Controllers\Proposal\ProposalController;
+use App\Http\Controllers\RbacController;
+use App\Http\Controllers\TelegramConnectionController;
+use App\Http\Controllers\VerifikasiBauakController;
+use App\Http\Controllers\VerifikasiLpjController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -38,7 +37,7 @@ Route::post('/telegram/webhook', [TelegramConnectionController::class, 'webhook'
     ->name('telegram.webhook');
 
 // Auth routes (handled by Laravel Breeze)
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
 
 // Protected routes
 Route::middleware(['auth', 'password.changed'])->group(function () {
@@ -63,8 +62,6 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         Route::post('/read-all', [NotifikasiController::class, 'markAllAsRead'])->name('read-all');
     });
 
-
-
     // ==========================================
     // LAPORAN PERTANGGUNGJAWABAN
     Route::middleware('role:ormawa|mahasiswa|bauak|kaprodi|dekan|warek3|rektor|pp|admin')
@@ -87,38 +84,34 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
             ->parameters(['proposal-kegiatan' => 'proposal']);
     });
 
-    
     Route::middleware(['auth', 'role:ormawa|bauak|kaprodi|dekan|warek3|rektor|admin|pp|mahasiswa'])
-    ->prefix('pengajuan')
-    ->name('pengajuan.')
-    ->group(function () {
+        ->prefix('pengajuan')
+        ->name('pengajuan.')
+        ->group(function () {
 
-        // INDEX
-        Route::get('/', [PengajuanKegiatanController::class, 'index'])->name('index');
+            // INDEX
+            Route::get('/', [PengajuanKegiatanController::class, 'index'])->name('index');
 
-        // CREATE harus di atas route dinamis
-        Route::middleware(['role:ormawa|mahasiswa', 'ormawa.complete', 'active.ormawa'])->group(function () {
-            Route::get('/create', [PengajuanKegiatanController::class, 'create'])->name('create');
-            Route::post('/', [PengajuanKegiatanController::class, 'store'])->name('store');
+            // CREATE harus di atas route dinamis
+            Route::middleware(['role:ormawa|mahasiswa', 'ormawa.complete', 'active.ormawa'])->group(function () {
+                Route::get('/create', [PengajuanKegiatanController::class, 'create'])->name('create');
+                Route::post('/', [PengajuanKegiatanController::class, 'store'])->name('store');
+            });
+
+            // ROUTE DINAMIS TARUH PALING BAWAH
+            Route::get('/{pengajuan}', [PengajuanKegiatanController::class, 'show'])->name('show');
+
+            Route::middleware(['role:ormawa|mahasiswa', 'ormawa.complete', 'active.ormawa'])->group(function () {
+                Route::get('/{pengajuan}/edit', [PengajuanKegiatanController::class, 'edit'])->name('edit');
+                Route::patch('/{pengajuan}', [PengajuanKegiatanController::class, 'update'])->name('update');
+            });
+
+            // Export & Print
+            Route::get('/export/csv', [PengajuanKegiatanController::class, 'exportCSV'])->name('exportCSV');
+            Route::get('/print/view', [PengajuanKegiatanController::class, 'printView'])->name('printView');
         });
-
-        // ROUTE DINAMIS TARUH PALING BAWAH
-        Route::get('/{pengajuan}', [PengajuanKegiatanController::class, 'show'])->name('show');
-
-        Route::middleware(['role:ormawa|mahasiswa', 'ormawa.complete', 'active.ormawa'])->group(function () {
-            Route::get('/{pengajuan}/edit', [PengajuanKegiatanController::class, 'edit'])->name('edit');
-            Route::patch('/{pengajuan}', [PengajuanKegiatanController::class, 'update'])->name('update');
-        });
-
-        // Export & Print
-        Route::get('/export/csv', [PengajuanKegiatanController::class, 'exportCSV'])->name('exportCSV');
-        Route::get('/print/view', [PengajuanKegiatanController::class, 'printView'])->name('printView');
-    });
-
 
     // ==========================================
-
-
 
     // ==========================================
     // KAPRODI ROUTES
@@ -283,6 +276,17 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
         Route::get('mahasiswa', [MahasiswaController::class, 'index'])->name('mahasiswa.index');
         Route::post('mahasiswa/{mahasiswa}/reset-password', [MahasiswaController::class, 'resetPassword'])
             ->name('mahasiswa.reset-password');
+
+        Route::middleware('permission:rbac.manage')->prefix('rbac')->name('rbac.')->group(function () {
+            Route::get('/', [RbacController::class, 'index'])->name('index');
+            Route::get('/users', [RbacController::class, 'users'])->name('users');
+            Route::patch('/users/{user}', [RbacController::class, 'updateUser'])->name('users.update');
+            Route::get('/roles/create', [RbacController::class, 'create'])->name('roles.create');
+            Route::post('/roles', [RbacController::class, 'store'])->name('roles.store');
+            Route::get('/roles/{role}/edit', [RbacController::class, 'edit'])->name('roles.edit');
+            Route::patch('/roles/{role}', [RbacController::class, 'update'])->name('roles.update');
+            Route::delete('/roles/{role}', [RbacController::class, 'destroy'])->name('roles.destroy');
+        });
 
         // Untuk admin juga bisa akses semua resource
         Route::resource('pengajuan', PengajuanKegiatanController::class);

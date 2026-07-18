@@ -49,47 +49,56 @@
                     <span>Dashboard</span>
                 </a>
 
-                @if (auth()->user()->isAdmin())
+                @canany(['ormawa.manage', 'akademik.manage', 'mahasiswa.manage', 'rbac.manage'])
                     <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Master Data</div>
-                    <a href="{{ route('admin.ormawa.index') }}" class="nav-item {{ request()->routeIs('admin.ormawa.*') ? 'active' : '' }}">
-                        <div class="nav-icon"><i class="ti ti-building-community"></i></div>
-                        <span>Kelola Ormawa</span>
-                    </a>
-                    <a href="{{ route('admin.akademik.index') }}" class="nav-item {{ request()->routeIs('admin.akademik.*','admin.fakultas.*','admin.dekan.*','admin.prodi.*','admin.kaprodi.*') ? 'active' : '' }}">
-                        <div class="nav-icon"><i class="ti ti-school"></i></div>
-                        <span>Kelola Akademik</span>
-                    </a>
-                    <a href="{{ route('admin.mahasiswa.index') }}" class="nav-item {{ request()->routeIs('admin.mahasiswa.*') ? 'active' : '' }}">
-                        <div class="nav-icon"><i class="ti ti-id-badge-2"></i></div>
-                        <span>Mahasiswa Tersinkron</span>
-                    </a>
-                @endif
+                    @can('ormawa.manage')
+                        @if (auth()->user()->isAdmin())
+                            <a href="{{ route('admin.ormawa.index') }}" class="nav-item {{ request()->routeIs('admin.ormawa.*') ? 'active' : '' }}">
+                                <div class="nav-icon"><i class="ti ti-building-community"></i></div>
+                                <span>Kelola Ormawa</span>
+                            </a>
+                        @endif
+                    @endcan
+                    @can('akademik.manage')
+                        <a href="{{ route('admin.akademik.index') }}" class="nav-item {{ request()->routeIs('admin.akademik.*','admin.fakultas.*','admin.dekan.*','admin.prodi.*','admin.kaprodi.*') ? 'active' : '' }}">
+                            <div class="nav-icon"><i class="ti ti-school"></i></div>
+                            <span>Kelola Akademik</span>
+                        </a>
+                    @endcan
+                    @can('mahasiswa.manage')
+                        <a href="{{ route('admin.mahasiswa.index') }}" class="nav-item {{ request()->routeIs('admin.mahasiswa.*') ? 'active' : '' }}">
+                            <div class="nav-icon"><i class="ti ti-id-badge-2"></i></div>
+                            <span>Mahasiswa Tersinkron</span>
+                        </a>
+                    @endcan
+                    @can('rbac.manage')
+                        <a href="{{ route('admin.rbac.index') }}" class="nav-item {{ request()->routeIs('admin.rbac.*') ? 'active' : '' }}">
+                            <div class="nav-icon"><i class="ti ti-shield-lock"></i></div>
+                            <span>Kelola RBAC</span>
+                        </a>
+                    @endcan
+                @endcanany
 
-                @if (auth()->user()->isOrmawa())
+                @canany(['pengajuan.view', 'lpj.view'])
                     <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Kegiatan</div>
-                    <a href="{{ route('pengajuan.index') }}" class="nav-item {{ request()->routeIs('pengajuan.*') ? 'active' : '' }}">
-                        <div class="nav-icon"><i class="ti ti-file-description"></i></div>
-                        <span>Pengajuan</span>
-                    </a>
-                    <a href="{{ route('lpj.index') }}" class="nav-item {{ request()->routeIs('lpj.*') ? 'active' : '' }}">
-                        <div class="nav-icon"><i class="ti ti-report"></i></div><span>LPJ Kegiatan</span>
-                    </a>
-                @endif
+                    @can('pengajuan.view')
+                        <a href="{{ route('pengajuan.index') }}" class="nav-item {{ request()->routeIs('pengajuan.*') ? 'active' : '' }}">
+                            <div class="nav-icon"><i class="ti ti-file-description"></i></div>
+                            <span>{{ auth()->user()->isMahasiswa() ? 'Kelola Pengajuan' : 'Pengajuan' }}</span>
+                        </a>
+                    @endcan
+                    @can('lpj.view')
+                        <a href="{{ route('lpj.index') }}" class="nav-item {{ request()->routeIs('lpj.*') ? 'active' : '' }}">
+                            <div class="nav-icon"><i class="ti ti-report"></i></div><span>LPJ Kegiatan</span>
+                        </a>
+                    @endcan
+                @endcanany
 
                 @if (auth()->user()->isMahasiswa())
                     @php
                         $activeOrmawaSidebar = \App\Http\Controllers\MahasiswaDashboardController::getActiveOrmawa();
                         $jabatanSidebar = $activeOrmawaSidebar ? $activeOrmawaSidebar->anggota()->where('user_id', auth()->id())->first()?->jabatan : null;
                     @endphp
-                    <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Kegiatan</div>
-                    <a href="{{ route('pengajuan.index') }}" class="nav-item {{ request()->routeIs('pengajuan.*') ? 'active' : '' }}">
-                        <div class="nav-icon"><i class="ti ti-file-description"></i></div>
-                        <span>Kelola Pengajuan</span>
-                    </a>
-                    <a href="{{ route('lpj.index') }}" class="nav-item {{ request()->routeIs('lpj.*') ? 'active' : '' }}">
-                        <div class="nav-icon"><i class="ti ti-report"></i></div><span>LPJ Kegiatan</span>
-                    </a>
-                    
                     @if($activeOrmawaSidebar && in_array($jabatanSidebar, ['ketua', 'wakil_ketua']))
                         <a href="{{ route('ormawa.anggota.index', $activeOrmawaSidebar->id) }}" class="nav-item {{ request()->routeIs('ormawa.anggota.*') ? 'active' : '' }}">
                             <div class="nav-icon"><i class="ti ti-users"></i></div>
@@ -98,25 +107,29 @@
                     @endif
                 @endif
 
-                @if (auth()->user()->isBauak())
+                @canany(['approval.bauak', 'lpj.verify', 'ormawa.manage'])
                     <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Tugas Saya</div>
-                    <a href="{{ route('bauak.verifikasi.index') }}" class="nav-item {{ request()->routeIs('bauak.verifikasi.*') ? 'active' : '' }}">
-                        <div class="nav-icon"><i class="ti ti-clipboard-check"></i></div>
-                        <span>Verifikasi BAUAK</span>
-                    </a>
-                    <a href="{{ route('bauak.lpj.index') }}" class="nav-item {{ request()->routeIs('bauak.lpj.*') ? 'active' : '' }}">
-                        <div class="nav-icon"><i class="ti ti-report-search"></i></div><span>Verifikasi LPJ</span>
-                    </a>
-                    <a href="{{ route('pengajuan.index') }}" class="nav-item {{ request()->routeIs('pengajuan.*') ? 'active' : '' }}">
-                        <div class="nav-icon"><i class="ti ti-file-description"></i></div>
-                        <span>Semua Pengajuan</span>
-                    </a>
-                    <a href="{{ route('bauak.ormawa.index') }}" class="nav-item {{ request()->routeIs('bauak.ormawa.*') ? 'active' : '' }}">
-                        <div class="nav-icon"><i class="ti ti-file-plus"></i></div>
-                        <span>Data Ormawa</span>
-                    </a>
-                @endif
-                @if (auth()->user()->isKaprodi())
+                    @can('approval.bauak')
+                        <a href="{{ route('bauak.verifikasi.index') }}" class="nav-item {{ request()->routeIs('bauak.verifikasi.*') ? 'active' : '' }}">
+                            <div class="nav-icon"><i class="ti ti-clipboard-check"></i></div>
+                            <span>Verifikasi BAUAK</span>
+                        </a>
+                    @endcan
+                    @can('lpj.verify')
+                        <a href="{{ route('bauak.lpj.index') }}" class="nav-item {{ request()->routeIs('bauak.lpj.*') ? 'active' : '' }}">
+                            <div class="nav-icon"><i class="ti ti-report-search"></i></div><span>Verifikasi LPJ</span>
+                        </a>
+                    @endcan
+                    @can('ormawa.manage')
+                        @if (auth()->user()->isBauak())
+                            <a href="{{ route('bauak.ormawa.index') }}" class="nav-item {{ request()->routeIs('bauak.ormawa.*') ? 'active' : '' }}">
+                                <div class="nav-icon"><i class="ti ti-file-plus"></i></div>
+                                <span>Data Ormawa</span>
+                            </a>
+                        @endif
+                    @endcan
+                @endcanany
+                @can('approval.kaprodi')
                     <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Tugas Saya</div>
                     <a href="{{ route('kaprodi.persetujuan.index') }}" class="nav-item {{ request()->routeIs('kaprodi.persetujuan.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-clipboard-check"></i></div>
@@ -126,9 +139,9 @@
                         <div class="nav-icon"><i class="ti ti-users"></i></div>
                         <span>Ormawa Prodi</span>
                     </a>
-                @endif
+                @endcan
 
-                @if (auth()->user()->isDekan())
+                @can('approval.dekan')
                     <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Tugas Saya</div>
                     <a href="{{ route('dekan.persetujuan.index') }}" class="nav-item {{ request()->routeIs('dekan.persetujuan.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-clipboard-check"></i></div>
@@ -138,42 +151,40 @@
                         <div class="nav-icon"><i class="ti ti-school"></i></div>
                         <span>Daftar Ormawa</span>
                     </a>
-                @endif
+                @endcan
 
-                @if (auth()->user()->isWarek3())
+                @can('approval.warek3')
                     <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Persetujuan</div>
                     <a href="{{ route('warek3.persetujuan.index') }}" class="nav-item {{ request()->routeIs('warek3.persetujuan.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-file-description"></i></div>
                         <span>Persetujuan Warek 3</span>
                     </a>
-                @endif
-                @if (auth()->user()->isRektor())
+                @endcan
+                @can('approval.rektor')
                     <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Persetujuan</div>
                     <a href="{{ route('rektor.persetujuan.index') }}" class="nav-item {{ request()->routeIs('rektor.persetujuan.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-clipboard-check   "></i></div>
                         <span>Persetujuan Rektor</span>
                     </a>
 
-                @endif
+                @endcan
 
-                @if (auth()->user()->isPP())
+                @can('approval.pp')
                     <div class="text-[10px] font-bold text-white/40 uppercase tracking-widest px-4 pt-4 pb-1">Persetujuan Akhir</div>
                     <a href="{{ route('pp.persetujuan.index') }}" class="nav-item {{ request()->routeIs('pp.persetujuan.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-clipboard-check"></i></div>
                         <span>Persetujuan Kepala PP</span>
                     </a>
-                    <a href="{{ route('pengajuan.index') }}" class="nav-item {{ request()->routeIs('pengajuan.*') ? 'active' : '' }}">
-                        <div class="nav-icon"><i class="ti ti-file-description"></i></div>
-                        <span>Semua Pengajuan</span>
-                    </a>
-                @endif
+                @endcan
 
-                @if (auth()->user()->isAdmin())
+                @can('lpj.view')
+                    @if (auth()->user()->isAdmin())
                     <a href="{{ route('lpj.index') }}" class="nav-item {{ request()->routeIs('lpj.*') ? 'active' : '' }}">
                         <div class="nav-icon"><i class="ti ti-report-analytics"></i></div>
                         <span>Monitoring LPJ</span>
                     </a>
-                @endif
+                    @endif
+                @endcan
 
                 {{-- User Settings Section in Sidebar for Mobile/Alternative --}}
                 <div class="mt-auto">

@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\PengajuanKegiatan;
-use App\Models\VerifikasiBauak;
-use App\Models\PersetujuanWarek3;
 use App\Models\PersetujuanDekan;
 use App\Models\PersetujuanKaprodi;
+use App\Models\PersetujuanWarek3;
+use App\Models\VerifikasiBauak;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -15,36 +15,49 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        // Route ke dashboard sesuai role
-        switch ($user->role) {
-            case 'mahasiswa':
-                return redirect()->route('mahasiswa.dashboard');
-            case 'ormawa':
-                return $this->dashboardOrmawa();
-            case 'kaprodi':
-                return $this->dashboardKaprodi();
-            case 'dekan':
-                return $this->dashboardDekan();
-            case 'bauak':
-                return $this->dashboardBauak();
-            case 'warek3':
-                return $this->dashboardWarek3();
-            case 'rektor':
-                return $this->dashboardRektor();
-            case 'pp':
-                return $this->dashboardPp();
-            case 'admin':
-                return $this->dashboardAdmin();
-            default:
-                abort(403, 'Role tidak dikenali');
+        // Dashboard mengikuti role/permission RBAC aktif. Urutan ini menjadi
+        // prioritas ketika user memiliki lebih dari satu role.
+        $dashboards = [
+            ['roles' => ['admin'], 'permissions' => ['rbac.manage', 'akademik.manage', 'mahasiswa.manage', 'ormawa.manage'], 'handler' => 'dashboardAdmin'],
+            ['roles' => ['kaprodi'], 'permissions' => ['approval.kaprodi'], 'handler' => 'dashboardKaprodi'],
+            ['roles' => ['dekan'], 'permissions' => ['approval.dekan'], 'handler' => 'dashboardDekan'],
+            ['roles' => ['bauak'], 'permissions' => ['approval.bauak', 'lpj.verify'], 'handler' => 'dashboardBauak'],
+            ['roles' => ['warek3'], 'permissions' => ['approval.warek3'], 'handler' => 'dashboardWarek3'],
+            ['roles' => ['rektor'], 'permissions' => ['approval.rektor'], 'handler' => 'dashboardRektor'],
+            ['roles' => ['pp'], 'permissions' => ['approval.pp'], 'handler' => 'dashboardPp'],
+            ['roles' => ['ormawa'], 'permissions' => ['proposal.manage'], 'handler' => 'dashboardOrmawa'],
+            ['roles' => ['mahasiswa'], 'permissions' => [], 'route' => 'mahasiswa.dashboard'],
+        ];
+
+        foreach ($dashboards as $dashboard) {
+            if ($user->hasAnyRole($dashboard['roles']) || $this->hasAnyPermission($user, $dashboard['permissions'])) {
+                if (isset($dashboard['route'])) {
+                    return redirect()->route($dashboard['route']);
+                }
+
+                return $this->{$dashboard['handler']}();
+            }
         }
+
+        abort(403, 'Role atau permission dashboard tidak dikenali');
+    }
+
+    private function hasAnyPermission($user, array $permissions): bool
+    {
+        foreach ($permissions as $permission) {
+            if ($user->hasPermissionTo($permission)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function dashboardOrmawa()
     {
         $ormawa = Auth::user()->ormawa;
 
-        if (!$ormawa) {
+        if (! $ormawa) {
             $stats = [
                 'total_pengajuan' => 0,
                 'draft' => 0,
@@ -55,6 +68,7 @@ class DashboardController extends Controller
             ];
             $recentPengajuan = collect();
             $upcomingEvents = collect();
+
             return view('dashboard.ormawa', compact('stats', 'recentPengajuan', 'upcomingEvents'))->with('warning', 'Profil Ormawa Anda belum lengkap atau belum terhubung dengan data master Ormawa. Silakan hubungi Admin.');
         }
 
@@ -68,7 +82,7 @@ class DashboardController extends Controller
                 ->where('status', 'disetujui')
                 ->count(),
             'ditolak' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->ditolak()->count(),
-            'revisi' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->whereIn('status', ['revisi_kaprodi','revisi_dekan','revisi_bauak','revisi_warek3','revisi_rektor'])->count(),
+            'revisi' => PengajuanKegiatan::where('ormawa_id', $ormawa->id)->whereIn('status', ['revisi_kaprodi', 'revisi_dekan', 'revisi_bauak', 'revisi_warek3', 'revisi_rektor'])->count(),
 
         ];
 
@@ -268,8 +282,6 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-
-
         return view('dashboard.admin', compact(
             'stats',
             'pengajuanTerbaru',
@@ -290,8 +302,7 @@ class DashboardController extends Controller
 
             ];
         }
+
         return $months;
     }
-
-
 }

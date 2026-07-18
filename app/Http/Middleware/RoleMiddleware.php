@@ -13,17 +13,13 @@ class RoleMiddleware
      */
     public function handle(Request $request, Closure $next, string $role): Response
     {
-        if (!$request->user()) {
+        if (! $request->user()) {
             return redirect()->route('login');
         }
 
-        // Check if user has the required role
-        $roles = is_array($role) ? $role : explode('|', $role);
-
-        if (!in_array($request->user()->role, $roles) && $request->user()->role !== 'admin') {
+        if (! $request->user()->hasAnyRole($role) && ! $request->user()->hasRole('admin')) {
             abort(403, 'Tidak punya akses');
         }
-
 
         return $next($request);
     }

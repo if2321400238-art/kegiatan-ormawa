@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -61,6 +62,13 @@ class User extends Authenticatable
     public function telegramConnectionCode()
     {
         return $this->hasOne(TelegramConnectionCode::class);
+    }
+
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class)
+            ->withPivot('assigned_by')
+            ->withTimestamps();
     }
 
     public function logAktivitas()
@@ -148,47 +156,47 @@ class User extends Authenticatable
 
     public function isOrmawa(): bool
     {
-        return $this->role === self::ROLE_ORMAWA;
+        return $this->hasRole(self::ROLE_ORMAWA);
     }
 
     public function isMahasiswa(): bool
     {
-        return $this->role === self::ROLE_MAHASISWA;
+        return $this->hasRole(self::ROLE_MAHASISWA);
     }
 
     public function isBauak(): bool
     {
-        return $this->role === self::ROLE_BAUAK;
+        return $this->hasRole(self::ROLE_BAUAK);
     }
 
     public function isWarek3(): bool
     {
-        return $this->role === self::ROLE_WAREK3;
+        return $this->hasRole(self::ROLE_WAREK3);
     }
 
     public function isKaprodi(): bool
     {
-        return $this->role === self::ROLE_KAPRODI;
+        return $this->hasRole(self::ROLE_KAPRODI);
     }
 
     public function isDekan(): bool
     {
-        return $this->role === self::ROLE_DEKAN;
+        return $this->hasRole(self::ROLE_DEKAN);
     }
 
     public function isRektor(): bool
     {
-        return $this->role === self::ROLE_REKTOR;
+        return $this->hasRole(self::ROLE_REKTOR);
     }
 
     public function isPP(): bool
     {
-        return $this->role === self::ROLE_PP;
+        return $this->hasRole(self::ROLE_PP);
     }
 
     public function isAdmin(): bool
     {
-        return $this->role === self::ROLE_ADMIN;
+        return $this->hasRole(self::ROLE_ADMIN);
     }
 
     public function fakultas()
@@ -203,7 +211,40 @@ class User extends Authenticatable
 
     public function hasRole(string $role): bool
     {
-        return $this->role === $role;
+        return in_array($role, $this->roleSlugs(), true);
+    }
+
+    public function hasAnyRole(array|string $roles): bool
+    {
+        $roles = is_array($roles) ? $roles : explode('|', $roles);
+
+        return ! empty(array_intersect($roles, $this->roleSlugs()));
+    }
+
+    public function hasPermissionTo(string $permission): bool
+    {
+        if ($this->hasRole(self::ROLE_ADMIN)) {
+            return true;
+        }
+
+        $this->loadMissing('roles.permissions');
+
+        return $this->roles
+            ->where('is_active', true)
+            ->flatMap->permissions
+            ->contains('slug', $permission);
+    }
+
+    public function roleSlugs(): array
+    {
+        $this->loadMissing('roles');
+
+        return collect([$this->role])
+            ->merge($this->roles->where('is_active', true)->pluck('slug'))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
     }
 
     public function hasTelegram(): bool

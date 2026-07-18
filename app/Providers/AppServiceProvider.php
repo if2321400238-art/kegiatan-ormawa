@@ -21,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Ormawa::class, OrmawaPolicy::class);
         Gate::policy(PengajuanKegiatan::class, PengajuanKegiatanPolicy::class);
 
+        Gate::before(function ($user, string $ability) {
+            return $user->hasPermissionTo($ability) ?: null;
+        });
+
         View::composer(['layouts.app', 'layouts.navigation'], function ($view) {
             if (! auth()->check()) {
                 return;
