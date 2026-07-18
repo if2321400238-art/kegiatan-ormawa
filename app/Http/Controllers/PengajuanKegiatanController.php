@@ -341,7 +341,6 @@ class PengajuanKegiatanController extends Controller
             'judul_kegiatan' => 'required|string|max:255',
             'tujuan_kegiatan' => 'required|string',
             'lokasi_kegiatan' => 'required|string|max:255',
-            'tempat_pesantren' => 'nullable|string|max:255',
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
             'ketua_pelaksana' => 'required|string|max:255',

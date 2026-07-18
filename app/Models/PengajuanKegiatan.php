@@ -28,7 +28,6 @@ class PengajuanKegiatan extends Model
         'judul_kegiatan',
         'tujuan_kegiatan',
         'lokasi_kegiatan',
-        'tempat_pesantren',
         'tanggal_mulai',
         'tanggal_selesai',
         'ketua_pelaksana',
