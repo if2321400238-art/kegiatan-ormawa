@@ -115,7 +115,6 @@ class PengajuanKegiatanController extends Controller
                 'judul_kegiatan' => $validated['judul_kegiatan'],
                 'tujuan_kegiatan' => $validated['tujuan_kegiatan'],
                 'lokasi_kegiatan' => $validated['lokasi_kegiatan'],
-                'tempat_pesantren' => $validated['tempat_pesantren'],
                 'tanggal_mulai' => $validated['tanggal_mulai'],
                 'tanggal_selesai' => $validated['tanggal_selesai'],
                 'ketua_pelaksana' => $validated['ketua_pelaksana'],

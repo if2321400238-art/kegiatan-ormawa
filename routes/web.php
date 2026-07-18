@@ -87,27 +87,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
             ->parameters(['proposal-kegiatan' => 'proposal']);
     });
 
-    // ==========================================
-    // PENGAJUAN KEGIATAN ROUTES (ORMAWA + BAUAK)
-    // ==========================================
-    // Index & Show: accessible by ORMAWA and BAUAK (controller handles filtering)
-    // Route::middleware(['auth', 'role:ormawa|bauak'])->prefix('pengajuan')->name('pengajuan.')->group(function () {
-    //     Route::get('/', [PengajuanKegiatanController::class, 'index'])->name('index');
-    //     Route::get('/{pengajuan}', [PengajuanKegiatanController::class, 'show'])->name('show');
-
-    //     // Create, Edit, Update: ORMAWA only (with complete profile)
-    //     Route::middleware('role:ormawa')->middleware('ormawa.complete')->group(function () {
-    //         Route::get('/create', [PengajuanKegiatanController::class, 'create'])->name('create');
-    //         Route::post('/', [PengajuanKegiatanController::class, 'store'])->name('store');
-    //         Route::get('/{pengajuan}/edit', [PengajuanKegiatanController::class, 'edit'])->name('edit');
-    //         Route::patch('/{pengajuan}', [PengajuanKegiatanController::class, 'update'])->name('update');
-    //     });
-
-    //     // Export & Print: accessible by both
-    //     Route::get('/export/csv', [PengajuanKegiatanController::class, 'exportCSV'])->name('exportCSV');
-    //     Route::get('/print/view', [PengajuanKegiatanController::class, 'printView'])->name('printView');
-    // });
-
+    
     Route::middleware(['auth', 'role:ormawa|bauak|kaprodi|dekan|warek3|rektor|admin|pp|mahasiswa'])
     ->prefix('pengajuan')
     ->name('pengajuan.')

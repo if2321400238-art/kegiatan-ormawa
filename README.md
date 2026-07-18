@@ -14,6 +14,23 @@ Project ini sudah disiapkan untuk berjalan di Docker dengan PHP 8.3, Composer, d
 ```bash
 docker compose up --build
 ```
+# Cara pakai antara local dan server:
+
+  # Production/server tetap:
+  ```bash
+  docker compose up -d --build
+```
+
+  # Development/lokal:
+  ```bash
+  docker compose -f docker-compose.dev.yml up -d --build
+```
+
+  Validasi :
+```bash
+  docker compose config
+  docker compose -f docker-compose.dev.yml config
+```
 
 Aplikasi akan tersedia di `http://localhost:8000`. Saat container start, entrypoint akan membuat `.env` internal container bila belum ada, membuat `APP_KEY`, menunggu MySQL siap, dan menjalankan migration.
 
