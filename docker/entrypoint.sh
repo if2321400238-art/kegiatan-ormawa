@@ -16,6 +16,10 @@ chown -R www-data:www-data storage bootstrap/cache
 # HANYA JALAN DI PRODUCTION
 # Di environment local, kita lewati karena folder public akan dilink via Bind Mount Docker
 if [ "$APP_ENV" != "local" ]; then
+    echo "Refreshing Laravel config cache..."
+    php artisan config:clear
+    php artisan config:cache
+
     if [ -d /opt/kegiatan-public-build ]; then
         echo "Syncing public build assets..."
         rm -rf public/build
