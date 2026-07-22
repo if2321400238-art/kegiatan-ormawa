@@ -13,34 +13,6 @@
         @endif
     </div>
 
-    {{-- Statistics Cards --}}
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
-        <div class="stat-card !p-4" style="--accent: #3B82F6">
-            <div class="text-[20px] font-bold text-gray-900">{{ $stats['total'] ?? 0 }}</div>
-            <div class="text-[11px] text-gray-500 font-medium">Total</div>
-        </div>
-        <div class="stat-card !p-4" style="--accent: #9CA3AF">
-            <div class="text-[20px] font-bold text-gray-700">{{ $stats['draft'] ?? 0 }}</div>
-            <div class="text-[11px] text-gray-500 font-medium">Draft</div>
-        </div>
-        <div class="stat-card !p-4" style="--accent: #F59E0B">
-            <div class="text-[20px] font-bold text-warning">{{ $stats['pending'] ?? 0 }}</div>
-            <div class="text-[11px] text-gray-500 font-medium">Menunggu Persetujuan</div>
-        </div>
-        <div class="stat-card !p-4" style="--accent: #10B981">
-            <div class="text-[20px] font-bold text-success">{{ $stats['approved'] ?? 0 }}</div>
-            <div class="text-[11px] text-gray-500 font-medium">Disetujui</div>
-        </div>
-        <div class="stat-card !p-4" style="--accent: #EF4444">
-            <div class="text-[20px] font-bold text-danger">{{ $stats['rejected'] ?? 0 }}</div>
-            <div class="text-[11px] text-gray-500 font-medium">Ditolak</div>
-        </div>
-        <div class="stat-card !p-4" style="--accent: #F97316">
-            <div class="text-[20px] font-bold text-orange">{{ $stats['revision'] ?? 0 }}</div>
-            <div class="text-[11px] text-gray-500 font-medium">Revisi</div>
-        </div>
-    </div>
-
     <div class="table-card">
         <div class="p-4 sm:p-6 border-b border-gray-100">
             {{-- Search & Filters Section --}}

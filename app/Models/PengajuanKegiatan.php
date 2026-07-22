@@ -19,6 +19,14 @@ class PengajuanKegiatan extends Model
         'ditolak_pp',
     ];
 
+    public const REVISION_STATUSES = [
+        'revisi_kaprodi',
+        'revisi_dekan',
+        'revisi_bauak',
+        'revisi_warek3',
+        'revisi_rektor',
+    ];
+
     protected $table = 'pengajuan_kegiatan';
 
     protected $fillable = [
@@ -291,13 +299,17 @@ class PengajuanKegiatan extends Model
             return in_array($this->status, [
                 'draft',
                 'menunggu_kaprodi',
-                'revisi_kaprodi',
-                'revisi_dekan',
-                'revisi_bauak',
-                'revisi_warek3',
-                'revisi_rektor',
+                ...self::REVISION_STATUSES,
                 ...self::REJECTED_STATUSES
             ]) && $this->ormawa->user_id === $user->id;
+        }
+
+        if ($user->isMahasiswa()) {
+            return in_array($this->status, self::REVISION_STATUSES, true)
+                && $user->ormawas()
+                    ->where('ormawa_id', $this->ormawa_id)
+                    ->wherePivot('status', true)
+                    ->exists();
         }
 
         return false;

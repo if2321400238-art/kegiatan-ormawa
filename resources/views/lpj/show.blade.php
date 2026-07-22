@@ -142,6 +142,36 @@
                     </table>
                 </div>
             </section>
+
+            @if($lpj->pengajuan->rab?->items->isNotEmpty())
+                <section class="rounded-xl border border-gray-200 bg-white shadow-sm">
+                    <div class="flex flex-col gap-2 border-b border-gray-100 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+                        <div>
+                            <h3 class="text-base font-semibold text-gray-900">Rencana Anggaran Awal</h3>
+                            <p class="text-sm text-gray-500">Otomatis dari pengajuan kegiatan.</p>
+                        </div>
+                        <a href="{{ route('pengajuan.rab.export', $lpj->pengajuan) }}" class="inline-flex items-center justify-center gap-2 rounded-lg bg-success px-3 py-2 text-sm font-semibold text-white hover:bg-success/90">
+                            <i class="ti ti-file-spreadsheet"></i> Export Excel
+                        </a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-[680px] w-full text-sm">
+                            <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                                <tr><th class="px-5 py-3 text-left">Uraian</th><th class="px-5 py-3 text-right">Rencana</th><th class="px-5 py-3 text-left">Keterangan</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach($lpj->pengajuan->rab->items as $item)
+                                    <tr>
+                                        <td class="px-5 py-4 font-medium text-gray-900">{{ $item->uraian }}</td>
+                                        <td class="whitespace-nowrap px-5 py-4 text-right font-medium text-gray-700">Rp {{ number_format($item->anggaran_rencana, 0, ',', '.') }}</td>
+                                        <td class="px-5 py-4 text-gray-500">{{ $item->keterangan }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            @endif
         </div>
 
         <aside class="space-y-6 xl:sticky xl:top-6 xl:self-start">

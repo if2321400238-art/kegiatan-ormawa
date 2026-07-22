@@ -12,6 +12,12 @@
         @elseif($pengajuan->lpj)
             <a href="{{ route('lpj.show',$pengajuan->lpj) }}" class="px-4 py-2 bg-brand text-white rounded-lg text-[13px] font-medium">Lihat LPJ</a>
         @endif
+        @if($pengajuan->canBeEditedBy(auth()->user()))
+            <a href="{{ route('pengajuan.edit', $pengajuan) }}"
+                class="w-full sm:w-auto px-4 py-2 bg-warning-light text-warning rounded-lg hover:bg-warning hover:text-white transition text-[13px] font-medium flex items-center justify-center gap-2">
+                <i class="ti ti-edit"></i> Edit
+            </a>
+        @endif
         <a href="{{ route('pengajuan.index') }}"
             class="w-full sm:w-auto px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition text-[13px] font-medium flex items-center justify-center gap-2">
             <i class="ti ti-arrow-left"></i> Kembali
@@ -255,6 +261,36 @@
                     </div>
                 </div>
             </div>
+
+            @if($pengajuan->rab?->items->isNotEmpty())
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                            <h3 class="text-[15px] font-bold text-gray-900 flex items-center gap-2"><i class="ti ti-cash-banknote text-brand"></i> Rencana Anggaran</h3>
+                            <p class="text-[12px] text-gray-500 mt-1">Total: {{ $pengajuan->rab->total_anggaran_formatted }}</p>
+                        </div>
+                        <a href="{{ route('pengajuan.rab.export', $pengajuan) }}" class="px-3 py-2 bg-success text-white rounded-lg text-[12px] font-medium hover:bg-success/90 transition flex items-center gap-2">
+                            <i class="ti ti-file-spreadsheet"></i> Export Excel
+                        </a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-[680px] w-full text-[13px]">
+                            <thead class="bg-gray-50 text-[11px] uppercase tracking-wide text-gray-500">
+                                <tr><th class="px-5 py-3 text-left">Uraian</th><th class="px-5 py-3 text-right">Rencana</th><th class="px-5 py-3 text-left">Keterangan</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @foreach($pengajuan->rab->items as $item)
+                                    <tr>
+                                        <td class="px-5 py-3 font-medium text-gray-900">{{ $item->uraian }}</td>
+                                        <td class="px-5 py-3 text-right text-gray-700">Rp {{ number_format($item->anggaran_rencana, 0, ',', '.') }}</td>
+                                        <td class="px-5 py-3 text-gray-500">{{ $item->keterangan }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
 
             {{-- Dokumen --}}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">

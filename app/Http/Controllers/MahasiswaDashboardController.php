@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\PengajuanHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -58,6 +59,7 @@ class MahasiswaDashboardController extends Controller
             'ormawas' => $ormawas,
             'memberOrganizations' => $memberOrganizations,
             'activeOrmawa' => $activeOrmawa,
+            'stats' => PengajuanHelper::getStats(),
         ]);
     }
 

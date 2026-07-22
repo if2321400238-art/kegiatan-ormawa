@@ -32,6 +32,11 @@ class Rab extends Model
         return $this->belongsTo(PengajuanKegiatan::class, 'pengajuan_id');
     }
 
+    public function items()
+    {
+        return $this->hasMany(RabItem::class);
+    }
+
     // ==========================================
     // ACCESSORS
     // ==========================================

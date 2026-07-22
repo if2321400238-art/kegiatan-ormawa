@@ -12,7 +12,7 @@
     <div x-data="{ tab: @js(request('tab', 'menunggu')) }" class="space-y-5">
         <div class="flex gap-5 border-b border-gray-200">
             <button @click="tab='menunggu'" :class="tab==='menunggu' ? 'border-brand text-brand' : 'border-transparent text-gray-500'" class="pb-3 border-b-2 text-[13px] font-medium">Menunggu Persetujuan ({{ $pengajuanMenunggu->total() }})</button>
-            <button @click="tab='riwayat'" :class="tab==='riwayat' ? 'border-brand text-brand' : 'border-transparent text-gray-500'" class="pb-3 border-b-2 text-[13px] font-medium">Riwayat Saya ({{ $riwayatPersetujuan->total() }})</button>
+            <button @click="tab='riwayat'" :class="tab==='riwayat' ? 'border-brand text-brand' : 'border-transparent text-gray-500'" class="pb-3 border-b-2 text-[13px] font-medium">Riwayat Persetujuan ({{ $riwayatPersetujuan->total() }})</button>
         </div>
 
         <div x-show="tab==='menunggu'" class="table-card">

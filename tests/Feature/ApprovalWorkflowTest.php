@@ -100,7 +100,6 @@ it('dosen approval for internal universitas sets menunggu_bauak and notifies bau
             'judul_kegiatan' => 'Test Kegiatan',
             'tujuan_kegiatan' => 'Tujuan test',
             'lokasi_kegiatan' => 'Lokasi Test',
-            'tempat_pesantren' => 'Pesantren Test',
             'tanggal_mulai' => now()->addDays(7)->format('Y-m-d'),
             'tanggal_selesai' => now()->addDays(8)->format('Y-m-d'),
             'ketua_pelaksana' => 'Ketua Test',

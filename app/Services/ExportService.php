@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ExportService
 {
@@ -14,7 +16,7 @@ class ExportService
         $output = fopen('php://output', 'w');
 
         header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '.csv"');
+        header(chr(67).chr(111).chr(110).chr(116).chr(101).chr(110).chr(116).chr(45).chr(68).chr(105).chr(115).chr(112).chr(111).chr(115).chr(105).chr(116).chr(105).chr(111).chr(110).chr(58).chr(32).chr(97).chr(116).chr(116).chr(97).chr(99).chr(104).chr(109).chr(101).chr(110).chr(116).chr(59).chr(32).chr(102).chr(105).chr(108).chr(101).chr(110).chr(97).chr(109).chr(101).chr(61).chr(34) . $filename . chr(46).chr(120).chr(108).chr(115).chr(120).chr(34));
         header('Pragma: no-cache');
         header('Expires: 0');
 
@@ -30,6 +32,29 @@ class ExportService
         }
 
         fclose($output);
+        exit;
+    }
+
+    public static function toExcel(array $headers, Collection $data, string $filename)
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->fromArray($headers, null, "A1");
+
+        $rowNumber = 2;
+        foreach ($data as $row) {
+            $sheet->fromArray(is_object($row) ? $row->toArray() : $row, null, "A".$rowNumber++);
+        }
+
+        foreach (range(1, count($headers)) as $column) {
+            $sheet->getColumnDimensionByColumn($column)->setAutoSize(true);
+        }
+
+        header("Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        header(chr(67).chr(111).chr(110).chr(116).chr(101).chr(110).chr(116).chr(45).chr(68).chr(105).chr(115).chr(112).chr(111).chr(115).chr(105).chr(116).chr(105).chr(111).chr(110).chr(58).chr(32).chr(97).chr(116).chr(116).chr(97).chr(99).chr(104).chr(109).chr(101).chr(110).chr(116).chr(59).chr(32).chr(102).chr(105).chr(108).chr(101).chr(110).chr(97).chr(109).chr(101).chr(61).chr(34) . $filename . chr(46).chr(120).chr(108).chr(115).chr(120).chr(34));
+        header("Cache-Control: max-age=0");
+
+        (new Xlsx($spreadsheet))->save("php://output");
         exit;
     }
 

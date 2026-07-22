@@ -80,7 +80,7 @@ class LpjController extends Controller
         $this->authorizeOwner($request, $pengajuan);
         abort_unless($pengajuan->status === 'disetujui', 422, 'LPJ hanya dapat dibuat untuk kegiatan yang telah disetujui.');
         abort_if($pengajuan->lpj()->exists(), 422, 'LPJ untuk kegiatan ini sudah tersedia.');
-        $pengajuan->load('rab');
+        $pengajuan->load('rab.items');
 
         return view('lpj.form', compact('pengajuan'));
     }
@@ -115,7 +115,7 @@ class LpjController extends Controller
     {
         $this->authorizeOwner($request, $lpj->pengajuan);
         abort_unless(in_array($lpj->status, ['draft', 'revisi']), 422, 'LPJ yang sedang diverifikasi atau telah selesai tidak dapat diubah.');
-        $lpj->load(['pengajuan.rab', 'realisasiAnggaran', 'lampiran']);
+        $lpj->load(['pengajuan.rab.items', 'realisasiAnggaran', 'lampiran']);
 
         return view('lpj.form', ['pengajuan' => $lpj->pengajuan, 'lpj' => $lpj]);
     }
@@ -150,7 +150,7 @@ class LpjController extends Controller
     public function show(Request $request, LaporanPertanggungjawaban $lpj)
     {
         $this->authorizeViewer($request, $lpj);
-        $lpj->load(['pengajuan.ormawa', 'pengajuan.rab', 'realisasiAnggaran', 'lampiran', 'versiDokumen.pengunggah', 'riwayatVerifikasi.user', 'verifikator']);
+        $lpj->load(['pengajuan.ormawa', 'pengajuan.rab.items', 'realisasiAnggaran', 'lampiran', 'versiDokumen.pengunggah', 'riwayatVerifikasi.user', 'verifikator']);
 
         return view('lpj.show', compact('lpj'));
     }

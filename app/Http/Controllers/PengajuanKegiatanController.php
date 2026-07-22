@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class PengajuanKegiatanController extends Controller
 {
@@ -22,7 +23,7 @@ class PengajuanKegiatanController extends Controller
         $query = PengajuanKegiatan::with([
             'proposal',
             'lpj',
-            'rab'
+            'rab.items'
         ]);
 
         PengajuanHelper::applyRoleFilter($query);
@@ -48,7 +49,9 @@ class PengajuanKegiatanController extends Controller
 
     public function create()
     {
-        return view('pengajuan.create');
+        $anggotaPelaksana = $this->anggotaPelaksanaOptions(PengajuanHelper::getOrmawa());
+
+        return view('pengajuan.create', compact('anggotaPelaksana'));
     }
 
     public function show(PengajuanKegiatan $pengajuan)
@@ -61,7 +64,7 @@ class PengajuanKegiatanController extends Controller
         $pengajuan->load([
             'ormawa',
             'proposal',
-            'rab',
+            'rab.items',
             'lpj',
             'persetujuanKaprodi.user',
             'verifikasiBauak.user',
@@ -83,7 +86,10 @@ class PengajuanKegiatanController extends Controller
 
         return view(
             'pengajuan.edit',
-            compact('pengajuan')
+            [
+                'pengajuan' => $pengajuan,
+                'anggotaPelaksana' => $this->anggotaPelaksanaOptions($pengajuan->ormawa),
+            ]
         );
     }
 
@@ -169,7 +175,7 @@ class PengajuanKegiatanController extends Controller
             403
         );
 
-        $validated = $this->validatePengajuan($request);
+        $validated = $this->validatePengajuan($request, false, $pengajuan->ormawa);
 
         try {
             DB::beginTransaction();
@@ -181,6 +187,9 @@ class PengajuanKegiatanController extends Controller
                         'file_rab',
                         'temp_file_proposal',
                         'temp_file_rab',
+                        'rab_uraian',
+                        'rab_anggaran_rencana',
+                        'rab_keterangan',
                     ]),
                     [
                         'updated_by_user_id' => Auth::id()
@@ -295,12 +304,27 @@ class PengajuanKegiatanController extends Controller
             $item->created_at->format('Y-m-d H:i'),
         ]);
 
-        ExportService::toCSV(
+        ExportService::toExcel(
             $headers,
             $data,
             'pengajuan-kegiatan-' .
                 now()->format('Y-m-d')
         );
+    }
+
+    public function exportRab(PengajuanKegiatan $pengajuan)
+    {
+        abort_unless(PengajuanHelper::authorizePengajuan($pengajuan), 403);
+        $pengajuan->load('rab.items');
+
+        $headers = ['Uraian', 'Rencana Anggaran', 'Keterangan'];
+        $data = $pengajuan->rab?->items->map(fn ($item) => [
+            $item->uraian,
+            $item->anggaran_rencana,
+            $item->keterangan,
+        ]) ?? new \Illuminate\Database\Eloquent\Collection();
+
+        ExportService::toExcel($headers, $data, 'rab-'.$pengajuan->id.'-'.now()->format('Y-m-d'));
     }
 
     public function printView(Request $request)
@@ -332,10 +356,11 @@ class PengajuanKegiatanController extends Controller
     /**
      * Validate pengajuan data
      */
-    private function validatePengajuan(Request $request, bool $isNew = false): array
+    private function validatePengajuan(Request $request, bool $isNew = false, $ormawa = null): array
     {
         $proposalRequired = $isNew && !$this->hasTemporaryUpload($request, 'file_proposal');
         $rabRequired = $isNew && !$this->hasTemporaryUpload($request, 'file_rab');
+        $anggotaPelaksana = $this->anggotaPelaksanaOptions($ormawa ?? PengajuanHelper::getOrmawa())->pluck('nama');
 
         return $request->validate([
             'judul_kegiatan' => 'required|string|max:255',
@@ -343,13 +368,28 @@ class PengajuanKegiatanController extends Controller
             'lokasi_kegiatan' => 'required|string|max:255',
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after_or_equal:tanggal_mulai',
-            'ketua_pelaksana' => 'required|string|max:255',
+            'ketua_pelaksana' => ['required', 'string', 'max:255', Rule::in($anggotaPelaksana)],
             'nama_pemohon' => 'required|string|max:255',
             'temp_file_proposal' => 'nullable|string',
             'temp_file_rab' => 'nullable|string',
             'file_proposal' => ($proposalRequired ? 'required' : 'nullable') . '|file|mimes:pdf,doc,docx',
             'file_rab' => ($rabRequired ? 'required' : 'nullable') . '|file|mimes:xls,xlsx,pdf',
+            'rab_uraian' => ['required', 'array', 'min:1'],
+            'rab_uraian.*' => ['required', 'string', 'max:255'],
+            'rab_anggaran_rencana' => ['required', 'array'],
+            'rab_anggaran_rencana.*' => ['required', 'numeric', 'min:0'],
+            'rab_keterangan' => ['nullable', 'array'],
+            'rab_keterangan.*' => ['nullable', 'string', 'max:1000'],
         ]);
+    }
+
+    private function anggotaPelaksanaOptions($ormawa)
+    {
+        return $ormawa?->users()
+            ->wherePivot('status', true)
+            ->orderBy('nama')
+            ->get(['users.id', 'users.nama', 'users.nim'])
+            ?? collect();
     }
 
     private function captureTemporaryUploads(Request $request): void
@@ -476,12 +516,14 @@ class PengajuanKegiatanController extends Controller
             $request->file('file_rab')->storeAs('pengajuan/rab', $filename, 'public');
         }
 
-        $pengajuan->rab()->updateOrCreate(
+        $rab = $pengajuan->rab()->updateOrCreate(
             ['pengajuan_id' => $pengajuan->id],
             [
                 'file_rab' => $path,
+                'total_anggaran' => collect($request->input('rab_anggaran_rencana', []))->sum(),
             ]
         );
+        $this->syncRabItems($rab, $request->all());
     }
 
     /**
@@ -511,6 +553,21 @@ class PengajuanKegiatanController extends Controller
             }
 
             $this->handleRabUpload($request, $pengajuan, $pengajuan->ormawa_id);
+        } elseif ($pengajuan->rab) {
+            $pengajuan->rab->update(['total_anggaran' => collect($request->input('rab_anggaran_rencana', []))->sum()]);
+            $this->syncRabItems($pengajuan->rab, $request->all());
+        }
+    }
+
+    private function syncRabItems($rab, array $data): void
+    {
+        $rab->items()->delete();
+        foreach ($data['rab_uraian'] as $i => $uraian) {
+            $rab->items()->create([
+                'uraian' => $uraian,
+                'anggaran_rencana' => $data['rab_anggaran_rencana'][$i],
+                'keterangan' => $data['rab_keterangan'][$i] ?? null,
+            ]);
         }
     }
 

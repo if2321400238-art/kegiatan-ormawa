@@ -1,6 +1,12 @@
 <x-app-layout>
     <x-slot name="title">Edit Pengajuan Kegiatan</x-slot>
 
+    @php
+        $rabItems = old('rab_uraian')
+            ? collect(old('rab_uraian'))->map(fn ($v, $i) => (object) ['uraian' => $v, 'anggaran_rencana' => old('rab_anggaran_rencana')[$i] ?? 0, 'keterangan' => old('rab_keterangan')[$i] ?? ''])
+            : ($pengajuan->rab?->items->isNotEmpty() ? $pengajuan->rab->items : collect([(object) ['uraian' => '', 'anggaran_rencana' => 0, 'keterangan' => '']]));
+    @endphp
+
     <div class="mb-6">
         <h2 class="text-lg font-semibold text-gray-900">Edit Pengajuan Kegiatan</h2>
         <p class="text-[12px] text-gray-500">Perbarui informasi pengajuan kegiatan Anda di bawah ini</p>
@@ -104,9 +110,15 @@
                                 <label for="ketua_pelaksana" class="block text-[13px] font-medium text-gray-700 mb-1">
                                     Ketua Pelaksana <span class="text-danger">*</span>
                                 </label>
-                                <input type="text" name="ketua_pelaksana" id="ketua_pelaksana" required
-                                    value="{{ old('ketua_pelaksana', $pengajuan->ketua_pelaksana) }}"
+                                <select name="ketua_pelaksana" id="ketua_pelaksana" required
                                     class="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand focus:bg-white transition-colors">
+                                    <option value="">Pilih anggota ormawa</option>
+                                    @foreach($anggotaPelaksana as $anggota)
+                                        <option value="{{ $anggota->nama }}" @selected(old('ketua_pelaksana', $pengajuan->ketua_pelaksana) === $anggota->nama)>
+                                            {{ $anggota->nama }}{{ $anggota->nim ? ' - '.$anggota->nim : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
 
                             <div>
@@ -118,6 +130,35 @@
                                     class="w-full px-4 py-2 bg-gray-100 border border-gray-200 rounded-lg text-[13px] text-gray-500 cursor-not-allowed">
                             </div>
                         </div>
+                    </div>
+
+                    {{-- Rencana Anggaran --}}
+                    <div>
+                        <h3 class="text-[15px] font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 flex items-center gap-2">
+                            <i class="ti ti-cash-banknote text-brand"></i> Rencana Anggaran
+                        </h3>
+
+                        <div class="overflow-x-auto rounded-xl border border-gray-100">
+                            <div class="min-w-[760px]">
+                                <div class="grid grid-cols-12 gap-3 bg-gray-50 px-4 py-3 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                                    <div class="col-span-4">Uraian</div>
+                                    <div class="col-span-3">Rencana (Rp)</div>
+                                    <div class="col-span-4">Keterangan</div>
+                                    <div class="col-span-1 text-center">Aksi</div>
+                                </div>
+                                <div id="rab-items" class="divide-y divide-gray-100">
+                                    @foreach($rabItems as $item)
+                                        <div class="rab-item grid grid-cols-12 gap-3 px-4 py-3">
+                                            <input name="rab_uraian[]" required value="{{ $item->uraian }}" placeholder="Contoh: Konsumsi peserta" class="col-span-4 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand">
+                                            <input type="number" min="0" step="0.01" name="rab_anggaran_rencana[]" required value="{{ $item->anggaran_rencana }}" placeholder="500000" class="col-span-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand">
+                                            <input name="rab_keterangan[]" value="{{ $item->keterangan }}" placeholder="Opsional" class="col-span-4 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand">
+                                            <button type="button" onclick="removeRabItem(this)" class="col-span-1 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"><i class="ti ti-trash"></i></button>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addRabItem()" class="mt-3 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg text-[13px] font-medium hover:bg-gray-200"><i class="ti ti-plus"></i> Tambah Item</button>
                     </div>
 
                     {{-- Dokumen --}}
@@ -178,4 +219,19 @@
             </div>
         </div>
     </div>
+    <script>
+        function addRabItem() {
+            document.getElementById('rab-items').insertAdjacentHTML('beforeend', `
+                <div class="rab-item grid grid-cols-12 gap-3 px-4 py-3">
+                    <input name="rab_uraian[]" required placeholder="Contoh: Konsumsi peserta" class="col-span-4 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand">
+                    <input type="number" min="0" step="0.01" name="rab_anggaran_rencana[]" required placeholder="500000" class="col-span-3 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand">
+                    <input name="rab_keterangan[]" placeholder="Opsional" class="col-span-4 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-[13px] focus:outline-none focus:border-brand">
+                    <button type="button" onclick="removeRabItem(this)" class="col-span-1 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"><i class="ti ti-trash"></i></button>
+                </div>`);
+        }
+
+        function removeRabItem(button) {
+            if (document.querySelectorAll('#rab-items .rab-item').length > 1) button.closest('.rab-item').remove();
+        }
+    </script>
 </x-app-layout>

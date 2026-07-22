@@ -7,12 +7,17 @@
             'anggaran_realisasi' => old('anggaran_realisasi')[$i] ?? 0,
             'keterangan' => old('keterangan')[$i] ?? '',
         ])
-        : ($editing ? $lpj->realisasiAnggaran : collect([(object) [
+        : ($editing ? $lpj->realisasiAnggaran : ($pengajuan->rab?->items->isNotEmpty() ? $pengajuan->rab->items->map(fn ($item) => (object) [
+            'uraian' => $item->uraian,
+            'anggaran_rencana' => $item->anggaran_rencana,
+            'anggaran_realisasi' => 0,
+            'keterangan' => $item->keterangan ?? '',
+        ]) : collect([(object) [
             'uraian' => '',
             'anggaran_rencana' => 0,
             'anggaran_realisasi' => 0,
             'keterangan' => '',
-        ]]));
+        ]])));
 
     $fieldClass = 'mt-1.5 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-brand-accent focus:outline-none focus:ring-2 focus:ring-brand-accent/20';
     $labelClass = 'block text-sm font-semibold text-gray-700';

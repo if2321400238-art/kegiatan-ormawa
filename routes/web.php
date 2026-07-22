@@ -109,6 +109,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
             // Export & Print
             Route::get('/export/csv', [PengajuanKegiatanController::class, 'exportCSV'])->name('exportCSV');
             Route::get('/print/view', [PengajuanKegiatanController::class, 'printView'])->name('printView');
+            Route::get('/{pengajuan}/rab/export', [PengajuanKegiatanController::class, 'exportRab'])->name('rab.export');
         });
 
     // ==========================================
