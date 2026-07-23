@@ -98,3 +98,13 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+# Perbaikan Revisi
+
+1. Pengajuan yang direvisi bisa diedit kembali oleh si pengaju
+2. Menambahkan fitur RBAC
+3. Menambahkan rencana anggaran di pengajuan kegiatan. dan otomatis muncul ketika pengajuan LPJ
+4. Nama ketua pelaksana kini merupakan nama yang terdaftar di database anggota ormawa
+5. Pebaikan kata-kata agar mudah dipahami
+6. Pemindahan Statistik kegiatan ke Dashboard Mahasiswa
+7. Pengujian alur sudah selesai
